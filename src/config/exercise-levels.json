@@ -1,0 +1,36 @@
+{
+  "levels": {
+    "pemula": {
+      "sesi_per_minggu": 3,
+      "rest_minimum_antar_kelompok_otot_jam": 48,
+      "exercises": {
+        "push_up": { "sets": 2, "reps": 8 },
+        "sit_up": { "sets": 2, "reps": 10 },
+        "squat": { "sets": 2, "reps": 10 },
+        "plank": { "sets": 2, "durasi_detik": 20 }
+      }
+    },
+    "menengah": {
+      "sesi_per_minggu": 4,
+      "rest_minimum_antar_kelompok_otot_jam": 48,
+      "exercises": {
+        "push_up": { "sets": 3, "reps": 15 },
+        "sit_up": { "sets": 3, "reps": 20 },
+        "squat": { "sets": 3, "reps": 18 },
+        "plank": { "sets": 3, "durasi_detik": 40 }
+      }
+    },
+    "profesional": {
+      "sesi_per_minggu": 5,
+      "rest_minimum_antar_kelompok_otot_jam": 48,
+      "exercises": {
+        "push_up": { "sets": 4, "reps": 25 },
+        "sit_up": { "sets": 4, "reps": 30 },
+        "squat": { "sets": 4, "reps": 25 },
+        "plank": { "sets": 4, "durasi_detik": 60 }
+      }
+    }
+  },
+  "progressive_overload_rule": "Jika user melebihi batas atas target 2 sesi berturut-turut dengan form baik, naikkan target 5-10% pada sesi berikutnya.",
+  "aturan_rest_wajib": "Minimal 1 hari istirahat penuh per minggu untuk semua level."
+}

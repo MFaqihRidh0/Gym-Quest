@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# MediaPipe runtime assets (dihasilkan oleh scripts/setup-mediapipe.mjs)
+/public/mediapipe
