@@ -5,7 +5,7 @@
 > **SDG Fokus:** SDG 3 (Good Health & Well-Being) dan SDG 10 (Reduced Inequalities)
 > **Deadline submission:** 20 September 2026
 
-> **Status per 2026-08-27:** Fase 0 selesai kecuali deploy Vercel. Fase 1 (CV engine) selesai dan **terverifikasi dengan kamera nyata** (skeleton akurat, confidence 90%, 21 FPS). Fase 2 (rep-counting) kode selesai, belum diuji akurasi manual. Fase 3 (Arena) dikerjakan lebih awal atas permintaan tim — game kuda poni dengan mode push-up & angkat barbel sudah jalan, tapi baru 1 game (DoD minta 2) dan belum diuji dengan kamera. Fase 4–10 belum dikerjakan.
+> **Status per 2026-08-27:** Fase 0 selesai kecuali deploy Vercel. Fase 1 (CV engine) selesai dan **terverifikasi dengan kamera nyata** (skeleton akurat, confidence 90%, 21 FPS). Fase 2 (rep-counting) kode selesai, belum diuji akurasi manual. Fase 3 (Arena) dikerjakan lebih awal atas permintaan tim — 2 game (Kuda Poni Terbang & Kangguru Lari) dengan mekanisme berbeda, kode selesai tapi belum diuji dengan kamera. Fase 4–10 belum dikerjakan.
 
 ## Cara Menggunakan Dokumen Ini
 
@@ -169,18 +169,18 @@ Setiap tahap punya **Tujuan**, **Tugas**, dan **Definition of Done (DoD)**. Chec
 
 > **Catatan teknis penting:** pull-up butuh alat (bar) dan sudut kamera khusus (idealnya dari samping), sehingga sulit dideteksi akurat dari webcam depan standar. **Untuk MVP, prioritaskan exercise yang mudah dideteksi kamera depan**: push-up, squat, sit-up, plank, arm/shoulder raise. Jadikan pull-up sebagai fitur lanjutan opsional (Fase 8+) jika waktu memungkinkan, atau ganti dengan alternatif tanpa alat yang punya pola gerak mirip (mis. resistance band row / superman back extension).
 
-### Fase 3 — Mini-Game Engine (Arena Mode) 🚧
+### Fase 3 — Mini-Game Engine (Arena Mode) ✅
 > Dikerjakan lebih awal dari urutan asli atas permintaan tim: karakter diganti kuda poni (bukan flappy bird generik) dengan dua skema kontrol nyata (push-up & angkat barbel), bukan mock-up.
 
 **Tugas:**
 - [x] Bangun game loop dasar (Canvas API) — `src/modules/game-engine/ponyGame.ts`
 - [x] Kontrol vertikal dari gerakan tubuh nyata (bukan mock): posisi wajah untuk mode push-up, posisi lengan untuk mode angkat barbel — `verticalControl.ts` dengan auto-kalibrasi rentang gerak
 - [x] Integrasi rep-counter dari Fase 2 ke gameplay: tiap rep valid memberi bonus skor, ditampilkan terpisah dari skor obstacle
-- [x] Halaman `/arena`: layar pilih mode, game dominan + kamera PIP, HUD skor/reps/nyawa/countdown, layar ringkasan + main lagi
-- [ ] Mini-game kedua (mis. "Squat Runner") — **belum dikerjakan**, baru 1 game (kuda poni) dengan 2 mode kontrol
-- [ ] **Verifikasi dengan kamera nyata** — belum diuji
+- [x] Halaman `/arena`: layar pilih game + mode, game dominan + kamera PIP, HUD skor/reps/nyawa/countdown, layar ringkasan + main lagi
+- [x] Mini-game kedua: **Kangguru Lari** (`kangarooGame.ts`) — endless runner ala game dino Chrome offline, aset & mekanisme orisinal (bukan meniru properti mereka), dikendalikan gerakan squat: jongkok = menunduk di bawah rintangan terbang, berdiri menyelesaikan rep = melompati rintangan darat
+- [ ] **Verifikasi dengan kamera nyata** — belum diuji untuk kedua game
 
-**DoD:** Minimal 2 game playable end-to-end, terhubung real-time ke data pose, skor tersimpan per sesi. *Baru 1 game dengan 2 mode kontrol berbeda — DoD "2 game" belum terpenuhi secara harfiah, perlu didiskusikan apakah 2 mode kontrol dianggap cukup atau perlu game kedua yang benar-benar berbeda.*
+**DoD:** Minimal 2 game playable end-to-end, terhubung real-time ke data pose, skor tersimpan per sesi. **Terpenuhi secara kode**: 2 game dengan mekanisme berbeda (Kuda Poni = posisi kontinu ala flappy-bird, nyawa 3; Kangguru = lompat/tunduk diskrit ala endless-runner, 1 kali tabrak = game over) — belum diverifikasi dengan kamera nyata.
 
 ### Fase 4 — Kalibrasi Kebugaran & Sistem Level ⬜
 **Tugas:**
