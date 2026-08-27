@@ -8,6 +8,8 @@ interface CameraStageProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   /** Ref agar overlay ikut frame kamera tanpa memicu re-render React. */
   landmarksRef: React.RefObject<PoseLandmarks | null>;
+  /** Ref status form exercise — `false` mewarnai skeleton merah. Opsional (kalibrasi tidak pakai ini). */
+  formOkRef?: React.RefObject<boolean | null>;
   scanning?: boolean;
   children?: React.ReactNode;
 }
@@ -24,7 +26,13 @@ function CornerBrackets() {
   );
 }
 
-export function CameraStage({ videoRef, landmarksRef, scanning, children }: CameraStageProps) {
+export function CameraStage({
+  videoRef,
+  landmarksRef,
+  formOkRef,
+  scanning,
+  children,
+}: CameraStageProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -56,13 +64,14 @@ export function CameraStage({ videoRef, landmarksRef, scanning, children }: Came
         sourceWidth: video.videoWidth,
         sourceHeight: video.videoHeight,
         pulsePhase: reduceMotion ? 0 : (performance.now() / 1000) * Math.PI,
+        formOk: formOkRef?.current ?? undefined,
       });
       frame = requestAnimationFrame(render);
     };
 
     frame = requestAnimationFrame(render);
     return () => cancelAnimationFrame(frame);
-  }, [videoRef, landmarksRef]);
+  }, [videoRef, landmarksRef, formOkRef]);
 
   return (
     <div className="relative flex-1 overflow-hidden bg-void">

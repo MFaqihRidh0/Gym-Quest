@@ -12,8 +12,8 @@ const MODES = [
   {
     title: 'Arena Mode',
     accent: 'magenta',
-    status: 'Segera',
-    href: null,
+    status: 'Aktif',
+    href: '/arena',
     description:
       'Mini-game yang dikendalikan gerakan tubuh nyata. Setiap repetisi dengan form benar jadi poin.',
   },
@@ -35,6 +35,12 @@ export default function Home() {
         <nav className="flex gap-5 font-body text-sm text-muted">
           <Link href="/kalibrasi" className="transition-colors hover:text-cyan">
             Kalibrasi
+          </Link>
+          <Link href="/exercise" className="transition-colors hover:text-cyan">
+            Exercise
+          </Link>
+          <Link href="/arena" className="transition-colors hover:text-magenta">
+            Arena
           </Link>
         </nav>
       </header>
@@ -75,7 +81,11 @@ export default function Home() {
                   </h2>
                   <span
                     className={`clip-corner px-2 py-0.5 font-mono text-[10px] tracking-wider uppercase ${
-                      mode.status === 'Aktif' ? 'bg-cyan/15 text-cyan' : 'bg-white/8 text-muted'
+                      mode.status !== 'Aktif'
+                        ? 'bg-white/8 text-muted'
+                        : mode.accent === 'magenta'
+                          ? 'bg-magenta/15 text-magenta'
+                          : 'bg-cyan/15 text-cyan'
                     }`}
                   >
                     {mode.status}

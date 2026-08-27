@@ -5,7 +5,7 @@
 > **SDG Fokus:** SDG 3 (Good Health & Well-Being) dan SDG 10 (Reduced Inequalities)
 > **Deadline submission:** 20 September 2026
 
-> **Status per 2026-08-27:** Fase 0 selesai kecuali deploy Vercel. Fase 1 (CV engine) sudah terimplementasi — MediaPipe client-side, smoothing, halaman kalibrasi dengan Bio-Scan HUD — tapi **belum diverifikasi dengan kamera nyata**. Tahap A briefing UI/UX (design token) juga sudah diterapkan. Fase 2–10 belum dikerjakan.
+> **Status per 2026-08-27:** Fase 0 selesai kecuali deploy Vercel. Fase 1 (CV engine) selesai dan **terverifikasi dengan kamera nyata** (skeleton akurat, confidence 90%, 21 FPS). Fase 2 (rep-counting) kode selesai, belum diuji akurasi manual. Fase 3 (Arena) dikerjakan lebih awal atas permintaan tim — game kuda poni dengan mode push-up & angkat barbel sudah jalan, tapi baru 1 game (DoD minta 2) dan belum diuji dengan kamera. Fase 4–10 belum dikerjakan.
 
 ## Cara Menggunakan Dokumen Ini
 
@@ -157,25 +157,30 @@ Setiap tahap punya **Tujuan**, **Tugas**, dan **Definition of Done (DoD)**. Chec
 
 **DoD:** Skeleton overlay stabil & akurat di pencahayaan normal, berjalan minimal di Chrome desktop & mobile, frame rate cukup untuk terasa real-time (idealnya ≥20 FPS).
 
-### Fase 2 — Rep-Counting & Form Detection ⬜
+### Fase 2 — Rep-Counting & Form Detection 🚧
 **Tugas:**
-- [ ] Definisikan sudut sendi kunci per exercise (push-up: siku; squat: lutut+pinggul; sit-up: sudut torso; plank: kelurusan tubuh; arm raise: sudut bahu)
-- [ ] Bangun state machine hitung repetisi (naik-turun-naik) supaya tidak double-count
-- [ ] Logika threshold form benar/salah + flag visual (indikator hijau/merah pada skeleton)
-- [ ] Uji akurasi manual: bandingkan hitungan sistem vs hitungan manusia untuk minimal 3 exercise
+- [x] Definisikan sudut sendi kunci per exercise (push-up: siku; squat: lutut+pinggul; sit-up: sudut torso; plank: kelurusan tubuh; arm raise: sudut bahu) — `src/modules/rep-counter/exercises.ts`
+- [x] Bangun state machine hitung repetisi (naik-turun-naik) supaya tidak double-count — `repCounter.ts`
+- [x] Logika threshold form benar/salah + flag visual (skeleton berubah **merah** saat form salah, lewat `drawBioScan.ts`)
+- [x] Halaman `/exercise`: kamera full-bleed, rep counter besar dengan animasi, dock exercise picker, countdown sesi 60 detik
+- [ ] **Uji akurasi manual** — belum dilakukan, menunggu Anda mencoba langsung dengan kamera
 
-**DoD:** Minimal 3 exercise (push-up, squat, sit-up) punya rep-counter dengan akurasi memadai (uji manual), form-feedback tampil real-time.
+**DoD:** Minimal 3 exercise (push-up, squat, sit-up) punya rep-counter dengan akurasi memadai (uji manual), form-feedback tampil real-time. *Kode selesai, akurasi threshold sudut (95°/155° dst.) belum divalidasi dengan gerakan nyata — kemungkinan perlu disetel ulang.*
 
 > **Catatan teknis penting:** pull-up butuh alat (bar) dan sudut kamera khusus (idealnya dari samping), sehingga sulit dideteksi akurat dari webcam depan standar. **Untuk MVP, prioritaskan exercise yang mudah dideteksi kamera depan**: push-up, squat, sit-up, plank, arm/shoulder raise. Jadikan pull-up sebagai fitur lanjutan opsional (Fase 8+) jika waktu memungkinkan, atau ganti dengan alternatif tanpa alat yang punya pola gerak mirip (mis. resistance band row / superman back extension).
 
-### Fase 3 — Mini-Game Engine (Arena Mode) ⬜
-**Tugas:**
-- [ ] Bangun game loop dasar (Canvas API atau Phaser 3)
-- [ ] Prototipe Flappy Bird: posisi tangan (landmark Y) → posisi vertikal karakter
-- [ ] Integrasi rep-counter dari Fase 2 ke gameplay (tiap rep sukses = obstacle terlewati / poin)
-- [ ] Tambah 1–2 mini-game lain reuse engine yang sama (mis. "Squat Runner")
+### Fase 3 — Mini-Game Engine (Arena Mode) 🚧
+> Dikerjakan lebih awal dari urutan asli atas permintaan tim: karakter diganti kuda poni (bukan flappy bird generik) dengan dua skema kontrol nyata (push-up & angkat barbel), bukan mock-up.
 
-**DoD:** Minimal 2 game playable end-to-end, terhubung real-time ke data pose, skor tersimpan per sesi.
+**Tugas:**
+- [x] Bangun game loop dasar (Canvas API) — `src/modules/game-engine/ponyGame.ts`
+- [x] Kontrol vertikal dari gerakan tubuh nyata (bukan mock): posisi wajah untuk mode push-up, posisi lengan untuk mode angkat barbel — `verticalControl.ts` dengan auto-kalibrasi rentang gerak
+- [x] Integrasi rep-counter dari Fase 2 ke gameplay: tiap rep valid memberi bonus skor, ditampilkan terpisah dari skor obstacle
+- [x] Halaman `/arena`: layar pilih mode, game dominan + kamera PIP, HUD skor/reps/nyawa/countdown, layar ringkasan + main lagi
+- [ ] Mini-game kedua (mis. "Squat Runner") — **belum dikerjakan**, baru 1 game (kuda poni) dengan 2 mode kontrol
+- [ ] **Verifikasi dengan kamera nyata** — belum diuji
+
+**DoD:** Minimal 2 game playable end-to-end, terhubung real-time ke data pose, skor tersimpan per sesi. *Baru 1 game dengan 2 mode kontrol berbeda — DoD "2 game" belum terpenuhi secara harfiah, perlu didiskusikan apakah 2 mode kontrol dianggap cukup atau perlu game kedua yang benar-benar berbeda.*
 
 ### Fase 4 — Kalibrasi Kebugaran & Sistem Level ⬜
 **Tugas:**

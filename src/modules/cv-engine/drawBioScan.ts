@@ -3,6 +3,7 @@ import type { PoseLandmarks } from './types';
 
 const CYAN = '0, 229, 255';
 const AMBER = '255, 182, 39';
+const RED = '255, 61, 90';
 const VISIBILITY_THRESHOLD = 0.5;
 
 export interface BioScanOptions {
@@ -15,6 +16,12 @@ export interface BioScanOptions {
   /** Video kamera depan ditampilkan mirror, jadi overlay ikut dibalik. */
   mirrored?: boolean;
   pulsePhase?: number;
+  /**
+   * Flag form exercise (bukan status kalibrasi). `false` mewarnai seluruh
+   * skeleton merah sebagai indikator visual form salah; `true`/`undefined`
+   * memakai skema warna deteksi biasa (cyan/amber).
+   */
+  formOk?: boolean;
 }
 
 export function drawBioScan(
@@ -22,7 +29,16 @@ export function drawBioScan(
   landmarks: PoseLandmarks | null,
   options: BioScanOptions,
 ) {
-  const { width, height, sourceWidth, sourceHeight, mirrored = true, pulsePhase = 0 } = options;
+  const {
+    width,
+    height,
+    sourceWidth,
+    sourceHeight,
+    mirrored = true,
+    pulsePhase = 0,
+    formOk,
+  } = options;
+  const skeletonColor = formOk === false ? RED : CYAN;
 
   ctx.clearRect(0, 0, width, height);
   if (!landmarks || sourceWidth <= 0 || sourceHeight <= 0) return;
@@ -54,12 +70,12 @@ export function drawBioScan(
     const by = toY(b.y);
 
     const gradient = ctx.createLinearGradient(ax, ay, bx, by);
-    gradient.addColorStop(0, `rgba(${CYAN}, 0.85)`);
-    gradient.addColorStop(1, `rgba(${CYAN}, 0.25)`);
+    gradient.addColorStop(0, `rgba(${skeletonColor}, 0.85)`);
+    gradient.addColorStop(1, `rgba(${skeletonColor}, 0.25)`);
 
     ctx.strokeStyle = gradient;
     ctx.lineWidth = 3;
-    ctx.shadowColor = `rgba(${CYAN}, 0.55)`;
+    ctx.shadowColor = `rgba(${skeletonColor}, 0.55)`;
     ctx.shadowBlur = 12;
     ctx.beginPath();
     ctx.moveTo(ax, ay);
@@ -74,7 +90,7 @@ export function drawBioScan(
     if (!point) continue;
 
     const detected = point.visibility >= VISIBILITY_THRESHOLD;
-    const color = detected ? CYAN : AMBER;
+    const color = detected ? skeletonColor : AMBER;
     const radius = (detected ? 6 : 5) * (detected ? pulse : 1);
     const x = toX(point.x);
     const y = toY(point.y);
