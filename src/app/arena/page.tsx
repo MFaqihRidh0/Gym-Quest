@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { soundEngine } from '@/modules/game-engine/audio';
 import { formatCountdown, useCountdown } from '@/lib/useCountdown';
+import { drawBioScan } from '@/modules/cv-engine/drawBioScan';
+import type { PoseLandmarks } from '@/modules/cv-engine/types';
 import { usePoseDetection } from '@/modules/cv-engine/usePoseDetection';
 import { useArenaGame } from '@/modules/game-engine/useArenaGame';
 import { useKangarooGame } from '@/modules/game-engine/useKangarooGame';
@@ -17,40 +20,24 @@ const GAMES: { code: ArenaGame; label: string; description: string }[] = [
     code: 'pony',
     label: 'Kuda Poni Terbang',
     description:
-      'Terbang naik-turun menghindari rintangan, dikendalikan push-up atau angkat barbel.',
+      'Terbang naik-turun menembus celah laser, dikendalikan gerakan push-up.',
   },
   {
     code: 'kangaroo',
-    label: 'Kangguru Lari',
-    description: 'Lari tanpa henti — jongkok untuk menunduk, berdiri untuk melompati rintangan.',
-  },
-];
-
-const CONTROL_MODES: { code: ArenaControlMode; label: string; description: string }[] = [
-  {
-    code: 'push_up',
-    label: 'Push-up',
-    description: 'Kuda poni naik-turun mengikuti gerakan wajahmu saat push-up.',
-  },
-  {
-    code: 'arm_raise',
-    label: 'Angkat Barbel',
-    description: 'Kuda poni naik-turun mengikuti gerakan lenganmu saat mengangkat barbel.',
+    label: 'Kangguru Angkat Barbel',
+    description:
+      'Lari melompati rintangan trapesium panjang — angkat tangan/barbel ke atas untuk melompat & melayang.',
   },
 ];
 
 function SelectScreen({
   game,
   onSelectGame,
-  controlMode,
-  onSelectControlMode,
   onStart,
   loading,
 }: {
   game: ArenaGame;
   onSelectGame: (game: ArenaGame) => void;
-  controlMode: ArenaControlMode;
-  onSelectControlMode: (mode: ArenaControlMode) => void;
   onStart: () => void;
   loading: boolean;
 }) {
@@ -87,32 +74,31 @@ function SelectScreen({
       {game === 'pony' ? (
         <div className="flex flex-col gap-2">
           <p className="font-mono text-[11px] tracking-widest text-muted uppercase">
-            Cara kendalikan
+            Gerakan push-up
           </p>
-          {CONTROL_MODES.map((item) => {
-            const active = item.code === controlMode;
-            return (
-              <button
-                key={item.code}
-                onClick={() => onSelectControlMode(item.code)}
-                aria-pressed={active}
-                className={`glass-panel clip-corner flex flex-col gap-0.5 p-3 text-left transition-colors duration-[var(--dur-fast)] ${
-                  active ? 'border-cyan/60' : ''
-                }`}
-              >
-                <span className={`font-body text-sm font-semibold ${active ? 'text-cyan' : ''}`}>
-                  {item.label}
-                </span>
-                <span className="font-body text-xs text-muted">{item.description}</span>
-              </button>
-            );
-          })}
+          <div className="glass-panel clip-corner p-3 text-left border-cyan/60">
+            <span className="font-body text-sm font-semibold text-cyan">
+              Push-up Vertikal
+            </span>
+            <p className="mt-1 font-body text-xs text-muted">
+              Kuda poni naik saat Anda mendorong badan ke atas, dan turun saat dada mendekati lantai. Sesuaikan ritme dengan celah laser!
+            </p>
+          </div>
         </div>
       ) : (
-        <p className="font-body text-sm text-muted">
-          Dikendalikan otomatis lewat gerakan squat: jongkok untuk menunduk di bawah rintangan
-          terbang, berdiri kembali untuk melompati rintangan di tanah.
-        </p>
+        <div className="flex flex-col gap-2">
+          <p className="font-mono text-[11px] tracking-widest text-muted uppercase">
+            Gerakan angkat barbel
+          </p>
+          <div className="glass-panel clip-corner p-3 text-left border-magenta/60">
+            <span className="font-body text-sm font-semibold text-magenta">
+              Angkat Barbel (Overhead Press)
+            </span>
+            <p className="mt-1 font-body text-xs text-muted">
+              Kangguru melompat saat kedua tangan diangkat ke atas, dan mendarat saat tangan diturunkan. <strong>Tahan tangan di atas</strong> sampai rintangan trapesium panjang berhasil dilewati!
+            </p>
+          </div>
+        </div>
       )}
 
       <button
@@ -126,6 +112,72 @@ function SelectScreen({
       <p className="font-body text-xs text-muted">
         Sesi berlangsung {SESSION_SECONDS} detik. Tiap repetisi valid memberi bonus skor.
       </p>
+    </div>
+  );
+}
+
+function PipCamera({
+  videoRef,
+  landmarksRef,
+}: {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  landmarksRef: React.RefObject<PoseLandmarks | null>;
+}) {
+  const [large, setLarge] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (!canvas || !video) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let frame = 0;
+    const render = () => {
+      const w = video.clientWidth;
+      const h = video.clientHeight;
+      const dpr = window.devicePixelRatio || 1;
+      if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawBioScan(ctx, landmarksRef.current, {
+        width: w,
+        height: h,
+        sourceWidth: video.videoWidth,
+        sourceHeight: video.videoHeight,
+      });
+      frame = requestAnimationFrame(render);
+    };
+
+    frame = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(frame);
+  }, [videoRef, landmarksRef]);
+
+  return (
+    <div
+      className={`glass-panel clip-corner absolute top-5 right-5 z-20 overflow-hidden transition-all duration-300 shadow-[var(--glow-cyan)] border border-cyan/40 ${
+        large
+          ? 'w-72 h-52 sm:w-96 sm:h-64 md:w-[26rem] md:h-72'
+          : 'w-48 h-36 sm:w-64 sm:h-48 md:w-72 md:h-52'
+      }`}
+    >
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        className="absolute inset-0 h-full w-full -scale-x-100 object-cover"
+      />
+      <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
+      <button
+        onClick={() => setLarge((v) => !v)}
+        className="clip-corner absolute bottom-1.5 right-1.5 z-30 bg-void/85 px-2 py-0.5 font-mono text-[10px] text-cyan border border-cyan/30 hover:border-cyan transition-colors"
+        title="Ubah ukuran kamera"
+      >
+        {large ? 'Kecilkan ↘' : 'Perbesar ↖'}
+      </button>
     </div>
   );
 }
@@ -203,6 +255,22 @@ export default function ArenaPage() {
   const currentEndSession = game === 'pony' ? pony.endSession : kangaroo.endSession;
   const sessionEnded = currentState.gameOver || currentState.timeUp;
 
+  const [isMuted, setIsMuted] = useState(soundEngine.muted);
+
+  useEffect(() => {
+    if (active && !sessionEnded) {
+      soundEngine.startBgm();
+    } else {
+      soundEngine.stopBgm();
+    }
+    return () => soundEngine.stopBgm();
+  }, [active, sessionEnded]);
+
+  const toggleSound = () => {
+    const next = soundEngine.toggleMute();
+    setIsMuted(next);
+  };
+
   const remaining = useCountdown(SESSION_SECONDS, active, currentEndSession, sessionKey);
 
   function handleStart() {
@@ -216,6 +284,7 @@ export default function ArenaPage() {
   }
 
   function handleBackToMenu() {
+    soundEngine.stopBgm();
     stop();
     setStarted(false);
   }
@@ -234,8 +303,6 @@ export default function ArenaPage() {
         <SelectScreen
           game={game}
           onSelectGame={setGame}
-          controlMode={controlMode}
-          onSelectControlMode={setControlMode}
           onStart={handleStart}
           loading={status === 'loading'}
         />
@@ -245,8 +312,8 @@ export default function ArenaPage() {
 
   const gameLabel =
     game === 'pony'
-      ? `Kuda Poni — ${controlMode === 'push_up' ? 'Push-up' : 'Angkat Barbel'}`
-      : 'Kangguru Lari';
+      ? 'Kuda Poni Terbang (Push-up)'
+      : 'Kangguru Angkat Barbel';
 
   return (
     <main className="flex h-dvh flex-col">
@@ -254,31 +321,36 @@ export default function ArenaPage() {
         <span className="font-display text-sm tracking-wide">
           GYMQUEST <span className="text-muted">· Arena — {gameLabel}</span>
         </span>
-        <button onClick={handleBackToMenu} className="font-body text-sm text-muted hover:text-cyan">
-          ← Kembali
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleSound}
+            className="clip-corner border border-muted/50 px-2.5 py-1 font-mono text-xs text-muted hover:border-magenta hover:text-magenta transition-colors"
+            aria-label={isMuted ? 'Nyalakan audio' : 'Matikan audio'}
+          >
+            {isMuted ? '🔇 Audio Off' : '🔊 Audio On'}
+          </button>
+          <button onClick={handleBackToMenu} className="font-body text-sm text-muted hover:text-cyan">
+            ← Kembali
+          </button>
+        </div>
       </header>
 
       <div className="relative flex-1 overflow-hidden bg-void">
         <canvas ref={currentCanvasRef} className="absolute inset-0 h-full w-full" />
 
-        <video
-          ref={videoRef}
-          playsInline
-          muted
-          className="glass-panel clip-corner absolute top-5 right-5 h-28 w-20 -scale-x-100 object-cover sm:h-36 sm:w-28"
-        />
+        <PipCamera videoRef={videoRef} landmarksRef={liveLandmarksRef} />
 
         <ScoreHud>
-          <span className="text-magenta">SCORE {currentState.score}</span>
-          <span className="text-cyan">REPS {currentState.reps}</span>
+          <span className="text-magenta font-bold">SCORE {currentState.score}</span>
+          <span className="text-cyan font-bold">REPS {currentState.reps}</span>
           <span className="text-primary">{formatCountdown(Math.max(remaining, 0))}</span>
-          {game === 'pony' && (
-            <span aria-label={`${pony.state.lives} nyawa tersisa`}>
-              {'♥'.repeat(Math.max(pony.state.lives, 0))}
-              {'♡'.repeat(Math.max(3 - pony.state.lives, 0))}
-            </span>
-          )}
+          <span
+            className="flex items-center gap-1 font-mono text-xs text-magenta font-bold"
+            aria-label={`${currentState.lives} nyawa tersisa`}
+          >
+            {'♥ '.repeat(Math.max(currentState.lives, 0))}
+            <span className="text-muted/30">{'♡ '.repeat(Math.max(3 - currentState.lives, 0))}</span>
+          </span>
         </ScoreHud>
 
         {error && (
@@ -294,13 +366,11 @@ export default function ArenaPage() {
           <EndOverlay
             title={
               currentState.timeUp
-                ? 'Waktu habis'
-                : game === 'pony'
-                  ? 'Kehabisan nyawa'
-                  : 'Menabrak rintangan'
+                ? 'WAKTU HABIS!'
+                : '3 NYAWA HABIS! 💥'
             }
             score={currentState.score}
-            detail={`Skor akhir · ${currentState.reps} repetisi valid`}
+            detail={`Skor akhir: ${currentState.score} · Berhasil ${currentState.reps} repetisi valid`}
             onPlayAgain={handlePlayAgain}
             onBackToMenu={handleBackToMenu}
           />

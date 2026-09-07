@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PoseLandmarks } from '../cv-engine/types';
 import { RepCounter } from '../rep-counter/repCounter';
+import { soundEngine } from './audio';
 import { PonyGame, type PonyGameState } from './ponyGame';
 import { VerticalControlTracker, type ArenaControlMode } from './verticalControl';
 
@@ -97,6 +98,7 @@ export function useArenaGame(
       if (repState.reps > repsRef.current) {
         repsRef.current = repState.reps;
         gameRef.current.score += REP_BONUS_SCORE;
+        soundEngine.playRepBonus();
       }
 
       gameRef.current.draw(ctx);

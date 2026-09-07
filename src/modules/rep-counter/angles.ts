@@ -37,25 +37,38 @@ export function averageJointAngle(
   landmarks: PoseLandmarks,
   left: JointTriplet,
   right: JointTriplet,
-  minVisibility = 0.5,
+  minVisibility = 0.45,
 ): number | null {
-  const samples: number[] = [];
-
-  for (const triplet of [left, right]) {
+  const getSide = (triplet: JointTriplet) => {
     const a = landmarks[triplet.a];
     const b = landmarks[triplet.b];
     const c = landmarks[triplet.c];
-    if (!a || !b || !c) continue;
-    if (
-      a.visibility < minVisibility ||
-      b.visibility < minVisibility ||
-      c.visibility < minVisibility
-    ) {
-      continue;
-    }
-    samples.push(angleBetween(a, b, c));
+    if (!a || !b || !c) return null;
+    const minVis = Math.min(a.visibility, b.visibility, c.visibility);
+    if (minVis < minVisibility) return null;
+    return {
+      angle: angleBetween(a, b, c),
+      confidence: minVis,
+    };
+  };
+
+  const leftResult = getSide(left);
+  const rightResult = getSide(right);
+
+  if (!leftResult && !rightResult) return null;
+  if (leftResult && !rightResult) return leftResult.angle;
+  if (!leftResult && rightResult) return rightResult.angle;
+
+  // Jika kedua sisi terlihat:
+  // Jika posisi tubuh menyamping (satu sisi jauh lebih jelas dari sisi lain),
+  // gunakan sisi yang lebih jelas agar sisi yang terhalang tidak merusak sudut.
+  const diff = Math.abs(leftResult!.confidence - rightResult!.confidence);
+  if (diff > 0.18) {
+    return leftResult!.confidence > rightResult!.confidence
+      ? leftResult!.angle
+      : rightResult!.angle;
   }
 
-  if (samples.length === 0) return null;
-  return samples.reduce((sum, value) => sum + value, 0) / samples.length;
+  // Jika kedua sisi seimbang (menghadap depan), rata-ratakan kedua sisi
+  return (leftResult!.angle + rightResult!.angle) / 2;
 }

@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PoseLandmarks } from '../cv-engine/types';
 import { RepCounter } from '../rep-counter/repCounter';
+import { soundEngine } from './audio';
 import { KangarooGame, type KangarooGameState } from './kangarooGame';
+import { VerticalControlTracker } from './verticalControl';
 
 const UI_SYNC_INTERVAL_MS = 100;
 
@@ -18,12 +20,14 @@ export function useKangarooGame(
 ) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const gameRef = useRef(new KangarooGame());
-  const repCounterRef = useRef(new RepCounter('squat'));
+  const controlRef = useRef(new VerticalControlTracker('arm_raise'));
+  const repCounterRef = useRef(new RepCounter('arm_raise'));
   const repsRef = useRef(0);
   const forceEndRef = useRef(false);
 
   const [state, setState] = useState<KangarooArenaState>({
     score: 0,
+    lives: 3,
     gameOver: false,
     reps: 0,
     timeUp: false,
@@ -33,13 +37,14 @@ export function useKangarooGame(
   const [trackedActive, setTrackedActive] = useState(active);
   if (trackedActive !== active) {
     setTrackedActive(active);
-    if (!active) setState({ score: 0, gameOver: false, reps: 0, timeUp: false });
+    if (!active) setState({ score: 0, lives: 3, gameOver: false, reps: 0, timeUp: false });
   }
 
   useEffect(() => {
     if (!active) {
       gameRef.current.reset();
-      repCounterRef.current.reset('squat');
+      controlRef.current.setMode('arm_raise');
+      repCounterRef.current.reset('arm_raise');
       repsRef.current = 0;
       forceEndRef.current = false;
       return;
@@ -69,19 +74,26 @@ export function useKangarooGame(
       gameRef.current.resize(cssWidth, cssHeight);
 
       const landmarks = liveLandmarksRef.current;
+
+      // Baca kendali posisi tangan angkat barbel
+      const control = controlRef.current.read(landmarks);
+      const gameState = gameRef.current.update(dt, control);
+
+      // Hitung repetisi angkat barbel yang sah
       const repState = repCounterRef.current.update(landmarks, now);
+      if (repState.reps > repsRef.current) {
+        repsRef.current = repState.reps;
+        gameRef.current.addRepBonus();
+        soundEngine.playRepBonus();
+      }
 
-      const jumpTriggered = repState.reps > repsRef.current;
-      if (jumpTriggered) repsRef.current = repState.reps;
-      const ducking = repState.phase === 'down';
-
-      const gameState = gameRef.current.update(dt, jumpTriggered, ducking);
       gameRef.current.draw(ctx);
 
       if (now - lastSync >= UI_SYNC_INTERVAL_MS || gameState.gameOver || forceEndRef.current) {
         lastSync = now;
         setState({
           score: Math.round(gameRef.current.score),
+          lives: gameRef.current.lives,
           gameOver: gameState.gameOver,
           reps: repsRef.current,
           timeUp: forceEndRef.current,
@@ -97,10 +109,11 @@ export function useKangarooGame(
 
   const restart = () => {
     gameRef.current.reset();
-    repCounterRef.current.reset('squat');
+    controlRef.current.setMode('arm_raise');
+    repCounterRef.current.reset('arm_raise');
     repsRef.current = 0;
     forceEndRef.current = false;
-    setState({ score: 0, gameOver: false, reps: 0, timeUp: false });
+    setState({ score: 0, lives: 3, gameOver: false, reps: 0, timeUp: false });
     setRestartSignal((n) => n + 1);
   };
 

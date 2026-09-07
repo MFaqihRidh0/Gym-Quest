@@ -110,10 +110,18 @@ export default function ExercisePage() {
               </div>
             </div>
 
-            <div className="glass-panel clip-corner min-w-0 max-w-sm space-y-2 px-4 py-3">
-              <p className="font-mono text-[11px] tracking-widest text-cyan uppercase">
-                {definition.label}
-              </p>
+            <div className="glass-panel clip-corner min-w-0 max-w-md space-y-2.5 px-5 py-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-mono text-[11px] tracking-widest text-cyan uppercase">
+                  {definition.label}
+                </p>
+                {running && detected && state.angle !== null && (
+                  <span className="font-mono text-xs text-primary bg-cyan/15 px-2 py-0.5 clip-corner">
+                    {Math.round(state.angle)}°
+                  </span>
+                )}
+              </div>
+
               <p className="font-body text-sm text-primary">
                 {error
                   ? error.message
@@ -122,9 +130,19 @@ export default function ExercisePage() {
                     : !detected
                       ? 'Posisikan tubuh agar sendi kunci terlihat kamera.'
                       : state.formOk
-                        ? `Fase: ${state.phase === 'up' ? 'Atas' : 'Bawah'} · Form: benar`
+                        ? `Fase: ${state.phase === 'up' ? 'Atas (Ekstensi)' : 'Bawah (Kontraksi)'} · Form: Bagus`
                         : (state.formMessage ?? 'Perbaiki posisi tubuh.')}
               </p>
+
+              {running && detected && definition.countType === 'rep' && (
+                <div className="border-t border-white/10 pt-2 flex items-center justify-between font-mono text-[11px] text-muted">
+                  <span>Bawah: ≤{definition.downThreshold}°</span>
+                  <span className={`px-1.5 py-0.5 rounded ${state.phase === 'down' ? 'text-magenta font-bold bg-magenta/20' : 'text-muted'}`}>
+                    {state.phase === 'down' ? '● Siap Naik' : '○ Turunkan'}
+                  </span>
+                  <span>Atas: ≥{definition.upThreshold}°</span>
+                </div>
+              )}
             </div>
           </div>
 

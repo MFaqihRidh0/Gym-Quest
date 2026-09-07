@@ -1,4 +1,4 @@
-import { KEY_JOINTS, POSE_CONNECTIONS } from './landmarks';
+import { KEY_JOINTS, POSE_CONNECTIONS, POSE_LANDMARK as L } from './landmarks';
 import type { PoseLandmarks } from './types';
 
 const CYAN = '0, 229, 255';
@@ -58,36 +58,60 @@ export function drawBioScan(
 
   ctx.lineCap = 'round';
 
-  for (const [from, to] of POSE_CONNECTIONS) {
-    const a = landmarks[from];
-    const b = landmarks[to];
-    if (!a || !b) continue;
-    if (a.visibility < VISIBILITY_THRESHOLD || b.visibility < VISIBILITY_THRESHOLD) continue;
+  const inBounds = (p: { x: number; y: number }) => p.x >= 0.02 && p.x <= 0.98 && p.y >= 0.02 && p.y <= 0.94;
 
-    const ax = toX(a.x);
-    const ay = toY(a.y);
-    const bx = toX(b.x);
-    const by = toY(b.y);
+  const hasArms =
+    (landmarks[L.LEFT_ELBOW]?.visibility ?? 0) > 0.45 ||
+    (landmarks[L.RIGHT_ELBOW]?.visibility ?? 0) > 0.45 ||
+    (landmarks[L.LEFT_WRIST]?.visibility ?? 0) > 0.45 ||
+    (landmarks[L.RIGHT_WRIST]?.visibility ?? 0) > 0.45;
 
-    const gradient = ctx.createLinearGradient(ax, ay, bx, by);
-    gradient.addColorStop(0, `rgba(${skeletonColor}, 0.85)`);
-    gradient.addColorStop(1, `rgba(${skeletonColor}, 0.25)`);
+  const hasTorso =
+    (landmarks[L.LEFT_HIP]?.visibility ?? 0) > 0.45 ||
+    (landmarks[L.RIGHT_HIP]?.visibility ?? 0) > 0.45;
 
-    ctx.strokeStyle = gradient;
-    ctx.lineWidth = 3;
-    ctx.shadowColor = `rgba(${skeletonColor}, 0.55)`;
-    ctx.shadowBlur = 12;
-    ctx.beginPath();
-    ctx.moveTo(ax, ay);
-    ctx.lineTo(bx, by);
-    ctx.stroke();
+  const leftShoulder = landmarks[L.LEFT_SHOULDER];
+  const rightShoulder = landmarks[L.RIGHT_SHOULDER];
+  const avgShoulderY =
+    leftShoulder && rightShoulder ? (leftShoulder.y + rightShoulder.y) / 2 : 1;
+
+  const isHeadOnlyCloseUp = !hasArms && !hasTorso && avgShoulderY > 0.82;
+
+  if (!isHeadOnlyCloseUp) {
+    for (const [from, to] of POSE_CONNECTIONS) {
+      const a = landmarks[from];
+      const b = landmarks[to];
+      if (!a || !b) continue;
+      if (a.visibility < VISIBILITY_THRESHOLD || b.visibility < VISIBILITY_THRESHOLD) continue;
+      if (!inBounds(a) || !inBounds(b)) continue;
+
+      const ax = toX(a.x);
+      const ay = toY(a.y);
+      const bx = toX(b.x);
+      const by = toY(b.y);
+
+      const gradient = ctx.createLinearGradient(ax, ay, bx, by);
+      gradient.addColorStop(0, `rgba(${skeletonColor}, 0.85)`);
+      gradient.addColorStop(1, `rgba(${skeletonColor}, 0.25)`);
+
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = `rgba(${skeletonColor}, 0.55)`;
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(bx, by);
+      ctx.stroke();
+    }
   }
 
   const pulse = 1 + 0.08 * Math.sin(pulsePhase);
 
   for (const index of KEY_JOINTS) {
+    if (isHeadOnlyCloseUp && index !== L.NOSE) continue;
     const point = landmarks[index];
     if (!point) continue;
+    if (!inBounds(point)) continue;
 
     const detected = point.visibility >= VISIBILITY_THRESHOLD;
     const color = detected ? skeletonColor : AMBER;

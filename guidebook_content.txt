@@ -1,0 +1,138 @@
+
+GUIDEBOOK GAYATAMA 5
+International Web Technology Competition
+Sub-Directorate of Interests, Talents, Competencies, and Reasoning | Directorate of Student and Alumni AffairsUniversitas Negeri Surabaya (UNESA)
+a) Theme
+International Web Tech. Competition Theme: "Innovating for a Sustainable Future: Empowering Communities through Web Technology"
+The International Web Technology Competition challenges students from higher education institutions around the world to develop innovative web-based solutions that address real-world problems while supporting the achievement of the Sustainable Development Goals (SDGs). Participants are encouraged to transform creative ideas into impactful digital solutions that contribute to sustainable social, economic, educational, environmental, and technological development.
+b) Description
+1. Overview
+The International Web Technology Competition is an international competition that challenges participants to design and develop innovative web-based solutions to address real-world problems and support sustainable development.
+Participants are invited to transform ideas into functional, creative, and impactful web-based solutions aligned with one or more Sustainable Development Goals (SDGs). The proposed solutions may address challenges in various fields, including:
+Education
+Healthcare
+Environment
+Social Development
+Economic Empowerment
+Smart Communities
+Public Services
+Other areas relevant to sustainable development
+The competition emphasizes not only technical excellence but also innovation, usability, accessibility, scalability, and the potential impact of the proposed solution on communities and society.
+2. Objectives
+The competition aims to:
+Encourage students to develop innovative web-based solutions that address real-world challenges.
+Promote creativity, critical thinking, collaboration, and technological innovation.
+Support the implementation of one or more Sustainable Development Goals (SDGs).
+Empower communities through accessible, inclusive, and impactful digital solutions.
+Foster international collaboration and knowledge exchange among students, educators, professionals, and young innovators.
+Inspire sustainable digital innovations that provide long-term benefits for society.
+c) Syarat & Ketentuan (Terms and Conditions)
+1. Participant Eligibility
+Open to active students from higher education institutions worldwide.
+Eligible participants are students enrolled in:
+Bachelor's Degree (S1) or equivalent
+Applied Bachelor's Degree (D4) or equivalent
+Diploma 3 (D3) or equivalent
+Each team consists of 2-4 students.
+Team members must come from the same higher education institution, but may come from different study programs, faculties, or eligible education levels.
+Each team must be accompanied by one faculty advisor/lecturer from the same institution.
+One faculty advisor may supervise a maximum of five (5) teams.
+There is no limit on the number of participating teams from the same institution or country.
+Participation is institution-based, not country-based.
+A participant may only join one team.
+2. Competition Rules
+Projects must be original and relevant to the competition theme.
+Projects must not be simultaneously submitted to another competition during this competition.
+Projects must not have previously won first place or become the main winner in another competition.
+Participants may use any programming language, framework, CMS, development tools, AI tools, libraries, APIs, or other technologies.
+Third-party resources must comply with applicable licenses and be properly acknowledged.
+Source code must be uploaded to a GitHub Repository containing: Source code, README, Installation/usage instructions (if applicable), Technology stack, and Technical documentation.
+Participants are encouraged to provide a Live Demo.
+Projects requiring backend services or databases may use any suitable hosting platform.
+The organizing committee reserves the right to verify originality and disqualify teams violating the competition rules.
+3. Submission Requirements
+Each team must submit the following components:
+I. Project Proposal: Participants are not required to use a specific proposal template or format. Each team is free to design and present their proposal according to their own creativity and preferences, provided that all required information specified in the competition guidelines is included.
+Required information in the proposal includes: Project title, Team information, Background, Problem identification, Proposed solution, Project objectives, Target users, Main features, SDGs alignment, Innovation, Potential impact, Development methodology (if applicable), and References.
+The project proposal must not exceed 15 pages, excluding the cover page and appendices. Participants may include additional supporting materials in the proposal appendix, such as project documentation, presentation materials, demonstration video links, and other supporting materials.
+II. GitHub Repository: Repository must contain: Source code, README, Installation guide, Technology information, and Technical documentation.
+III. Live Demo: Participants are encouraged to provide a live demonstration link.
+IV. Submission Deadline: All required materials must be submitted no later than September 20, 2026 through the official submission system.
+4. Grand Final
+Selected finalists will participate in the Grand Final under the following conditions:
+Conducted fully online.
+Presentation language: English.
+Maximum 10 minutes presentation.
+Maximum 5 minutes project demonstration.
+Maximum 10 minutes Q&A session.
+All team members must attend.
+One team member delivers the presentation.
+Any team member may answer judges' questions.
+Presentation media is unrestricted (slides, videos, live demo, prototypes, etc.).
+Participants are responsible for their technical preparation and internet connection.
+d) Rubrik Penilaian (Evaluation Rubric)
+1. Preliminary Evaluation
+Criteria
+Weight
+Problem Identification and Relevance
+15%
+Innovation and Creativity
+20%
+Technical Implementation
+25%
+User Experience and Interface Design
+15%
+SDGs Alignment and Sustainable Impact
+15%
+Scalability and Sustainability
+10%
+Total
+100%
+Preliminary evaluation is based on the proposal, GitHub repository, live demo (if available), and supporting materials.
+2. Final Evaluation
+Criteria
+Weight
+Project Presentation
+20%
+Project Demonstration and Functionality
+25%
+Innovation and Problem-Solving
+20%
+SDGs Alignment and Potential Impact
+15%
+Response to Judges' Questions
+15%
+Teamwork and Professionalism
+5%
+Total
+100%
+The final evaluation is based on the project presentation, demonstration, question-and-answer session, and overall team performance.
+e) Linimasa / Timeline
+Activity
+Date
+Competition Announcement & Promotion
+August 1 - 7, 2026
+Registration Period
+August 10 - 31, 2026
+Administrative Selection
+September 1 - 10, 2026
+Proposal & Project Submission
+September 1 - 20, 2026
+Project Evaluation
+September 20 - 25, 2026
+Finalist Announcement
+September 27, 2026
+Grand Final
+September 27 - October 2, 2026
+Announcement
+October 3 - 4, 2026
+Awarding Ceremony
+October 6 - 9, 2026
+f) Narahubung / Contact Person
+For further information regarding the competition, please contact:
+Name: Moch. Badrus Sholeh
+Institution: Faculty of Vocational Studies, Universitas Negeri Surabaya
+Email: mochsholeh@unesa.ac.id
+WhatsApp / Phone: +62 8560-7711-196
+Official Website: https://gayatama.unesa.ac.id/competitions/web-technology
+Instagram: @gayatama.international

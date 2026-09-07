@@ -17,9 +17,9 @@ export function loadPoseLandmarker(): Promise<PoseLandmarker> {
         },
         runningMode: 'VIDEO',
         numPoses: 1,
-        minPoseDetectionConfidence: 0.5,
-        minPosePresenceConfidence: 0.5,
-        minTrackingConfidence: 0.5,
+        minPoseDetectionConfidence: 0.35,
+        minPosePresenceConfidence: 0.35,
+        minTrackingConfidence: 0.35,
       });
     })().catch((error) => {
       instancePromise = null;
