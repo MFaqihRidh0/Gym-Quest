@@ -2,12 +2,12 @@ import Link from 'next/link';
 
 const MODES = [
   {
-    title: 'CV Engine',
+    title: 'Program Latihan',
     accent: 'cyan',
     status: 'Aktif',
-    href: '/kalibrasi',
+    href: '/programs',
     description:
-      'Deteksi pose tubuh lewat webcam, berjalan penuh di browser. Video tidak pernah meninggalkan perangkatmu.',
+      'Program latihan rumahan tanpa alat (Full Body, Cardio, Core, Stretching) dengan panduan form, timer, dan deteksi AI kamera.',
   },
   {
     title: 'Arena Mode',
@@ -15,15 +15,15 @@ const MODES = [
     status: 'Aktif',
     href: '/arena',
     description:
-      'Mini-game yang dikendalikan gerakan tubuh nyata. Setiap repetisi dengan form benar jadi poin.',
+      'Mini-game interaktif Kuda Poni (Push-up) dan Kangguru (Angkat Barbel) yang dikendalikan langsung oleh gerakan fisik nyata.',
   },
   {
-    title: 'Quest Mode',
+    title: 'Progres & Streak',
     accent: 'cyan',
-    status: 'Segera',
-    href: null,
+    status: 'Aktif',
+    href: '/progress',
     description:
-      'Program latihan harian berbasis pedoman ilmiah, lengkap dengan aturan istirahat anti-overtraining.',
+      'Kalender latihan bulanan interaktif, penghitung streak harian beruntun, serta total durasi dan estimasi kalori terbakar.',
   },
 ] as const;
 
@@ -32,37 +32,45 @@ export default function Home() {
     <main className="flex flex-1 flex-col">
       <header className="glass-panel sticky top-0 z-10 flex items-center justify-between border-x-0 border-t-0 px-5 py-3">
         <span className="font-display text-sm tracking-wide">GYMQUEST</span>
-        <nav className="flex gap-5 font-body text-sm text-muted">
-          <Link href="/kalibrasi" className="transition-colors hover:text-cyan">
-            Kalibrasi
+        <nav className="flex items-center gap-5 font-body text-sm text-muted">
+          <Link href="/programs" className="text-white hover:text-cyan transition-colors font-medium">
+            Program
           </Link>
-          <Link href="/exercise" className="transition-colors hover:text-cyan">
-            Exercise
+          <Link href="/progress" className="transition-colors hover:text-cyan">
+            Progres
           </Link>
           <Link href="/arena" className="transition-colors hover:text-magenta">
             Arena
+          </Link>
+          <Link href="/kalibrasi" className="transition-colors hover:text-cyan hidden sm:inline">
+            Kalibrasi
           </Link>
         </nav>
       </header>
 
       <section className="mx-auto w-full max-w-5xl flex-1 px-5 py-16 sm:py-24">
-        <p className="font-mono text-xs tracking-widest text-cyan uppercase">◉ CV Engine: siap</p>
+        <p className="font-mono text-xs tracking-widest text-cyan uppercase">◉ Platform Latihan Rumahan & Gamifikasi</p>
 
         <h1 className="mt-5 max-w-3xl font-display text-4xl leading-tight font-bold text-balance sm:text-6xl">
           Olahraga di rumah terasa seperti main game
         </h1>
 
         <p className="mt-5 max-w-xl font-body text-base text-muted sm:text-lg">
-          Personal trainer digital yang gratis, jalan langsung di browser, dan mengoreksi gerakanmu
-          secara real-time — tanpa alat mahal, tanpa biaya bulanan.
+          Personal trainer digital tanpa alat gym yang berjalan 100% langsung di browsermu. Dilengkapi program terstruktur, timer istirahat, dan koreksi postur real-time.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/kalibrasi"
-            className="clip-corner bg-cyan px-6 py-3 font-body text-sm font-semibold text-void transition-shadow duration-[var(--dur-fast)] hover:shadow-[var(--glow-cyan)]"
+            href="/programs"
+            className="clip-corner bg-gradient-to-r from-cyan to-magenta px-6 py-3 font-body text-sm font-bold text-void transition-shadow duration-[var(--dur-fast)] hover:shadow-[var(--glow-cyan)]"
           >
-            Mulai kalibrasi ▸
+            Mulai Program Latihan ▸
+          </Link>
+          <Link
+            href="/arena"
+            className="clip-corner border border-magenta/40 bg-magenta/10 px-6 py-3 font-body text-sm font-semibold text-magenta transition-colors hover:bg-magenta/20"
+          >
+            Mainkan Arena Mode 🎮
           </Link>
         </div>
 

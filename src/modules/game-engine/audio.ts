@@ -290,6 +290,85 @@ class SoundEngine {
     }, stepDurationMs);
   }
 
+  /** Suara hitung mundur 3, 2, 1 atau GO! */
+  playBeep(isFinal = false) {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(isFinal ? 880 : 440, t); // A5 untuk GO!, A4 untuk 3-2-1
+
+    gain.gain.setValueAtTime(isFinal ? 0.25 : 0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.005, t + (isFinal ? 0.4 : 0.18));
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + (isFinal ? 0.4 : 0.18));
+  }
+
+  /** Suara pergantian gerakan / masuk fase istirahat */
+  playRestTransition() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(523.25, t); // C5
+    osc.frequency.exponentialRampToValueAtTime(659.25, t + 0.15); // E5
+
+    gain.gain.setValueAtTime(0.2, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.3);
+  }
+
+  /** Suara kemenangan saat seluruh sesi latihan selesai */
+  playWorkoutComplete() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const chords = [
+      [523.25, 659.25, 783.99], // C Major
+      [587.33, 739.99, 880.0],  // D Major
+      [659.25, 830.61, 987.77], // E Major
+      [1046.5, 1318.5, 1567.98], // High C Major fanfare
+    ];
+
+    chords.forEach((chord, stepIdx) => {
+      const stepTime = t + stepIdx * 0.18;
+      chord.forEach((freq) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+
+        gain.gain.setValueAtTime(0.12, stepTime);
+        gain.gain.exponentialRampToValueAtTime(0.005, stepTime + 0.4);
+
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.start(stepTime);
+        osc.stop(stepTime + 0.4);
+      });
+    });
+  }
+
   stopBgm() {
     this.isBgmPlaying = false;
     if (this.bgmInterval !== null) {
