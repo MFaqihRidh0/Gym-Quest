@@ -1,14 +1,14 @@
 @import 'tailwindcss';
 
 :root {
-  /* Warna dasar */
-  --bg-void: #0a0b14;
-  --bg-panel: #12162b;
+  /* Warna dasar — Biru tua samar (Subtle Dark Navy) */
+  --bg-void: #070c1e;
+  --bg-panel: #0d1536;
   --accent-cyan: #00e5ff;
   --accent-magenta: #ff3d9a;
   --accent-amber: #ffb627;
-  --text-primary: #e8ecff;
-  --text-muted: #7b84a8;
+  --text-primary: #eaf0ff;
+  --text-muted: #8291be;
 
   /* Glow — hanya untuk state aktif/live */
   --glow-cyan: 0 0 24px rgba(0, 229, 255, 0.35);
@@ -39,9 +39,28 @@
 }
 
 body {
-  background: var(--bg-void);
+  background: radial-gradient(circle at 50% 0%, #131e47 0%, #070c1e 65%, #050814 100%);
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-body);
+  cursor: url('/cursors/barbell.svg') 6 6, auto;
+}
+
+html {
+  cursor: url('/cursors/barbell.svg') 6 6, auto;
+}
+
+/* Custom Interactive Barbell Cursor on Clickable Elements */
+a,
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+select,
+summary,
+.cursor-pointer {
+  cursor: url('/cursors/barbell-pointer.svg') 6 6, pointer;
 }
 
 .clip-corner {

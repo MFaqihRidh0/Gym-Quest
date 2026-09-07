@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <!-- Outer Glow Filter -->
+  <defs>
+    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="1.5" flood-color="#00e5ff" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+
+  <g transform="rotate(45 16 16)" filter="url(#glow-cyan)">
+    <!-- Barbell Chrome Shaft -->
+    <rect x="2.5" y="14.5" width="27" height="3" rx="1.5" fill="#cbd5e1" stroke="#0f172a" stroke-width="0.6"/>
+    
+    <!-- Central Knurled Grip -->
+    <rect x="12" y="14" width="8" height="4" rx="0.75" fill="#00e5ff"/>
+    
+    <!-- Left Inner Collar -->
+    <rect x="9.5" y="12.5" width="1.8" height="7" rx="0.5" fill="#f8fafc"/>
+    <!-- Left Large Plate (Cyan) -->
+    <rect x="6" y="8" width="3.5" height="16" rx="1.5" fill="#00e5ff" stroke="#ffffff" stroke-width="0.75"/>
+    <!-- Left Small Plate -->
+    <rect x="3.2" y="10" width="2.5" height="12" rx="1" fill="#0284c7" stroke="#ffffff" stroke-width="0.5"/>
+    <!-- Left End Nut -->
+    <rect x="1.8" y="13.5" width="1.4" height="5" rx="0.5" fill="#cbd5e1"/>
+
+    <!-- Right Inner Collar -->
+    <rect x="20.7" y="12.5" width="1.8" height="7" rx="0.5" fill="#f8fafc"/>
+    <!-- Right Large Plate (Cyan) -->
+    <rect x="22.5" y="8" width="3.5" height="16" rx="1.5" fill="#00e5ff" stroke="#ffffff" stroke-width="0.75"/>
+    <!-- Right Small Plate -->
+    <rect x="26.3" y="10" width="2.5" height="12" rx="1" fill="#0284c7" stroke="#ffffff" stroke-width="0.5"/>
+    <!-- Right End Nut -->
+    <rect x="28.8" y="13.5" width="1.4" height="5" rx="0.5" fill="#cbd5e1"/>
+  </g>
+</svg>

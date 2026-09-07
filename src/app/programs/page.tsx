@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DEFAULT_PROGRAMS, getRecommendedProgram } from '@/modules/program-engine/defaultPrograms';
-import { getCustomPrograms, getUserProfile } from '@/modules/program-engine/storage';
+import { getCustomPrograms, getUserProfile, DEFAULT_USER_PROFILE } from '@/modules/program-engine/storage';
 import type { ProgramCategory, UserProfile, WorkoutProgram } from '@/modules/program-engine/types';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { CustomWorkoutModal } from '@/components/CustomWorkoutModal';
@@ -18,7 +18,7 @@ const CATEGORIES: { id: ProgramCategory | 'all'; label: string; icon: string }[]
 ];
 
 export default function ProgramsPage() {
-  const [profile, setProfile] = useState<UserProfile>(getUserProfile());
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
   const [customPrograms, setCustomPrograms] = useState<WorkoutProgram[]>([]);
   const [activeCategory, setActiveCategory] = useState<ProgramCategory | 'all'>('all');
   const [showOnboarding, setShowOnboarding] = useState(false);

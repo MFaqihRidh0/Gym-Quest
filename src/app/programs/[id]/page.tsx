@@ -126,7 +126,7 @@ export default function ProgramDetailPage() {
                 >
                   {/* Visual Preview */}
                   <div className="w-full md:w-48 shrink-0">
-                    <ExerciseVisual visualKey={item.visualKey} className="w-full h-36" isAnimated={false} />
+                    <ExerciseVisual visualKey={item.visualKey} className="w-full h-36" isAnimated={false} showControls={false} />
                   </div>
 
                   {/* Details */}

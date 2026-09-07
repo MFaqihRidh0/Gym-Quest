@@ -290,6 +290,21 @@ function WorkoutRunner() {
     });
   };
 
+  // Skip ke gerakan berikutnya
+  const handleSkipExercise = () => {
+    if (!program) return;
+    soundEngine.playRestTransition();
+    if (exerciseIndex >= program.exercises.length - 1) {
+      finishWorkout();
+    } else {
+      setExerciseIndex((i) => i + 1);
+      setCurrentSet(1);
+      setRepsDone(0);
+      setCountdownSeconds(3);
+      setPhase('countdown');
+    }
+  };
+
   // Selesaikan dan simpan log sesi latihan
   const finishWorkout = () => {
     if (!program) return;
@@ -440,182 +455,285 @@ function WorkoutRunner() {
   // LAYAR AKTIF WORKOUT
   return (
     <main className="min-h-screen flex flex-col bg-void text-primary">
-      {/* HEADER HUD */}
+      {/* 1. HEADER TOP HUD */}
       <header className="glass-panel sticky top-0 z-20 flex items-center justify-between border-x-0 border-t-0 px-4 sm:px-6 py-3">
         <div className="flex items-center gap-3">
-          <Link href={`/programs/${program.id}`} className="text-xs font-mono text-muted hover:text-white">
+          <Link
+            href={`/programs/${program.id}`}
+            className="text-xs font-mono text-muted hover:text-white transition-colors"
+          >
             ✕ Keluar
           </Link>
-          <span className="text-xs text-muted">|</span>
-          <span className="font-display text-sm font-bold text-white truncate max-w-[200px] sm:max-w-none">
+          <span className="text-xs text-white/20">|</span>
+          <span className="font-display text-sm font-bold text-white truncate max-w-[180px] sm:max-w-none">
             {program.title}
+          </span>
+          <span className="hidden sm:inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cyan/15 text-cyan border border-cyan/30">
+            {program.badge}
           </span>
         </div>
 
         <div className="flex items-center gap-3 sm:gap-5 text-xs font-mono">
-          <span className="text-muted">
-            ⏱ {Math.floor(sessionElapsedSeconds / 60)}:
-            {String(sessionElapsedSeconds % 60).padStart(2, '0')}
-          </span>
-          <span className="text-magenta font-bold">~{Math.round(estimatedCalories)} kkal</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted">⏱ Waktu:</span>
+            <span className="text-white font-bold">
+              {Math.floor(sessionElapsedSeconds / 60)}:
+              {String(sessionElapsedSeconds % 60).padStart(2, '0')}
+            </span>
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5">
+            <span className="text-muted">🔥 Kalori:</span>
+            <span className="text-magenta font-bold">~{Math.round(estimatedCalories)} kkal</span>
+          </div>
           <button
             onClick={() => setIsPaused(!isPaused)}
-            className="clip-corner border border-white/20 bg-white/5 px-2.5 py-1 text-[11px] text-white hover:border-cyan"
+            className={`clip-corner px-3 py-1 text-xs font-mono transition-all ${
+              isPaused
+                ? 'bg-yellow-400 text-void font-bold shadow-[0_0_10px_rgba(255,214,0,0.5)]'
+                : 'border border-white/20 bg-white/5 text-white hover:border-cyan'
+            }`}
           >
-            {isPaused ? '▶ Lanjut' : '❚❚ Jeda'}
+            {isPaused ? '▶ Lanjutkan' : '❚❚ Jeda'}
           </button>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-5xl flex-1 p-4 sm:p-6 flex flex-col justify-between space-y-6">
-        {/* PROGRES BAR GERAKAN */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-xs font-mono text-muted">
-            <span>
-              Gerakan {exerciseIndex + 1} dari {program.exercises.length}
-            </span>
-            <span>
-              Set {currentSet} dari {currentExerciseRef?.sets}
-            </span>
-          </div>
-          <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-cyan to-magenta transition-all duration-300"
-              style={{
-                width: `${((exerciseIndex + (currentSet - 1) / (currentExerciseRef?.sets || 1)) / program.exercises.length) * 100}%`,
-              }}
-            />
-          </div>
+      {/* 2. TIMELINE ROADMAP STRIP (Seluruh Gerakan Latihan) */}
+      <div className="w-full border-b border-cyan/20 bg-[#08102a]/80 px-4 sm:px-6 py-2.5 overflow-x-auto scrollbar-none shrink-0 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto flex items-center gap-2">
+          {program.exercises.map((exRef, idx) => {
+            const item = EXERCISE_CATALOG[exRef.exerciseId];
+            const isCurrent = idx === exerciseIndex;
+            const isPassed = idx < exerciseIndex;
+            return (
+              <div
+                key={`${exRef.exerciseId}-${idx}`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono shrink-0 border transition-all ${
+                  isCurrent
+                    ? 'border-cyan bg-cyan/20 text-cyan font-bold shadow-[0_0_15px_rgba(0,229,255,0.25)]'
+                    : isPassed
+                      ? 'border-white/10 bg-white/5 text-muted opacity-60'
+                      : 'border-white/5 bg-white/[0.02] text-muted'
+                }`}
+              >
+                <span className="text-[10px] w-4 h-4 rounded-full flex items-center justify-center bg-black/60">
+                  {isPassed ? '✓' : idx + 1}
+                </span>
+                <span className="truncate max-w-[130px]">{item?.name || 'Gerakan'}</span>
+                {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />}
+              </div>
+            );
+          })}
         </div>
+      </div>
 
-        {/* WORKOUT INTERFACE (DUAL MODE) */}
-        <div className="grid md:grid-cols-2 gap-6 items-center">
-          {/* SISI KIRI: DISPLAY KAMERA ATAU VISUALISASI GERAKAN */}
-          <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-white/15 bg-black/60 shadow-[0_0_30px_rgba(0,0,0,0.8)]">
-            {mode === 'ai_camera' ? (
-              <div className="relative w-full h-full">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover -scale-x-100"
-                />
-                <canvas
-                  ref={overlayCanvasRef}
-                  className="absolute inset-0 w-full h-full pointer-events-none -scale-x-100"
-                />
+      {/* 3. MAIN STAGE WORKOUT COCKPIT (Menghilangkan Ruang Kosong!) */}
+      <div className="mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col justify-center">
+        <div className="grid lg:grid-cols-12 gap-6 items-stretch my-auto">
+          {/* SISI KIRI: DISPLAY VISUALISASI BERGERAK / KAMERA (7 Kolom) */}
+          <div className="lg:col-span-7 flex flex-col justify-between">
+            <div className="relative w-full h-[360px] sm:h-[440px] lg:h-[500px] rounded-2xl overflow-hidden border border-cyan/25 bg-gradient-to-b from-[#0e1942] to-[#070e24] shadow-[0_0_50px_rgba(7,14,38,0.8)] flex items-center justify-center">
+              {mode === 'ai_camera' ? (
+                <div className="relative w-full h-full">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover -scale-x-100"
+                  />
+                  <canvas
+                    ref={overlayCanvasRef}
+                    className="absolute inset-0 w-full h-full pointer-events-none -scale-x-100"
+                  />
 
-                {/* AI HUD Telemetry */}
-                <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-black/70 border border-cyan/40 text-[10px] font-mono text-cyan">
-                    <span className="animate-pulse">●</span> AI Bio-Scan Aktif
-                  </span>
-                  {aiAngle !== null && (
-                    <span className="px-2 py-0.5 rounded bg-black/70 text-[10px] font-mono text-white">
-                      Sudut: {Math.round(aiAngle)}°
+                  {/* AI HUD Telemetry */}
+                  <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none z-10">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-black/80 border border-cyan/50 text-xs font-mono text-cyan shadow-lg">
+                      <span className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
+                      AI Bio-Scan Tracking
                     </span>
+                    {aiAngle !== null && (
+                      <span className="px-2.5 py-1 rounded bg-black/80 border border-white/20 text-xs font-mono text-white">
+                        Sudut Sendi: <strong className="text-cyan">{Math.round(aiAngle)}°</strong>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Form Warning Alert */}
+                  {aiFormFeedback && (
+                    <div className="absolute bottom-4 inset-x-4 rounded-lg bg-red-950/95 border border-red-500/80 p-3 text-center text-xs font-semibold text-red-100 shadow-xl animate-bounce">
+                      ⚠ {aiFormFeedback}
+                    </div>
                   )}
                 </div>
-
-                {/* Form Warning Alert */}
-                {aiFormFeedback && (
-                  <div className="absolute bottom-3 inset-x-3 rounded bg-red-950/90 border border-red-500/60 p-2 text-center text-xs text-red-200">
-                    ⚠ {aiFormFeedback}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center p-4">
-                {currentExerciseItem && (
-                  <ExerciseVisual visualKey={currentExerciseItem.visualKey} className="w-full h-full" isAnimated={phase === 'work' && !isPaused} />
-                )}
-              </div>
-            )}
-
-            {/* COUNTDOWN OVERLAY DI AWAL */}
-            {phase === 'countdown' && (
-              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
-                <span className="text-xs font-mono text-cyan uppercase tracking-wider mb-2">Bersiap!</span>
-                <div className="font-display text-7xl font-bold text-cyan animate-ping">
-                  {countdownSeconds}
+              ) : (
+                <div className="w-full h-full p-2 flex items-center justify-center">
+                  {currentExerciseItem && (
+                    <ExerciseVisual
+                      visualKey={currentExerciseItem.visualKey}
+                      className="w-full h-full"
+                      isAnimated={phase === 'work' && !isPaused}
+                    />
+                  )}
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* Tag Info Gerakan di Mode AI Kamera */}
+              {mode === 'ai_camera' && (
+                <div className="absolute bottom-3 left-3 z-10 hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/70 border border-white/15 backdrop-blur-sm text-xs font-mono">
+                  <span className="text-cyan font-bold">
+                    Gerakan {exerciseIndex + 1}/{program.exercises.length}
+                  </span>
+                  <span className="text-white/30">·</span>
+                  <span className="text-white">
+                    Set {currentSet} dari {currentExerciseRef?.sets}
+                  </span>
+                </div>
+              )}
+
+              {/* COUNTDOWN OVERLAY DI AWAL */}
+              {phase === 'countdown' && (
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md">
+                  <span className="text-sm font-mono text-cyan uppercase tracking-widest mb-3">
+                    Bersiap Mulai!
+                  </span>
+                  <div className="font-display text-8xl font-bold text-cyan animate-ping">
+                    {countdownSeconds}
+                  </div>
+                  <span className="text-xs text-muted mt-6">
+                    Posisikan tubuhmu dan ikuti ritme animasi gerakan
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* SISI KANAN: METRIK HITUNGAN REPETISI / TIMER */}
-          <div className="glass-panel clip-corner border-white/10 p-6 sm:p-8 space-y-6">
+          {/* SISI KANAN: COCKPIT KONTROL & METRIK (5 Kolom) */}
+          <div className="lg:col-span-5 flex flex-col justify-between glass-panel clip-corner border-cyan/25 p-6 sm:p-8 rounded-2xl space-y-6 bg-[#0c1638]/90 shadow-[0_0_40px_rgba(8,16,45,0.6)]">
             <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono uppercase text-cyan">
-                  {currentExerciseItem?.category}
+              {/* Kategori & Toggle Mode AI */}
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-xs font-mono uppercase tracking-wider text-cyan font-bold">
+                  {currentExerciseItem?.category} · Tanpa Alat
                 </span>
+
                 {currentExerciseItem?.supportedAiCode && (
                   <button
                     onClick={() => setMode(mode === 'ai_camera' ? 'manual' : 'ai_camera')}
-                    className="text-[11px] font-mono px-2.5 py-1 rounded border border-cyan/40 text-cyan hover:bg-cyan/15 transition-all"
+                    className="text-xs font-mono px-3 py-1.5 rounded-lg border border-cyan/40 bg-cyan/10 text-cyan hover:bg-cyan/20 transition-all flex items-center gap-1.5"
                   >
-                    {mode === 'ai_camera' ? '📷 Mode AI Kamera' : '⏱ Mode Timer'}
+                    <span>{mode === 'ai_camera' ? '📷' : '🏃'}</span>
+                    <span>{mode === 'ai_camera' ? 'Mode AI Kamera' : 'Mode Animasi'}</span>
                   </button>
                 )}
               </div>
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mt-1">
+
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">
                 {currentExerciseItem?.name}
               </h2>
+
+              {/* Target Otot Chips */}
+              <div className="flex flex-wrap gap-1.5 mt-2.5">
+                {currentExerciseItem?.targetMuscles.map((m) => (
+                  <span
+                    key={m}
+                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#131d45]/70 border border-cyan/20 text-muted"
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
             </div>
 
-            {/* REPS ATAU TIMER COUNT */}
-            <div className="flex flex-col items-center justify-center py-4 rounded-xl bg-white/5 border border-white/10">
+            {/* METER DISPLAY UTAMA (REPETISI ATAU TIMER) */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#13204e]/70 to-[#0b1332]/90 border border-cyan/25 p-6 text-center shadow-inner">
+              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#00e5ff_1px,transparent_1px)] [background-size:12px_12px]" />
+
               {currentExerciseRef?.durationSeconds ? (
                 // Mode Durasi Waktu
-                <div className="text-center">
-                  <div className="font-display text-5xl sm:text-6xl font-bold text-cyan">
+                <div className="relative z-10 space-y-2">
+                  <span className="text-xs font-mono uppercase text-muted tracking-wider">
+                    Sisa Waktu Set Ini
+                  </span>
+                  <div className="font-display text-6xl sm:text-7xl font-bold text-cyan tracking-tight drop-shadow-[0_0_20px_rgba(0,229,255,0.4)]">
                     {timerSeconds}s
                   </div>
-                  <span className="text-xs font-mono text-muted mt-1 block">
-                    Tahan posisi hingga waktu habis
+                  <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden max-w-xs mx-auto mt-2">
+                    <div
+                      className="h-full bg-cyan transition-all duration-1000"
+                      style={{
+                        width: `${(timerSeconds / (currentExerciseRef.durationSeconds || 30)) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="text-[11px] font-mono text-muted mt-2 block">
+                    Pertahankan postur hingga timer berbunyi
                   </span>
                 </div>
               ) : (
                 // Mode Repetisi
-                <div className="text-center space-y-1">
-                  <div className="font-display text-5xl sm:text-6xl font-bold text-magenta">
+                <div className="relative z-10 space-y-2">
+                  <span className="text-xs font-mono uppercase text-muted tracking-wider">
+                    Progres Repetisi
+                  </span>
+                  <div className="font-display text-6xl sm:text-7xl font-bold text-magenta tracking-tight drop-shadow-[0_0_20px_rgba(255,61,154,0.4)]">
                     {repsDone}
-                    <span className="text-2xl text-muted font-normal"> / {currentExerciseRef?.reps || 10}</span>
+                    <span className="text-3xl text-muted font-normal">
+                      {' '}
+                      / {currentExerciseRef?.reps || 10}
+                    </span>
                   </div>
-                  <span className="text-xs font-mono text-cyan block">
-                    {mode === 'ai_camera' ? 'Dihitung otomatis lewat kamera' : 'Repetisi tercapai'}
+                  <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden max-w-xs mx-auto mt-2">
+                    <div
+                      className="h-full bg-magenta transition-all duration-300"
+                      style={{
+                        width: `${Math.min((repsDone / (currentExerciseRef?.reps || 10)) * 100, 100)}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="text-[11px] font-mono text-cyan mt-2 block">
+                    {mode === 'ai_camera'
+                      ? 'Dihitung otomatis lewat deteksi kamera AI'
+                      : 'Tekan tombol di bawah setiap menyelesaikan 1 rep'}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* KONTROL REPETISI / SELESAI SET */}
+            {/* TOMBOL KONTROL & AKSI */}
             <div className="space-y-3">
               {!currentExerciseRef?.durationSeconds && mode === 'manual' && (
                 <button
                   onClick={handleManualAddRep}
-                  className="w-full clip-corner bg-cyan py-3.5 font-body text-sm font-bold text-void hover:shadow-[var(--glow-cyan)] transition-all"
+                  className="w-full clip-corner bg-gradient-to-r from-cyan to-magenta py-4 font-body text-sm font-bold text-void hover:shadow-[var(--glow-cyan)] transition-all flex items-center justify-center gap-2"
                 >
-                  + Tambah Repetisi (Hitung)
+                  <span className="text-lg">+</span> Hitung 1 Repetisi Selesai
                 </button>
               )}
 
-              <button
-                onClick={handleSetComplete}
-                className="w-full clip-corner border border-white/20 bg-white/5 py-3 font-body text-xs font-semibold text-white hover:border-magenta hover:text-magenta transition-colors"
-              >
-                Selesaikan Set Ini ▸
-              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={handleSetComplete}
+                  className="clip-corner border border-cyan/50 bg-cyan/15 py-3 font-body text-xs font-bold text-cyan hover:bg-cyan/25 transition-all text-center"
+                >
+                  Selesaikan Set Ini ▸
+                </button>
+                <button
+                  onClick={handleSkipExercise}
+                  className="clip-corner border border-cyan/30 bg-[#0d163a] py-3 font-body text-xs font-semibold text-muted hover:text-white hover:border-cyan/50 transition-colors text-center"
+                >
+                  Lewati Gerakan ⏭
+                </button>
+              </div>
             </div>
 
-            {/* PETUNJUK GERAKAN */}
+            {/* KARTU PANDUAN FORM TIPS */}
             {currentExerciseItem && (
-              <div className="space-y-1.5 border-t border-white/10 pt-4">
-                <span className="text-[10px] font-mono uppercase text-muted tracking-wider block">
-                  Instruksi Form:
-                </span>
+              <div className="rounded-xl border border-cyan/25 bg-[#0b1433]/85 p-4 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-mono text-cyan font-bold">
+                  <span>💡</span> Tips Form Sempurna:
+                </div>
                 <p className="text-xs text-muted leading-relaxed">
                   {currentExerciseItem.instructions[0]}
                 </p>

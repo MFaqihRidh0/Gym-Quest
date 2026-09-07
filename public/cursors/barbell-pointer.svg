@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <!-- Active Hover Glow Filter -->
+  <defs>
+    <filter id="glow-magenta" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#ff3d9a" flood-opacity="0.9"/>
+    </filter>
+  </defs>
+
+  <!-- Tip Active Pointer Dot / Spark -->
+  <circle cx="6.5" cy="6.5" r="2" fill="#ffd700" stroke="#ffffff" stroke-width="0.8"/>
+
+  <g transform="rotate(45 16 16)" filter="url(#glow-magenta)">
+    <!-- Barbell Chrome Shaft -->
+    <rect x="2.5" y="14.5" width="27" height="3" rx="1.5" fill="#f1f5f9" stroke="#0f172a" stroke-width="0.6"/>
+    
+    <!-- Central Knurled Grip -->
+    <rect x="12" y="13.5" width="8" height="5" rx="0.75" fill="#ffd700"/>
+    
+    <!-- Left Inner Collar -->
+    <rect x="9.5" y="12" width="1.8" height="8" rx="0.5" fill="#ffffff"/>
+    <!-- Left Large Plate (Active Magenta) -->
+    <rect x="5.5" y="7" width="3.8" height="18" rx="1.5" fill="#ff3d9a" stroke="#ffffff" stroke-width="0.8"/>
+    <!-- Left Small Plate -->
+    <rect x="2.8" y="9.5" width="2.7" height="13" rx="1" fill="#ec4899" stroke="#ffffff" stroke-width="0.6"/>
+    <!-- Left End Nut -->
+    <rect x="1.5" y="13" width="1.3" height="6" rx="0.5" fill="#ffd700"/>
+
+    <!-- Right Inner Collar -->
+    <rect x="20.7" y="12" width="1.8" height="8" rx="0.5" fill="#ffffff"/>
+    <!-- Right Large Plate (Active Magenta) -->
+    <rect x="22.7" y="7" width="3.8" height="18" rx="1.5" fill="#ff3d9a" stroke="#ffffff" stroke-width="0.8"/>
+    <!-- Right Small Plate -->
+    <rect x="26.5" y="9.5" width="2.7" height="13" rx="1" fill="#ec4899" stroke="#ffffff" stroke-width="0.6"/>
+    <!-- Right End Nut -->
+    <rect x="29.2" y="13" width="1.3" height="6" rx="0.5" fill="#ffd700"/>
+  </g>
+</svg>

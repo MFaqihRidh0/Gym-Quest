@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { calculateSummaryStats, getWorkoutHistory, getUserProfile } from '@/modules/program-engine/storage';
+import { calculateSummaryStats, getWorkoutHistory, getUserProfile, DEFAULT_USER_PROFILE } from '@/modules/program-engine/storage';
 import type { UserProfile, WorkoutSessionLog } from '@/modules/program-engine/types';
 
 export default function ProgressPage() {
-  const [profile, setProfile] = useState<UserProfile>(getUserProfile());
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
   const [history, setHistory] = useState<WorkoutSessionLog[]>([]);
   const [selectedDateFilter, setSelectedDateFilter] = useState<string | null>(null);
 
