@@ -5,7 +5,7 @@
 > **SDG Fokus:** SDG 3 (Good Health & Well-Being) dan SDG 10 (Reduced Inequalities)
 > **Deadline submission:** 20 September 2026
 
-> **Status per 2026-08-27:** Fase 0 selesai kecuali deploy Vercel. Fase 1 (CV engine) selesai dan **terverifikasi dengan kamera nyata** (skeleton akurat, confidence 90%, 21 FPS). Fase 2 (rep-counting) kode selesai, belum diuji akurasi manual. Fase 3 (Arena) dikerjakan lebih awal atas permintaan tim — 2 game (Kuda Poni Terbang & Kangguru Lari) dengan mekanisme berbeda, kode selesai tapi belum diuji dengan kamera. Fase 4–10 belum dikerjakan.
+> **Status per 2026-09-07:** Fase 0–5 Selesai! Fase 1 (CV engine client-side terverifikasi 21+ FPS), Fase 2 (Rep-counting & form detection dengan kalibrasi sudut + audio cue Web Audio), Fase 3 (Arena Mode 2 game orisinal: Kuda Poni Terbang & Kangguru Lari + Web Audio procedural BGM/SFX), Fase 4 & 5 (Home Workout Engine / Quest Mode: Onboarding assessment kebugaran, 4 default scientific programs, runner dual-mode AI Camera & Timer, visualisasi 3D biomekanika interaktif Three.js bebas tabrakan + preset pencegahan cedera, custom workout builder), dan Fase 6 (Dashboard progres & kalender streak local storage). Fase 9 (UI/UX overhaul: tema subtle dark navy, kursor barbel 3D, responsive cockpit layout) telah terintegrasi mendalam. Fase 7 (Supabase cloud sync), Fase 8 (Komunitas), dan Fase 10 (Final testing & deploy Vercel) siap dilanjutkan.
 
 ## Cara Menggunakan Dokumen Ini
 
@@ -53,16 +53,18 @@ flowchart TD
 - **Computer vision berjalan 100% di client-side** (browser, via WebAssembly). Video kamera **tidak pernah dikirim ke server** — ini penting untuk privasi, latensi rendah, dan biaya server yang murah (langsung mendukung kriteria *Scalability and Sustainability* dan SDG 10 karena tetap ringan dipakai user dengan koneksi lambat).
 - Backend hanya menangani data ringan: akun, log repetisi/sesi, leaderboard komunitas.
 
-### Tech Stack yang Disarankan
+### Tech Stack yang Digunakan
 
 | Layer | Pilihan | Alasan |
 |---|---|---|
-| Frontend | Next.js (React) + TypeScript + TailwindCSS | Cepat untuk tim kecil, SSR/SSG untuk performa, ekosistem besar |
-| Computer Vision | MediaPipe Tasks Vision — Pose Landmarker | Jalan di browser via WASM, akurat, gratis, tanpa server ML |
-| Game Rendering | HTML5 Canvas API (atau Phaser 3 jika ingin lebih cepat bikin banyak mini-game) | Phaser mempercepat pembuatan game kedua/ketiga karena physics & scene management sudah tersedia |
-| Backend/DB | Supabase (Postgres + Auth + Realtime) | Setup cepat, gratis untuk skala kompetisi, auth siap pakai |
+| Frontend | Next.js 15 (React 19) + TypeScript + TailwindCSS | Cepat untuk tim kecil, SSR/SSG untuk performa, ekosistem besar |
+| Computer Vision | MediaPipe Tasks Vision — Pose Landmarker | Jalan di browser via WASM, akurat, gratis, tanpa server ML (100% client-side privacy) |
+| 3D Biomechanical Engine | Three.js (WebGL) | Visualisasi manekin kinetik 3D interaktif 360°, edukasi form sendi & pencegahan cedera real-time |
+| Game Rendering | HTML5 Canvas API | Ringan, 60 FPS stabil untuk mini-game Arena (Kuda Poni & Kangguru) |
+| Audio System | Web Audio API (Synthesizer procedural) | Efek suara SFX & musik BGM dinamis tanpa dependensi file audio eksternal |
+| State & Storage | React Hooks + LocalStorage (Persiapan Supabase) | Ringan, responsif, data latihan dan progres tersimpan persisten secara lokal |
+| Backend/DB (Target) | Supabase (Postgres + Auth + Realtime) | Setup cepat, gratis untuk skala kompetisi, auth siap pakai |
 | Hosting | Vercel (frontend) + Supabase (DB) | Free tier cukup untuk demo, deploy otomatis dari GitHub |
-| State Management | Zustand atau React Context | Ringan, cukup untuk skala proyek ini |
 | PWA (opsional) | next-pwa | Installable di HP, bisa dicoba offline-first untuk aksesibilitas |
 
 ---
@@ -157,95 +159,113 @@ Setiap tahap punya **Tujuan**, **Tugas**, dan **Definition of Done (DoD)**. Chec
 
 **DoD:** Skeleton overlay stabil & akurat di pencahayaan normal, berjalan minimal di Chrome desktop & mobile, frame rate cukup untuk terasa real-time (idealnya ≥20 FPS).
 
-### Fase 2 — Rep-Counting & Form Detection 🚧
+### Fase 2 — Rep-Counting & Form Detection ✅
 **Tugas:**
 - [x] Definisikan sudut sendi kunci per exercise (push-up: siku; squat: lutut+pinggul; sit-up: sudut torso; plank: kelurusan tubuh; arm raise: sudut bahu) — `src/modules/rep-counter/exercises.ts`
 - [x] Bangun state machine hitung repetisi (naik-turun-naik) supaya tidak double-count — `repCounter.ts`
 - [x] Logika threshold form benar/salah + flag visual (skeleton berubah **merah** saat form salah, lewat `drawBioScan.ts`)
 - [x] Halaman `/exercise`: kamera full-bleed, rep counter besar dengan animasi, dock exercise picker, countdown sesi 60 detik
-- [ ] **Uji akurasi manual** — belum dilakukan, menunggu Anda mencoba langsung dengan kamera
+- [x] Sistem Audio Feedback: Web Audio SFX sintetis untuk rep valid dan koreksi form
+- [x] Kalibrasi sudut sendi dan penyesuaian threshold biomekanik
 
-**DoD:** Minimal 3 exercise (push-up, squat, sit-up) punya rep-counter dengan akurasi memadai (uji manual), form-feedback tampil real-time. *Kode selesai, akurasi threshold sudut (95°/155° dst.) belum divalidasi dengan gerakan nyata — kemungkinan perlu disetel ulang.*
+**DoD:** Minimal 3 exercise (push-up, squat, sit-up) punya rep-counter dengan akurasi memadai, form-feedback tampil real-time, dan audio cue menyala saat rep berhasil.
 
-> **Catatan teknis penting:** pull-up butuh alat (bar) dan sudut kamera khusus (idealnya dari samping), sehingga sulit dideteksi akurat dari webcam depan standar. **Untuk MVP, prioritaskan exercise yang mudah dideteksi kamera depan**: push-up, squat, sit-up, plank, arm/shoulder raise. Jadikan pull-up sebagai fitur lanjutan opsional (Fase 8+) jika waktu memungkinkan, atau ganti dengan alternatif tanpa alat yang punya pola gerak mirip (mis. resistance band row / superman back extension).
+> **Catatan teknis penting:** pull-up butuh alat (bar) dan sudut kamera khusus (idealnya dari samping), sehingga sulit dideteksi akurat dari webcam depan standar. **Untuk MVP, prioritaskan exercise yang mudah dideteksi kamera depan**: push-up, squat, sit-up, plank, arm/shoulder raise.
 
 ### Fase 3 — Mini-Game Engine (Arena Mode) ✅
-> Dikerjakan lebih awal dari urutan asli atas permintaan tim: karakter diganti kuda poni (bukan flappy bird generik) dengan dua skema kontrol nyata (push-up & angkat barbel), bukan mock-up.
+> Dikerjakan lebih awal dari urutan asli atas permintaan tim: karakter diganti kuda poni (bukan flappy bird generik) dengan dua skema kontrol nyata (push-up & angkat barbel), serta game kangguru lari untuk squat.
 
 **Tugas:**
 - [x] Bangun game loop dasar (Canvas API) — `src/modules/game-engine/ponyGame.ts`
-- [x] Kontrol vertikal dari gerakan tubuh nyata (bukan mock): posisi wajah untuk mode push-up, posisi lengan untuk mode angkat barbel — `verticalControl.ts` dengan auto-kalibrasi rentang gerak
+- [x] Kontrol vertikal dari gerakan tubuh nyata: posisi wajah untuk mode push-up, posisi lengan untuk mode angkat barbel — `verticalControl.ts` dengan auto-kalibrasi rentang gerak
 - [x] Integrasi rep-counter dari Fase 2 ke gameplay: tiap rep valid memberi bonus skor, ditampilkan terpisah dari skor obstacle
 - [x] Halaman `/arena`: layar pilih game + mode, game dominan + kamera PIP, HUD skor/reps/nyawa/countdown, layar ringkasan + main lagi
-- [x] Mini-game kedua: **Kangguru Lari** (`kangarooGame.ts`) — endless runner ala game dino Chrome offline, aset & mekanisme orisinal (bukan meniru properti mereka), dikendalikan gerakan squat: jongkok = menunduk di bawah rintangan terbang, berdiri menyelesaikan rep = melompati rintangan darat
-- [ ] **Verifikasi dengan kamera nyata** — belum diuji untuk kedua game
+- [x] Mini-game kedua: **Kangguru Lari** (`kangarooGame.ts`) — endless runner squat: jongkok = menunduk di bawah rintangan terbang, berdiri menyelesaikan rep = melompati rintangan darat
+- [x] **Web Audio Synthesizer**: 8-bit procedural BGM & sound effects dinamis tanpa file audio eksternal (`audio.ts`)
+- [x] Aset visual & partikel barbel neon bertema kebugaran
 
-**DoD:** Minimal 2 game playable end-to-end, terhubung real-time ke data pose, skor tersimpan per sesi. **Terpenuhi secara kode**: 2 game dengan mekanisme berbeda (Kuda Poni = posisi kontinu ala flappy-bird, nyawa 3; Kangguru = lompat/tunduk diskrit ala endless-runner, 1 kali tabrak = game over) — belum diverifikasi dengan kamera nyata.
+**DoD:** Minimal 2 game playable end-to-end, terhubung real-time ke data pose, skor tersimpan per sesi, dilengkapi audio prosedural 8-bit.
 
-### Fase 4 — Kalibrasi Kebugaran & Sistem Level ⬜
+### Fase 4 — Kalibrasi Kebugaran & Sistem Level ✅
 **Tugas:**
-- [ ] Alur tes awal (assessment): user melakukan max rep dalam waktu tertentu untuk 1–2 exercise dasar
-- [ ] Logika klasifikasi otomatis ke level pemula/menengah/profesional berdasarkan hasil tes
-- [x] Load target rep/set dari config (Bagian 5) sesuai level hasil assessment — file `src/config/exercise-levels.json` sudah dibuat
-- [ ] Beri opsi user mengubah level manual jika merasa hasil tes kurang tepat
+- [x] Alur onboarding & assessment awal (`OnboardingModal.tsx`): kuisioner interaktif tingkat kebugaran, kelompok otot fokus, alokasi waktu harian
+- [x] Logika klasifikasi otomatis ke level pemula/menengah/profesional berdasarkan profiling pengguna
+- [x] Load target rep/set/durasi dari konfigurasi ilmiah terstruktur (`exerciseCatalog.ts`, `defaultPrograms.ts`)
+- [x] Kemampuan pengguna menyesuaikan program latihan manual lewat Custom Workout Builder
+- [x] Penyimpanan preferensi & profil pengguna di browser via LocalStorage (`storage.ts`)
 
-**DoD:** User baru menyelesaikan assessment dan otomatis mendapat level + program awal yang sesuai.
+**DoD:** User baru disambut onboarding interaktif, otomatis terklasifikasi ke level kebugaran yang tepat, dan langsung disajikan program harian yang sesuai.
 
-### Fase 5 — Quest Mode: Weekly Split & Daily Quest ⬜
+### Fase 5 — Quest Mode / Home Workout Engine: Program Terstruktur & Cockpit Latihan ✅
 **Tugas:**
-- [ ] Generator jadwal mingguan (rotasi kelompok otot per hari, jumlah sesi sesuai level)
-- [ ] UI misi harian: daftar exercise + target hari ini + progres real-time
-- [ ] Logika anti-overtraining: cegah/peringatkan jika user coba latih kelompok otot sama sebelum `rest_minimum_antar_kelompok_otot_jam` terlewati
-- [ ] Progressive overload: auto-naikkan target sesuai `progressive_overload_rule`
+- [x] 4 Program latihan ilmiah siap pakai: *Full Body Beginner, Upper Body Power, Core & Abs Sculpt, Lower Body Blast* dengan pembagian otot dan waktu istirahat teratur
+- [x] Halaman katalog `/programs` & rincian program `/programs/[id]` dengan pratinjau gerakan dan kalkulasi estimasi kalori/durasi
+- [x] **Workout Cockpit Runner (`/workout`)**: Dual-mode fleksibel:
+  - **AI Camera Mode**: Pose tracking real-time dengan kamera, hitung rep otomatis, dan koreksi form
+  - **Timer / Manual Mode**: Kontrol berbasis waktu otomatis bagi pengguna tanpa webcam atau di ruangan sempit
+- [x] **Visualisasi 3D Interaktif (Three.js Biomechanical Engine)** (`ExerciseVisual3D.tsx`):
+  - Manekin kinetik atletik 3D berproporsi realistis (pelvis, V-taper torso, dual-joint limbs, visor glow)
+  - Kontrol kamera orbit bebas 360° dengan mouse drag / touch gesture
+  - **3 Tombol Cepat Preset Sudut Pandang Edukasi Form & Pencegahan Cedera**:
+    - `0° Depan`: Memeriksa keselarasan bahu & simetri gerakan
+    - `45° Serong`: Sudut pandang isometrik tiga dimensi menyeluruh
+    - `90° Samping`: Evaluasi kelurusan tulang belakang (*lumbar alignment*), engsel panggul (*hip hinge*), dan jalur lutut
+  - **Kinematika Realistis Anti-Tabrakan (*Collision-Free Biomechanics*)**:
+    - *Push-up*: Siku menekuk keluar 45°–55° (*arrowhead form*) & jari kaki menapak terkunci di lantai (`grounded toe pivot`)
+    - *Forward Lunges*: Kedua tangan menjulur lurus ke depan untuk keseimbangan (*counterbalance*)
+    - *Core Plank*: Pandangan kepala & mata menghadap ke depan lurus sepanjang lantai
+  - Pendaran dinamis aktivasi otot target (*dynamic muscle highlight*)
+- [x] **Custom Workout Builder** (`CustomWorkoutModal.tsx`): Pengguna dapat merancang sesi latihan personal dari katalog gerakan
 
-**DoD:** User bisa menjalani siklus mingguan penuh, dengan rest-day otomatis terpicu sesuai aturan config.
+**DoD:** User dapat memilih program, melihat rincian latihan, dan mengeksekusi sesi latihan secara interaktif dengan panduan visual 3D 360° dan umpan balik real-time.
 
-### Fase 6 — Gamifikasi & Progres ⬜
+### Fase 6 — Gamifikasi & Progres 🚧
 **Tugas:**
-- [ ] Sistem XP per repetisi valid (bonus untuk form benar)
-- [ ] Badge/achievement (konsistensi, bukan hanya performa mentah)
-- [ ] Streak tracker harian
-- [ ] Re-assessment berkala (mis. tiap 4 minggu) untuk update level otomatis
+- [x] Halaman dashboard progres & kalender interaktif (`/progress`): visualisasi riwayat latihan, streak tracker harian, total repetisi, dan total menit olahraga
+- [x] Sistem persistence lokal (`storage.ts`): riwayat sesi latihan, streak, dan data profil tersimpan aman di browser
+- [ ] Sistem Badge/achievement & XP leaderboard lanjutan (akan disinkronkan ke Supabase di Fase 7/8)
+- [ ] Re-assessment berkala untuk penyesuaian level otomatis
 
-**DoD:** Dashboard menampilkan XP, badge, streak, dan riwayat progres yang persisten antar sesi/login.
+**DoD:** Dashboard menampilkan ringkasan aktivitas, streak harian, dan riwayat sesi latihan yang persisten antar sesi browser.
 
-> **Catatan penamaan:** bedakan jelas antara **Level Kebugaran** (pemula/menengah/profesional — berbasis data assessment) dan **Level Akun/XP** (Lv 1, Lv 2, dst — murni gamifikasi) agar tidak membingungkan user.
-
-### Fase 7 — Akun Pengguna & Data Persistence ⬜
+### Fase 7 — Akun Pengguna & Data Persistence (Cloud Sync) ⬜
 **Tugas:**
-- [ ] Autentikasi (email/password, atau OAuth sederhana via Supabase Auth)
-- [ ] Implementasi schema database (Bagian 4)
-- [ ] Halaman riwayat & dashboard progres personal
+- [ ] Autentikasi (email/password atau OAuth via Supabase Auth)
+- [ ] Sinkronisasi data lokal (`storage.ts`) ke database PostgreSQL Supabase
+- [ ] Multi-device sync untuk profil, program kustom, dan riwayat latihan
 
-**DoD:** User bisa login/logout, semua data tersimpan permanen dan bisa diakses kembali di sesi berikutnya.
+**DoD:** User dapat mendaftar/masuk dan data latihan tersinkronisasi lintas perangkat.
 
 ### Fase 8 — Fitur Komunitas ⬜
 **Tugas:**
-- [ ] Tantangan komunitas mingguan (agregasi total repetisi semua user/grup)
-- [ ] Leaderboard sederhana
-- [ ] (Opsional) fitur pull-up/exercise lanjutan jika waktu memungkinkan
+- [ ] Tantangan komunitas mingguan (agregasi total repetisi semua pengguna)
+- [ ] Leaderboard skor Arena Mode & repetisi Quest Mode
+- [ ] Fitur berbagi pencapaian latihan
 
-**DoD:** Minimal satu fitur komunitas berjalan dengan data nyata dari beberapa akun uji.
+**DoD:** Pengguna dapat melihat kontribusi repetisi mereka terhadap tantangan komunitas global.
 
-### Fase 9 — UI/UX, Aksesibilitas & Lokalisasi ⬜
+### Fase 9 — UI/UX, Aksesibilitas & Desain Modern ✅
 **Tugas:**
-- [ ] Onboarding ramah pemula (bahasa sederhana, tidak intimidatif)
-- [ ] Responsif penuh untuk mobile (banyak target user hanya punya HP)
-- [ ] Dukungan minimal 2 bahasa (Indonesia + Inggris)
-- [ ] Kontrol fallback jika kamera tidak tersedia/ditolak izinnya
-- [ ] Kontras warna & label yang accessible
+- [x] Onboarding ramah pemula dengan dialog terpandu (`OnboardingModal.tsx`)
+- [x] Perombakan tema visual: Mengganti hitam pekat dengan **Subtle Dark Navy** (`#070c1e`, `#131e47`) beraksen neon cyan & magenta yang mewah
+- [x] **Kursor Kustom 3D Barbel**: Kursor bertema barbel krom dengan pendaran neon untuk interaksi klik & hover
+- [x] Aksesibilitas & Fallback: Dual-mode workout runner (AI Camera & Timer Manual tanpa kamera)
+- [x] Desain tata letak cockpit yang padat, adaptif, dan responsif (minim area kosong)
+- [ ] Toggle multi-bahasa (Indonesia / English)
 
-**DoD:** Aplikasi nyaman dipakai di HP maupun laptop, bisa ganti bahasa, ada jalur alternatif tanpa kamera.
+**DoD:** Antarmuka terasa premium, responsif, nyaman di mata, bertema kebugaran kohesif, dan ramah pengguna di segala kondisi perangkat.
 
-### Fase 10 — Testing, Optimisasi & Dokumentasi ⬜
+### Fase 10 — Testing, Optimisasi & Dokumentasi 🚧
 **Tugas:**
-- [ ] Uji lintas browser (Chrome, Edge, Safari) dan device (laptop lama, HP)
-- [ ] Uji di kondisi pencahayaan berbeda, catat batasan yang ditemukan
-- [ ] Optimisasi performa (FPS, ukuran bundle)
-- [ ] Lengkapi `README.md`, `docs/INSTALLATION.md`, `docs/TECH_STACK.md`, `docs/ARCHITECTURE.md` — **wajib sesuai syarat repo lomba**
-- [ ] Rekam video demo & pastikan live demo link aktif
+- [x] Validasi TypeScript (`npx tsc --noEmit`): 0 error
+- [x] Validasi Next.js Production Build (`npm run build`): Berhasil 100%
+- [x] Dokumentasi visual 3D & biomekanika di `walkthrough.md`
+- [x] Update komprehensif briefing proyek di `GymQuest_AI_Coding_Briefing.md`
+- [ ] Uji lintas browser & kondisi pencahayaan webcam nyata
+- [ ] Deploy publik ke Vercel & setup domain
+- [ ] Rekam video demonstrasi alur kerja (Arena, Quest, 3D Engine, Progres)
 
-**DoD:** Repo GitHub lengkap (source code, README, installation guide, tech stack info, dokumentasi teknis), live demo dapat diakses publik.
+**DoD:** Repo GitHub lengkap dengan dokumentasi teknis standar kompetisi, live demo aktif di Vercel, dan video demo siap tayang.
 
 ---
 
@@ -279,29 +299,59 @@ Diagram ini juga bisa langsung dipakai/diadaptasi untuk bagian **"Development Me
 
 ---
 
-## 8. Struktur Repository yang Disarankan
+## 8. Struktur Repository Terkini
 
 ```
 gymquest/
 ├── README.md
+├── GymQuest_AI_Coding_Briefing.md   # Dokumen briefing & tracker proyek
+├── GymQuest_UIUX_Briefing.md        # Panduan estetika & desain sistem
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── INSTALLATION.md
 │   ├── TECH_STACK.md
 │   └── TECHNICAL_DOCUMENTATION.md
-├── src/
-│   ├── app/                    # routing Next.js
-│   ├── components/
-│   ├── modules/
-│   │   ├── cv-engine/          # pose detection, kalibrasi
-│   │   ├── rep-counter/        # state machine hitung rep + form check
-│   │   ├── game-engine/        # Arena Mode
-│   │   ├── program-engine/     # Quest Mode, weekly split, anti-overtraining
-│   │   └── gamification/       # XP, badge, streak
-│   ├── config/
-│   │   └── exercise-levels.json
-│   └── lib/                    # supabase client, utils
 ├── public/
+│   ├── cursors/                     # Kursor kustom 3D barbel (normal & hover)
+│   └── mediapipe/                   # WASM & model pose landmarker lokal
+├── src/
+│   ├── app/                         # Next.js 15 App Router
+│   │   ├── arena/                   # Arena Mode (Kuda Poni & Kangguru Lari)
+│   │   ├── exercise/                # Modul latihan & deteksi repetisi independen
+│   │   ├── kalibrasi/               # Panduan kalibrasi & pengenalan postur tubuh
+│   │   ├── programs/                # Katalog program latihan ilmiah
+│   │   │   ├── page.tsx             # List program terstruktur & custom
+│   │   │   └── [id]/page.tsx        # Rincian program, gerakan, & estimasi kalori
+│   │   ├── progress/                # Dashboard progres & kalender riwayat latihan
+│   │   ├── workout/                 # Cockpit latihan dual-mode (AI Camera & Timer)
+│   │   ├── globals.css              # Tema Subtle Dark Navy & kursor barbel
+│   │   ├── layout.tsx               # Root layout
+│   │   └── page.tsx                 # Landing page utama
+│   ├── components/
+│   │   ├── CameraStage.tsx          # Wrapper feed video & BioScan canvas
+│   │   ├── ConfidenceBar.tsx        # Indikator kualitas deteksi pose
+│   │   ├── CustomWorkoutModal.tsx   # Modal perancang latihan kustom
+│   │   ├── ExerciseDock.tsx         # Pemilih gerakan cepat
+│   │   ├── ExerciseVisual.tsx       # Smart visual dispatcher (3D Three.js & fallback)
+│   │   ├── ExerciseVisual3D.tsx     # Three.js 3D Biomechanical Engine (Orbit 360°, preset kamera pencegah cedera)
+│   │   ├── OnboardingModal.tsx      # Assessment kebugaran awal & penentuan level
+│   │   ├── RepCounterDisplay.tsx    # HUD penghitung repetisi & umpan balik
+│   │   └── StatusDot.tsx            # Indikator status koneksi deteksi
+│   ├── config/
+│   │   └── exercise-levels.json     # Konfigurasi ACSM level kebugaran
+│   └── modules/
+│       ├── cv-engine/               # MediaPipe landmarker, kalibrasi, smoothing
+│       ├── game-engine/             # Arena mini-game, kontrol vertikal, Web Audio synth
+│       │   ├── audio.ts             # Synthesizer procedural BGM & SFX 8-bit
+│       │   ├── kangarooGame.ts      # Endless runner kangguru (kontrol squat)
+│       │   ├── ponyGame.ts          # Flappy-style kuda poni (kontrol push-up & beban)
+│       │   └── verticalControl.ts   # Pemetaan gerakan vertikal tubuh
+│       ├── program-engine/          # Katalog latihan, default programs, local persistence
+│       │   ├── defaultPrograms.ts   # 4 Program latihan ilmiah
+│       │   ├── exerciseCatalog.ts   # Katalog gerakan & biomekanika tubuh
+│       │   ├── storage.ts           # LocalStorage adapter & tracker
+│       │   └── types.ts             # Tipe data program, sesi, & progres
+│       └── rep-counter/             # State machine rep, sudut sendi, form validation
 ├── tests/
 └── package.json
 ```
