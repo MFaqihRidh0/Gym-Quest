@@ -7,6 +7,7 @@ import { getCustomPrograms, getUserProfile, DEFAULT_USER_PROFILE } from '@/modul
 import type { ProgramCategory, UserProfile, WorkoutProgram } from '@/modules/program-engine/types';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { CustomWorkoutModal } from '@/components/CustomWorkoutModal';
+import { UserNavButton } from '@/components/UserNavButton';
 
 const CATEGORIES: { id: ProgramCategory | 'all'; label: string; icon: string }[] = [
   { id: 'all', label: 'Semua Program', icon: '⚡' },
@@ -53,6 +54,9 @@ export default function ProgramsPage() {
           </Link>
         </div>
         <nav className="flex items-center gap-4 text-sm font-body">
+          <Link href="/leaderboard" className="text-yellow-400 hover:text-yellow-300 transition-colors font-medium">
+            Leaderboard 🏆
+          </Link>
           <Link href="/progress" className="text-muted hover:text-cyan transition-colors flex items-center gap-1.5">
             <span>🔥 Streak:</span>
             <span className="text-cyan font-mono font-bold">{profile.streakDays} hari</span>
@@ -63,6 +67,7 @@ export default function ProgramsPage() {
           <Link href="/" className="text-muted hover:text-white transition-colors">
             ← Beranda
           </Link>
+          <UserNavButton />
         </nav>
       </header>
 

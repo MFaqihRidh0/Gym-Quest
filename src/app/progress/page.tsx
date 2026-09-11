@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { calculateSummaryStats, getWorkoutHistory, getUserProfile, DEFAULT_USER_PROFILE } from '@/modules/program-engine/storage';
 import type { UserProfile, WorkoutSessionLog } from '@/modules/program-engine/types';
+import { UserNavButton } from '@/components/UserNavButton';
 
 export default function ProgressPage() {
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
@@ -83,12 +84,16 @@ export default function ProgressPage() {
           <Link href="/programs" className="text-muted hover:text-cyan transition-colors">
             Program Latihan
           </Link>
+          <Link href="/leaderboard" className="text-yellow-400 hover:text-yellow-300 transition-colors font-medium">
+            Leaderboard 🏆
+          </Link>
           <Link href="/arena" className="text-muted hover:text-magenta transition-colors hidden sm:inline">
             Arena Mode
           </Link>
           <Link href="/" className="text-muted hover:text-white transition-colors">
             ← Beranda
           </Link>
+          <UserNavButton />
         </nav>
       </header>
 
@@ -105,14 +110,31 @@ export default function ProgressPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-gradient-to-r from-yellow-500/20 to-magenta/20 border border-yellow-500/40 rounded-xl p-4 shrink-0 shadow-[0_0_20px_rgba(255,214,0,0.1)]">
-            <span className="text-3xl">🔥</span>
-            <div>
-              <div className="text-[11px] font-mono uppercase text-yellow-400 font-bold tracking-wider">
-                Daily Streak
+          <div className="flex items-center gap-3">
+            <Link
+              href="/leaderboard"
+              className="flex items-center gap-3 bg-gradient-to-r from-cyan/20 to-magenta/20 border border-cyan/40 rounded-xl p-4 shrink-0 hover:border-cyan transition-colors"
+            >
+              <span className="text-3xl">🏆</span>
+              <div>
+                <div className="text-[11px] font-mono uppercase text-cyan font-bold tracking-wider">
+                  5 Liga Mingguan
+                </div>
+                <div className="font-display text-sm font-bold text-white flex items-center gap-1">
+                  Lihat Posisi ▸
+                </div>
               </div>
-              <div className="font-display text-2xl font-bold text-white">
-                {profile.streakDays} <span className="text-sm font-normal text-muted">Hari Beruntun</span>
+            </Link>
+
+            <div className="flex items-center gap-3 bg-gradient-to-r from-yellow-500/20 to-magenta/20 border border-yellow-500/40 rounded-xl p-4 shrink-0 shadow-[0_0_20px_rgba(255,214,0,0.1)]">
+              <span className="text-3xl">🔥</span>
+              <div>
+                <div className="text-[11px] font-mono uppercase text-yellow-400 font-bold tracking-wider">
+                  Daily Streak
+                </div>
+                <div className="font-display text-2xl font-bold text-white">
+                  {profile.streakDays} <span className="text-sm font-normal text-muted">Hari Beruntun</span>
+                </div>
               </div>
             </div>
           </div>

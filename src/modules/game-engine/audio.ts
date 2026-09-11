@@ -369,6 +369,34 @@ class SoundEngine {
     });
   }
 
+  /** Suara perayaan naik kasta / level up liga */
+  playLevelUp() {
+    this.playWorkoutComplete();
+  }
+
+  /** Suara tick ringan saat navigasi kasta liga atau hitung mundur */
+  playCountdownTick() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.exponentialRampToValueAtTime(1200, t + 0.04);
+
+    gain.gain.setValueAtTime(0.08, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.04);
+  }
+
   stopBgm() {
     this.isBgmPlaying = false;
     if (this.bgmInterval !== null) {

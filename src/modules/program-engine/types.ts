@@ -75,4 +75,7 @@ export interface UserProfile {
   lastWorkoutDate: string | null; // Format YYYY-MM-DD
   completedSessionsCount: number;
   hasCompletedOnboarding: boolean;
+  username?: string;
+  avatar?: string;
+  email?: string;
 }

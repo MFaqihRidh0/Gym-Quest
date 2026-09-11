@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DEFAULT_PROGRAMS } from '@/modules/program-engine/defaultPrograms';
 import { EXERCISE_CATALOG } from '@/modules/program-engine/exerciseCatalog';
-import { getCustomPrograms, recordWorkoutSession } from '@/modules/program-engine/storage';
+import { getCustomPrograms, getUserProfile, recordWorkoutSession } from '@/modules/program-engine/storage';
 import type { ExerciseItem, ProgramExerciseRef, WorkoutProgram, WorkoutSessionLog } from '@/modules/program-engine/types';
 import { soundEngine } from '@/modules/game-engine/audio';
 import { usePoseDetection } from '@/modules/cv-engine/usePoseDetection';
 import { RepCounter, type RepCounterState } from '@/modules/rep-counter/repCounter';
 import { drawBioScan } from '@/modules/cv-engine/drawBioScan';
 import { ExerciseVisual } from '@/components/ExerciseVisual';
+import { ShareAchievementModal } from '@/components/ShareAchievementModal';
 
 type WorkoutPhase = 'countdown' | 'work' | 'rest' | 'finished';
 
@@ -43,7 +44,14 @@ function WorkoutRunner() {
   const [estimatedCalories, setEstimatedCalories] = useState(0);
 
   // Selesai log
-  const [finishedResult, setFinishedResult] = useState<{ log: WorkoutSessionLog; newStreak: number } | null>(null);
+  const [finishedResult, setFinishedResult] = useState<{
+    log: WorkoutSessionLog;
+    newStreak: number;
+    earnedExp?: number;
+    newWeeklyExp?: number;
+    newRank?: number;
+  } | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // MediaPipe AI CV
   const { videoRef, liveLandmarksRef, status, start, stop } = usePoseDetection();
@@ -381,21 +389,66 @@ function WorkoutRunner() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <Link
-              href="/progress"
-              className="flex-1 clip-corner bg-gradient-to-r from-cyan to-magenta py-3 font-body text-xs font-bold text-void hover:opacity-90 transition-opacity text-center"
+          {finishedResult.earnedExp && (
+            <div className="flex items-center justify-between bg-cyan/10 border border-cyan/30 rounded-lg px-4 py-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">⚡</span>
+                <div className="text-left">
+                  <div className="text-[10px] font-mono uppercase text-cyan tracking-wider font-bold">EXP Diperoleh</div>
+                  <div className="text-xs text-muted">Liga Mingguan</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="font-display font-bold text-base text-cyan">+{finishedResult.earnedExp} EXP</span>
+                {finishedResult.newRank && (
+                  <span className="block text-[10px] font-mono text-muted">Rank Liga #{finishedResult.newRank}</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2 pt-2">
+            <button
+              onClick={() => {
+                soundEngine.playPoint();
+                setShowShareModal(true);
+              }}
+              className="w-full flex items-center justify-center gap-2 clip-corner bg-emerald-500 py-3 font-body text-xs font-bold text-void hover:bg-emerald-400 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]"
             >
-              Lihat Riwayat & Kalender ▸
-            </Link>
-            <Link
-              href="/programs"
-              className="flex-1 clip-corner border border-white/20 bg-white/5 py-3 font-body text-xs font-semibold text-white hover:border-white/40 transition-colors text-center"
-            >
-              Daftar Program
-            </Link>
+              <span>📤</span>
+              <span>Bagikan Pencapaian (WhatsApp & IG)</span>
+            </button>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/leaderboard"
+                className="flex-1 clip-corner bg-gradient-to-r from-cyan to-magenta py-3 font-body text-xs font-bold text-void hover:opacity-90 transition-opacity text-center"
+              >
+                Cek Posisi Leaderboard 🏆
+              </Link>
+              <Link
+                href="/progress"
+                className="flex-1 clip-corner border border-white/20 bg-white/5 py-3 font-body text-xs font-semibold text-white hover:border-white/40 transition-colors text-center"
+              >
+                Riwayat & Kalender ▸
+              </Link>
+            </div>
           </div>
         </div>
+
+        <ShareAchievementModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          data={{
+            title: program.title,
+            reps: finishedResult.log.totalRepsCompleted,
+            durationMinutes: Math.round(finishedResult.log.durationSeconds / 60),
+            calories: finishedResult.log.caloriesBurned,
+            streakDays: finishedResult.newStreak,
+            leagueName: 'Liga GymQuest',
+            username: getUserProfile().username || 'Knight-01',
+          }}
+        />
       </main>
     );
   }

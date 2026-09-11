@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { UserNavButton } from '@/components/UserNavButton';
 
 const MODES = [
   {
@@ -7,7 +8,7 @@ const MODES = [
     status: 'Aktif',
     href: '/programs',
     description:
-      'Program latihan rumahan tanpa alat (Full Body, Cardio, Core, Stretching) dengan panduan form, timer, dan deteksi AI kamera.',
+      'Program latihan rumahan tanpa alat (Full Body, Cardio, Core, Stretching) dengan panduan form 3D 360°, timer, dan deteksi AI kamera.',
   },
   {
     title: 'Arena Mode',
@@ -25,6 +26,14 @@ const MODES = [
     description:
       'Kalender latihan bulanan interaktif, penghitung streak harian beruntun, serta total durasi dan estimasi kalori terbakar.',
   },
+  {
+    title: '5 Liga & Leaderboard',
+    accent: 'yellow',
+    status: 'Aktif',
+    href: '/leaderboard',
+    description:
+      'Sistem kompetisi 5 kasta liga (Iron, Bronze, Silver, Gold, Titan) berbasis EXP mingguan dengan siklus evaluasi 7 hari.',
+  },
 ] as const;
 
 export default function Home() {
@@ -36,6 +45,9 @@ export default function Home() {
           <Link href="/programs" className="text-white hover:text-cyan transition-colors font-medium">
             Program
           </Link>
+          <Link href="/leaderboard" className="transition-colors hover:text-yellow-400 font-medium">
+            Leaderboard
+          </Link>
           <Link href="/progress" className="transition-colors hover:text-cyan">
             Progres
           </Link>
@@ -45,6 +57,7 @@ export default function Home() {
           <Link href="/kalibrasi" className="transition-colors hover:text-cyan hidden sm:inline">
             Kalibrasi
           </Link>
+          <UserNavButton />
         </nav>
       </header>
 
@@ -56,7 +69,7 @@ export default function Home() {
         </h1>
 
         <p className="mt-5 max-w-xl font-body text-base text-muted sm:text-lg">
-          Personal trainer digital tanpa alat gym yang berjalan 100% langsung di browsermu. Dilengkapi program terstruktur, timer istirahat, dan koreksi postur real-time.
+          Personal trainer digital tanpa alat gym yang berjalan 100% langsung di browsermu. Dilengkapi program terstruktur, panduan visual 3D 360°, timer istirahat, dan leaderboard 5 liga mingguan.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
@@ -67,23 +80,35 @@ export default function Home() {
             Mulai Program Latihan ▸
           </Link>
           <Link
+            href="/leaderboard"
+            className="clip-corner border border-yellow-400/50 bg-yellow-400/10 px-6 py-3 font-body text-sm font-semibold text-yellow-400 transition-colors hover:bg-yellow-400/20"
+          >
+            Cek Liga & Leaderboard 🏆
+          </Link>
+          <Link
             href="/arena"
             className="clip-corner border border-magenta/40 bg-magenta/10 px-6 py-3 font-body text-sm font-semibold text-magenta transition-colors hover:bg-magenta/20"
           >
-            Mainkan Arena Mode 🎮
+            Arena Mode 🎮
           </Link>
         </div>
 
-        <div className="mt-16 grid gap-4 sm:grid-cols-3">
+        <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {MODES.map((mode) => {
             const card = (
               <article
                 key={mode.title}
-                className="glass-panel clip-corner flex h-full flex-col gap-3 p-6"
+                className="glass-panel clip-corner flex h-full flex-col gap-3 p-6 transition-all hover:border-white/25"
               >
                 <div className="flex items-start justify-between gap-3">
                   <h2
-                    className={`font-display text-lg font-semibold ${mode.accent === 'magenta' ? 'text-magenta' : 'text-cyan'}`}
+                    className={`font-display text-lg font-semibold ${
+                      mode.accent === 'magenta'
+                        ? 'text-magenta'
+                        : mode.accent === 'yellow'
+                          ? 'text-yellow-400'
+                          : 'text-cyan'
+                    }`}
                   >
                     {mode.title}
                   </h2>
@@ -93,7 +118,9 @@ export default function Home() {
                         ? 'bg-white/8 text-muted'
                         : mode.accent === 'magenta'
                           ? 'bg-magenta/15 text-magenta'
-                          : 'bg-cyan/15 text-cyan'
+                          : mode.accent === 'yellow'
+                            ? 'bg-yellow-400/15 text-yellow-400'
+                            : 'bg-cyan/15 text-cyan'
                     }`}
                   >
                     {mode.status}

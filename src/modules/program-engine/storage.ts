@@ -1,4 +1,6 @@
 import type { UserProfile, WorkoutProgram, WorkoutSessionLog } from './types';
+import { addUserExp, calculateWorkoutExp } from '../gamification/leaderboardStorage';
+import { pushSingleWorkoutLogToCloud } from '../auth/syncManager';
 
 const STORAGE_KEYS = {
   PROFILE: 'gymquest_user_profile',
@@ -72,6 +74,9 @@ export function getWorkoutHistory(): WorkoutSessionLog[] {
 export function recordWorkoutSession(log: Omit<WorkoutSessionLog, 'id'>): {
   log: WorkoutSessionLog;
   newStreak: number;
+  earnedExp: number;
+  newWeeklyExp: number;
+  newRank: number;
 } {
   const sessionLog: WorkoutSessionLog = {
     ...log,
@@ -117,7 +122,26 @@ export function recordWorkoutSession(log: Omit<WorkoutSessionLog, 'id'>): {
 
   saveUserProfile(updatedProfile);
 
-  return { log: sessionLog, newStreak };
+  // Gamifikasi: Hitung & berikan EXP ke akun pengguna serta sinkronkan posisi leaderboard
+  const earnedExp = calculateWorkoutExp(
+    sessionLog.durationSeconds,
+    sessionLog.totalRepsCompleted,
+    newStreak,
+  );
+  const expResult = addUserExp(earnedExp, `Workout: ${sessionLog.programTitle}`);
+
+  // Cloud Sync: Simpan ke Supabase di latar belakang jika user sedang login
+  pushSingleWorkoutLogToCloud(sessionLog).catch((e) => {
+    console.warn('Could not sync workout session to cloud:', e);
+  });
+
+  return {
+    log: sessionLog,
+    newStreak,
+    earnedExp,
+    newWeeklyExp: expResult.newWeeklyExp,
+    newRank: expResult.newRank,
+  };
 }
 
 export function getCustomPrograms(): WorkoutProgram[] {

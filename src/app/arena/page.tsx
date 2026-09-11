@@ -48,6 +48,37 @@ function SelectScreen({
         <h1 className="mt-2 font-display text-2xl font-bold">Pilih game</h1>
       </div>
 
+      {/* CARD KHUSUS 1v1 PUSH-UP BATTLE (2-PLAYER) */}
+      <Link
+        href="/arena/battle"
+        className="glass-panel clip-corner border-2 border-magenta/60 bg-gradient-to-r from-cyan/15 via-magenta/15 to-void p-5 text-left transition-all hover:scale-[1.01] hover:border-magenta relative overflow-hidden group shadow-[0_0_30px_rgba(255,0,122,0.25)] block"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">⚔️</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-display text-base sm:text-lg font-bold text-white group-hover:text-magenta transition-colors">
+                  1v1 Push-Up Battle
+                </h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-magenta text-white uppercase tracking-wider">
+                  2-Pemain / AI
+                </span>
+              </div>
+              <p className="font-body text-xs text-muted mt-1">
+                Adu push-up split-screen dengan 2 karakter animasi yang saling serang. Siapa yang paling kuat bertahan?
+              </p>
+            </div>
+          </div>
+          <span className="text-magenta font-mono text-xl font-bold">➔</span>
+        </div>
+      </Link>
+
+      <div className="flex items-center gap-2 text-xs font-mono text-muted uppercase tracking-wider">
+        <span>Game Solo Lainnya</span>
+        <div className="flex-1 h-px bg-white/10" />
+      </div>
+
       <div className="flex flex-col gap-3">
         {GAMES.map((item) => {
           const active = item.code === game;

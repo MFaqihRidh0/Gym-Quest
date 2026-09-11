@@ -223,26 +223,38 @@ Setiap tahap punya **Tujuan**, **Tugas**, dan **Definition of Done (DoD)**. Chec
 **Tugas:**
 - [x] Halaman dashboard progres & kalender interaktif (`/progress`): visualisasi riwayat latihan, streak tracker harian, total repetisi, dan total menit olahraga
 - [x] Sistem persistence lokal (`storage.ts`): riwayat sesi latihan, streak, dan data profil tersimpan aman di browser
-- [ ] Sistem Badge/achievement & XP leaderboard lanjutan (akan disinkronkan ke Supabase di Fase 7/8)
+- [x] Sistem 5 Liga Tematik & Leaderboard Mingguan (`/leaderboard`, `leagues.ts`, `leaderboardStorage.ts`):
+  - 5 Liga RPG: 🛡️ Iron Initiate, 🥉 Bronze Brawler, 🥈 Silver Striker, 🥇 Gold Gladiator, 👑 Titan Colossus
+  - Siklus musim 7 hari (168 jam) dengan real-time countdown timer
+  - Sistem bracket 11 kontestan per kasta liga berbasis perolehan EXP
+  - Mekanisme otomatis evaluasi akhir musim: 3 Teratas Promosi (🟢), 5 Tengah Bertahan (🟡), 3 Terbawah Degradasi (🔴)
+  - Integrasi perolehan EXP langsung dari penyelesaian latihan di `/workout`
+- [ ] Sistem Badge/achievement lanjutan (akan disinkronkan ke Supabase di Fase 7/8)
 - [ ] Re-assessment berkala untuk penyesuaian level otomatis
 
-**DoD:** Dashboard menampilkan ringkasan aktivitas, streak harian, dan riwayat sesi latihan yang persisten antar sesi browser.
+**DoD:** Dashboard menampilkan ringkasan aktivitas, streak harian, leaderboard 5 kasta liga mingguan yang kompetitif, dan riwayat sesi latihan yang persisten antar sesi browser.
 
-### Fase 7 — Akun Pengguna & Data Persistence (Cloud Sync) ⬜
+### Fase 7 — Akun Pengguna & Data Persistence (Cloud Sync) 🚧
 **Tugas:**
-- [ ] Autentikasi (email/password atau OAuth via Supabase Auth)
-- [ ] Sinkronisasi data lokal (`storage.ts`) ke database PostgreSQL Supabase
-- [ ] Multi-device sync untuk profil, program kustom, dan riwayat latihan
+- [x] Autentikasi Supabase Auth (`AuthModal.tsx`, `syncManager.ts`, `client.ts`): Login dan pendaftaran akun pengguna via Email & Password
+- [x] Database Schema & Keamanan RLS (`supabase_schema.sql`): Tabel `profiles`, `workout_logs`, `custom_programs`, kebijakan Row Level Security, dan auto-trigger profil pengguna baru
+- [x] Tombol & Status Akun Pengguna (`UserNavButton.tsx`): Terpasang di seluruh navigasi global (Home, Programs, Progress, Leaderboard) dengan indikator status sinkronisasi cloud
+- [x] Sinkronisasi Data Dua Arah (`syncManager.ts`, `storage.ts`): Penggabungan data lokal dengan PostgreSQL Supabase dan *background sync* otomatis saat sesi latihan selesai
+- [ ] Menghubungkan kredensial aktif Supabase (`NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY`) dari user
 
-**DoD:** User dapat mendaftar/masuk dan data latihan tersinkronisasi lintas perangkat.
+**DoD:** User dapat mendaftar/masuk dan data latihan tersinkronisasi lintas perangkat. Dilengkapi *offline fallback* otomatis jika belum terkoneksi.
 
-### Fase 8 — Fitur Komunitas ⬜
+### Fase 8 — Fitur Komunitas 🚧
 **Tugas:**
-- [ ] Tantangan komunitas mingguan (agregasi total repetisi semua pengguna)
-- [ ] Leaderboard skor Arena Mode & repetisi Quest Mode
-- [ ] Fitur berbagi pencapaian latihan
+- [x] Pembuatan game push-up battle 2 pemain split-screen (`/arena/battle`):
+  - **Dragon Ball Kamehameha & Final Flash Battle Engine**: Karakter dilengkapi efek Super Saiyan Ki Aura, Ki Charge saat posisi kontraksi bawah push-up (`triggerKiCharge`), gelombang energi Kamehameha berpusar ganda (*double-helix energy spirals*) saat push-up sah (`triggerRepAttack`), efek benturan balok energi dahsyat (*Beam Clash*), getaran layar (*screen shake*), dan teks shout anime dinamis (*x10 Kaio-Ken, Super Kamehameha, Final Flash*).
+  - **Live Biometric Camera Feed**: Tampilan webcam Player 1 jernih tanpa overlay penghalang, pemindaian kerangka biomekanik real-time (`drawBioScan`), deteksi postur push-up otomatis, serta tombol toggle ukuran kamera (*expand/shrink*).
+  - **Dukungan Kontrol Lengkap**: Deteksi webcam AI pose tracking + kontrol keyboard instan (`[Spasi]/[A]` untuk Kamehameha, `[S]` untuk Charge Ki, `[Enter]/[L]` untuk Final Flash, `[K]` untuk Charge Ki P2).
+- [x] Leaderboard skor Arena Mode & Hall of Fame Push-Up Battle di `/leaderboard`
+- [x] Fitur berbagi pencapaian latihan (`ShareAchievementModal.tsx`): Share langsung ke WhatsApp dengan teks ringkasan & generator otomatis poster Instagram Story beresolusi tinggi (format 9:16 PNG)
+- [ ] Tantangan komunitas mingguan (agregasi total repetisi kumulatif semua pengguna)
 
-**DoD:** Pengguna dapat melihat kontribusi repetisi mereka terhadap tantangan komunitas global.
+**DoD:** Pengguna dapat bertanding push-up 1v1 split-screen dengan animasi pertarungan Kamehameha ala Dragon Ball yang memukau, membagikan kartu rekor latihan ke media sosial, serta melihat kontribusi repetisi mereka terhadap tantangan komunitas global.
 
 ### Fase 9 — UI/UX, Aksesibilitas & Desain Modern ✅
 **Tugas:**
