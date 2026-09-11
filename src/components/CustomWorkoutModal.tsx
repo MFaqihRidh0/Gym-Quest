@@ -80,21 +80,26 @@ export function CustomWorkoutModal({ isOpen, onClose, onSaved }: CustomWorkoutMo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="glass-panel clip-corner my-8 w-full max-w-2xl border-magenta/40 p-6 sm:p-8 bg-void/95 shadow-[0_0_40px_rgba(255,61,154,0.15)]">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-sm animate-fade-in">
+      <div className="glass-panel clip-corner w-full max-w-2xl max-h-[90vh] border border-magenta/40 bg-void/98 shadow-[0_0_50px_rgba(255,61,154,0.2)] flex flex-col overflow-hidden relative">
+        {/* HEADER (ALWAYS VISIBLE PINNED TOP) */}
+        <div className="flex items-center justify-between border-b border-white/10 p-5 sm:p-6 pb-4 shrink-0 bg-void/80 backdrop-blur-md">
           <div>
             <h2 className="font-display text-xl sm:text-2xl font-bold text-white">
               Custom Workout Builder
             </h2>
             <p className="text-xs text-muted mt-0.5">Rancang rutinitas latihan rumahan sesuai preferensimu</p>
           </div>
-          <button onClick={onClose} className="text-sm font-mono text-muted hover:text-white transition-colors">
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/30 text-xs font-mono text-muted hover:text-white transition-colors"
+          >
             ✕ Tutup
           </button>
         </div>
 
-        <div className="space-y-5 pt-4">
+        {/* SCROLLABLE BODY */}
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
           {/* Judul & Deskripsi */}
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-cyan mb-1.5">
@@ -157,7 +162,7 @@ export function CustomWorkoutModal({ isOpen, onClose, onSaved }: CustomWorkoutMo
             <label className="block text-xs font-mono uppercase tracking-wider text-cyan mb-2">
               Atur Repetisi / Durasi & Istirahat
             </label>
-            <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
+            <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
               {selectedExerciseIds.map((id) => {
                 const item = EXERCISE_CATALOG[id];
                 if (!item) return null;
@@ -251,7 +256,8 @@ export function CustomWorkoutModal({ isOpen, onClose, onSaved }: CustomWorkoutMo
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-end gap-3 border-t border-white/10 pt-4">
+        {/* FOOTER (ALWAYS VISIBLE PINNED BOTTOM) */}
+        <div className="flex items-center justify-end gap-3 border-t border-white/10 p-4 sm:p-5 shrink-0 bg-void/95">
           <button
             type="button"
             onClick={onClose}
