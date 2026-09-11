@@ -144,9 +144,9 @@ export default function PushUpBattlePage() {
   }, [videoRef, liveLandmarksRef, p1FormCorrect]);
 
   return (
-    <main className="min-h-screen flex flex-col bg-void text-primary pb-12">
+    <main className="min-h-screen flex flex-col bg-transparent text-primary pb-12">
       {/* HEADER */}
-      <header className="glass-panel sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-x-0 border-t-0 px-5 py-3">
+      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
         <div className="flex items-center gap-3">
           <Link
             href="/arena"

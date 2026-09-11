@@ -13,7 +13,7 @@ function RegisterRedirectContent() {
   }, [router, redirect]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-void text-xs font-mono text-magenta animate-pulse">
+    <div className="min-h-screen flex items-center justify-center bg-transparent text-xs font-mono text-magenta animate-pulse">
       Mengarahkan ke halaman pendaftaran akun...
     </div>
   );
@@ -23,7 +23,7 @@ export default function RegisterPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-void text-xs font-mono text-muted">
+        <div className="min-h-screen flex items-center justify-center bg-transparent text-xs font-mono text-muted">
           Memuat...
         </div>
       }

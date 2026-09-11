@@ -117,7 +117,7 @@ export default function LeaderboardPage() {
 
   if (!seasonState) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-void text-primary">
+      <main className="min-h-screen flex items-center justify-center bg-transparent text-primary">
         <p className="font-mono text-sm text-muted animate-pulse">Memuat data liga mingguan…</p>
       </main>
     );
@@ -134,9 +134,9 @@ export default function LeaderboardPage() {
   const rank8Exp = seasonState.competitors[7]?.weeklyExp || 0;
 
   return (
-    <main className="min-h-screen flex flex-col bg-void text-primary pb-20">
+    <main className="min-h-screen flex flex-col bg-transparent text-primary pb-20">
       {/* HEADER NAV */}
-      <header className="glass-panel sticky top-0 z-20 flex items-center justify-between border-x-0 border-t-0 px-5 py-3">
+      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
         <div className="flex items-center gap-3">
           <Link
             href="/"
@@ -155,8 +155,12 @@ export default function LeaderboardPage() {
           <Link href="/arena" className="text-muted hover:text-magenta transition-colors hidden sm:inline">
             Arena Mode
           </Link>
-          <Link href="/" className="text-muted hover:text-white transition-colors">
-            ← Beranda
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Beranda
           </Link>
           <UserNavButton />
         </nav>

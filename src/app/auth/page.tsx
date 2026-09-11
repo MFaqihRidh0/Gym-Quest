@@ -555,7 +555,7 @@ function AuthContent() {
 
 export default function AuthPage() {
   return (
-    <main className="min-h-screen flex flex-col justify-center px-4 py-12 bg-void text-primary relative overflow-hidden">
+    <main className="min-h-screen flex flex-col justify-center px-4 py-12 bg-transparent text-primary relative overflow-hidden">
       {/* BACKGROUND ACCENTS */}
       <div className="pointer-events-none absolute top-0 left-1/4 w-[600px] h-[300px] bg-cyan/10 blur-[130px] rounded-full" />
       <div className="pointer-events-none absolute bottom-0 right-1/4 w-[600px] h-[300px] bg-magenta/10 blur-[130px] rounded-full" />

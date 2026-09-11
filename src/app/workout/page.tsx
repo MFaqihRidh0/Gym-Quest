@@ -335,7 +335,7 @@ function WorkoutRunner() {
 
   if (!program) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-void text-primary p-5">
+      <main className="min-h-screen flex items-center justify-center bg-transparent text-primary p-5">
         <p className="font-mono text-sm text-muted">Memuat program latihan…</p>
       </main>
     );
@@ -344,7 +344,7 @@ function WorkoutRunner() {
   // LAYAR SELESAI (CELEBRATION FINISHED)
   if (phase === 'finished' && finishedResult) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center bg-void text-primary p-5">
+      <main className="min-h-screen flex flex-col items-center justify-center bg-transparent text-primary p-5">
         <div className="glass-panel clip-corner w-full max-w-lg border-cyan/50 p-8 text-center bg-void/95 space-y-6 shadow-[0_0_50px_rgba(0,229,255,0.2)]">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cyan/20 border border-cyan/50 text-3xl">
             🏆
@@ -463,7 +463,7 @@ function WorkoutRunner() {
     const nextExerciseItem = nextExerciseRef ? EXERCISE_CATALOG[nextExerciseRef.exerciseId] : null;
 
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center bg-void text-primary p-5">
+      <main className="min-h-screen flex flex-col items-center justify-center bg-transparent text-primary p-5">
         <div className="glass-panel clip-corner w-full max-w-md border-magenta/40 p-8 text-center bg-void/95 space-y-6 shadow-[0_0_40px_rgba(255,61,154,0.15)]">
           <span className="text-xs font-mono uppercase tracking-widest text-magenta font-bold">
             Jeda Istirahat (Rest Interval)
@@ -507,15 +507,16 @@ function WorkoutRunner() {
 
   // LAYAR AKTIF WORKOUT
   return (
-    <main className="min-h-screen flex flex-col bg-void text-primary">
+    <main className="min-h-screen flex flex-col bg-transparent text-primary">
       {/* 1. HEADER TOP HUD */}
-      <header className="glass-panel sticky top-0 z-20 flex items-center justify-between border-x-0 border-t-0 px-4 sm:px-6 py-3">
+      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-4 sm:px-6 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
         <div className="flex items-center gap-3">
           <Link
             href={`/programs/${program.id}`}
-            className="text-xs font-mono text-muted hover:text-white transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-red-500/10 hover:border-red-400/40 hover:text-red-400 text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm"
           >
-            ✕ Keluar
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            Keluar
           </Link>
           <span className="text-xs text-white/20">|</span>
           <span className="font-display text-sm font-bold text-white truncate max-w-[180px] sm:max-w-none">
@@ -803,7 +804,7 @@ export default function WorkoutPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen flex items-center justify-center bg-void text-primary">
+        <main className="min-h-screen flex items-center justify-center bg-transparent text-primary">
           <p className="font-mono text-sm text-muted">Memuat sesi latihan…</p>
         </main>
       }

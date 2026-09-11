@@ -45,9 +45,9 @@ export default function ProgramsPage() {
   const recommended = getRecommendedProgram(profile.level, profile.goal, profile.targetDurationMinutes);
 
   return (
-    <main className="min-h-screen flex flex-col bg-void text-primary">
+    <main className="min-h-screen flex flex-col bg-transparent text-primary">
       {/* HEADER */}
-      <header className="glass-panel sticky top-0 z-20 flex items-center justify-between border-x-0 border-t-0 px-5 py-3">
+      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
         <div className="flex items-center gap-3">
           <Link href="/" className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors">
             GYMQUEST <span className="text-muted">· Programs</span>
@@ -64,8 +64,12 @@ export default function ProgramsPage() {
           <Link href="/arena" className="text-muted hover:text-magenta transition-colors hidden sm:inline">
             Arena Mode
           </Link>
-          <Link href="/" className="text-muted hover:text-white transition-colors">
-            ← Beranda
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Beranda
           </Link>
           <UserNavButton />
         </nav>

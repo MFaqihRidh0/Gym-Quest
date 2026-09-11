@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { UserNavButton } from '@/components/UserNavButton';
 import { AuthModal } from '@/components/AuthModal';
+import { InteractiveText } from '@/components/ui/InteractiveText';
 import { getActiveUser } from '@/modules/auth/syncManager';
 import { soundEngine } from '@/modules/game-engine/audio';
 import type { User } from '@supabase/supabase-js';
@@ -105,9 +106,9 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-void text-primary selection:bg-cyan selection:text-void">
+    <main className="min-h-screen flex flex-col bg-transparent text-primary selection:bg-cyan selection:text-void">
       {/* 1. PROMINENT MODERN HEADER */}
-      <header className="glass-panel sticky top-0 z-30 flex items-center justify-between border-x-0 border-t-0 px-6 py-4 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+      <header className="glass-panel sticky top-3 z-30 mx-3 rounded-2xl flex items-center justify-between px-6 py-4 backdrop-blur-md shadow-[0_8px_40px_rgba(0,0,0,0.6)]">
         {/* LOGO & BRAND */}
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan via-blue-600 to-magenta p-0.5 shadow-[0_0_20px_rgba(0,229,255,0.4)] group-hover:scale-105 transition-transform">
@@ -182,16 +183,23 @@ export default function Home() {
 
         <div className="mx-auto w-full max-w-6xl relative z-10 space-y-8">
           {/* TAG BADGE */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-cyan/40 bg-cyan/10 backdrop-blur-md text-xs font-mono text-cyan shadow-[0_0_20px_rgba(0,229,255,0.2)]">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-cyan/40 bg-cyan/10 backdrop-blur-md text-xs font-mono text-cyan shadow-[0_0_20px_rgba(0,229,255,0.2)] animate-hero-sway">
             <span className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
-            <span>PLATFORM OLAHRAGA GAMIFIKASI #1 DI PERAMBAN ANDA</span>
+            <InteractiveText
+              text="PLATFORM OLAHRAGA GAMIFIKASI #1 DI PERAMBAN ANDA"
+              className="text-cyan"
+            />
           </div>
 
           {/* MAIN HEADLINE */}
-          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.1] text-balance max-w-4xl text-white">
-            Olahraga di Rumah Terasa Seperti{' '}
-            <span className="bg-gradient-to-r from-cyan via-teal-300 to-magenta bg-clip-text text-transparent underline decoration-cyan/40 decoration-wavy">
-              Main Game RPG
+          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.18] text-balance max-w-4xl text-white animate-hero-sway-delayed">
+            <InteractiveText text="Olahraga di Rumah Terasa Seperti" />{' '}
+            <span className="inline-block relative underline decoration-cyan/40 decoration-wavy">
+              <InteractiveText
+                text="Main Game RPG"
+                isGradient={true}
+                baseDelay={32}
+              />
             </span>
           </h1>
 
