@@ -43,3 +43,17 @@ next-env.d.ts
 
 # MediaPipe runtime assets (dihasilkan oleh scripts/setup-mediapipe.mjs)
 /public/mediapipe
+
+# Briefings, guidebooks, and offline competition reference documents
+GymQuest_AI_Coding_Briefing.md
+GymQuest_UIUX_Briefing.md
+Guidebook_GAYATAMA_5_Web_Technology.docx
+guidebook_content.txt
+*Briefing*.md
+*briefing*.md
+*Guidebook*
+*guidebook*
+*.docx
+*.doc
+*.pdf
+/docs/
