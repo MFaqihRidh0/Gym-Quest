@@ -52,12 +52,8 @@ export default function ProgramDetailPage() {
     <main className="min-h-screen flex flex-col bg-transparent text-primary pb-16">
       {/* HEADER */}
       <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-        <Link
-          href="/programs"
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-          Program
+        <Link href="/" className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors">
+          GYMQUEST <span className="text-muted">· Detail Program</span>
         </Link>
         <div className="flex items-center gap-3">
           {program.isCustom && (
@@ -78,6 +74,17 @@ export default function ProgramDetailPage() {
       </header>
 
       <div className="mx-auto w-full max-w-4xl px-5 py-8 space-y-8">
+        {/* TOMBOL KEMBALI KE DAFTAR PROGRAM (DI BODY DENGAN TATA LETAK PAS) */}
+        <div>
+          <Link
+            href="/programs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm group"
+          >
+            <span className="text-base group-hover:-translate-x-1 transition-transform">←</span>
+            <span>Kembali ke Daftar Program</span>
+          </Link>
+        </div>
+
         {/* PROGRAM HERO */}
         <div className="glass-panel clip-corner border-white/15 p-6 sm:p-8 relative overflow-hidden">
           <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -145,7 +152,7 @@ export default function ProgramDetailPage() {
 
                       {item.supportedAiCode ? (
                         <span className="inline-flex items-center gap-1.5 text-[10px] font-mono px-2 py-0.5 rounded bg-cyan/15 text-cyan border border-cyan/30">
-                          <span>◉</span> AI Rep Counting Siap
+                          <span>◉</span> Auto Rep Counting Siap
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-muted border border-white/10">

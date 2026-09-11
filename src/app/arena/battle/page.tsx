@@ -152,7 +152,7 @@ export default function PushUpBattlePage() {
             href="/arena"
             className="font-display text-sm tracking-wide text-white hover:text-magenta transition-colors"
           >
-            GYMQUEST <span className="text-muted">· Kamehameha Push-Up Battle</span>
+            GYMQUEST <span className="text-muted">· 1v1 Push-Up Battle</span>
           </Link>
         </div>
 
@@ -169,7 +169,7 @@ export default function PushUpBattlePage() {
               }`}
             >
               <IconCyberBot size={14} className={opponentMode === 'ai_bot' ? 'text-void' : 'text-cyan'} />
-              <span>vs AI Bot</span>
+              <span>vs Cyber Bot</span>
             </button>
             <button
               onClick={() => {
@@ -319,9 +319,9 @@ export default function PushUpBattlePage() {
               {status === 'loading' && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-void/90 p-4 text-center space-y-2 z-20">
                   <span className="text-3xl animate-spin">🌀</span>
-                  <p className="font-mono text-xs text-cyan font-bold">Menghubungkan Kamera AI…</p>
+                  <p className="font-mono text-xs text-cyan font-bold">Menghubungkan Sensor Kamera…</p>
                   <p className="text-[10px] text-muted max-w-xs">
-                    Memuat pose tracking untuk mendeteksi posisi push-up dan charge Ki Kamehameha.
+                    Memuat pose tracking untuk mendeteksi posisi repetisi push-up otomatis.
                   </p>
                 </div>
               )}
@@ -333,11 +333,11 @@ export default function PushUpBattlePage() {
                     📷
                   </div>
                   <p className="font-display text-sm font-bold text-white">
-                    {status === 'error' ? 'Kamera Belum Aktif' : 'Aktifkan Kamera AI'}
+                    {status === 'error' ? 'Kamera Belum Aktif' : 'Aktifkan Sensor Kamera'}
                   </p>
                   <p className="text-[11px] text-muted max-w-xs leading-relaxed">
                     {error?.message ||
-                      'Izinkan akses webcam di browser Anda untuk mendeteksi repetisi push-up dan charge Ki otomatis.'}
+                      'Izinkan akses webcam di browser Anda untuk mendeteksi repetisi push-up otomatis.'}
                   </p>
                   <button
                     onClick={() => start()}
@@ -369,7 +369,7 @@ export default function PushUpBattlePage() {
               {status === 'running' && (
                 <div className="absolute bottom-2 left-2 z-10 p-2 rounded-lg bg-black/80 border border-cyan/40 backdrop-blur-sm flex flex-col gap-1 w-48 sm:w-56 shadow-lg">
                   <div className="flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-muted">Sensor Gerak AI:</span>
+                    <span className="text-muted">Sensor Gerak Kamera:</span>
                     {currentPhase === 'down' ? (
                       <span className="flex items-center gap-1 font-bold text-amber-300 animate-pulse">
                         <IconBolt size={12} className="text-amber-300" />
@@ -428,7 +428,7 @@ export default function PushUpBattlePage() {
               <div className="flex items-center gap-2">
                 <IconFlame size={18} className="text-magenta" glow />
                 <span className="font-display font-bold text-base text-magenta">
-                  {opponentMode === 'ai_bot' ? 'PLAYER 2 (CYBER AI BOT)' : 'PLAYER 2 (TEMAN KAMU)'}
+                  {opponentMode === 'ai_bot' ? 'PLAYER 2 (CYBER BOT)' : 'PLAYER 2 (TEMAN KAMU)'}
                 </span>
               </div>
               <span className="text-xs font-mono font-bold text-magenta">HP: {p2Hp}/100</span>

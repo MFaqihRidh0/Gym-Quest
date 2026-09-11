@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { UserNavButton } from '@/components/UserNavButton';
 import { soundEngine } from '@/modules/game-engine/audio';
 import { formatCountdown, useCountdown } from '@/lib/useCountdown';
 import { drawBioScan } from '@/modules/cv-engine/drawBioScan';
@@ -42,7 +43,16 @@ function SelectScreen({
   loading: boolean;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-5 py-16">
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-5 py-12">
+      {/* TOMBOL KEMBALI KE BERANDA (DI BODY DENGAN TATA LETAK PAS) */}
+      <Link
+        href="/"
+        className="inline-flex items-center gap-2 self-start px-4 py-2 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm group"
+      >
+        <span className="text-base group-hover:-translate-x-1 transition-transform">←</span>
+        <span>Kembali ke Beranda</span>
+      </Link>
+
       <div>
         <p className="font-mono text-xs tracking-widest text-magenta uppercase">Arena mode</p>
         <h1 className="mt-2 font-display text-2xl font-bold">Pilih game</h1>
@@ -62,7 +72,7 @@ function SelectScreen({
                   1v1 Push-Up Battle
                 </h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-magenta text-white uppercase tracking-wider">
-                  2-Pemain / AI
+                  2-Pemain / Bot Virtual
                 </span>
               </div>
               <p className="font-body text-xs text-muted mt-1">
@@ -322,14 +332,12 @@ export default function ArenaPage() {
 
   if (!started) {
     return (
-      <main className="flex h-dvh flex-col">
-        <header className="glass-panel flex items-center justify-between border-x-0 border-t-0 px-5 py-3">
-          <span className="font-display text-sm tracking-wide">
+      <main className="flex h-dvh flex-col bg-transparent">
+        <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
+          <Link href="/" className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors">
             GYMQUEST <span className="text-muted">· Arena</span>
-          </span>
-          <Link href="/" className="font-body text-sm text-muted hover:text-cyan">
-            ← Kembali
           </Link>
+          <UserNavButton />
         </header>
         <SelectScreen
           game={game}
@@ -347,9 +355,9 @@ export default function ArenaPage() {
       : 'Kangguru Angkat Barbel';
 
   return (
-    <main className="flex h-dvh flex-col">
-      <header className="glass-panel flex items-center justify-between border-x-0 border-t-0 px-5 py-3">
-        <span className="font-display text-sm tracking-wide">
+    <main className="flex h-dvh flex-col bg-transparent">
+      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
+        <span className="font-display text-sm tracking-wide text-white">
           GYMQUEST <span className="text-muted">· Arena — {gameLabel}</span>
         </span>
         <div className="flex items-center gap-3">
@@ -360,8 +368,11 @@ export default function ArenaPage() {
           >
             {isMuted ? '🔇 Audio Off' : '🔊 Audio On'}
           </button>
-          <button onClick={handleBackToMenu} className="font-body text-sm text-muted hover:text-cyan">
-            ← Kembali
+          <button
+            onClick={handleBackToMenu}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide"
+          >
+            ← Ganti Game
           </button>
         </div>
       </header>

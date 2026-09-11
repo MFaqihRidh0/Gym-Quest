@@ -35,7 +35,7 @@ const MODES = [
     href: '/programs',
     requiresAuth: false,
     description:
-      'Program latihan rumahan tanpa alat (Full Body, Cardio, Core, Stretching) dengan panduan form 3D 360°, timer, dan deteksi AI kamera.',
+      'Program latihan fisik mandiri dengan panduan postur 3D dan penghitung repetisi otomatis berbasis kamera.',
   },
   {
     title: 'Arena Mode (1v1 Battle)',
@@ -45,7 +45,7 @@ const MODES = [
     href: '/arena',
     requiresAuth: true,
     description:
-      'Adu push-up 1v1 Kamehameha Clash Dragon Ball melawan Bot AI atau teman secara real-time, serta mini-game Kuda Poni & Kangguru.',
+      'Mode tantangan interaktif dan duel push-up real-time untuk menguji performa serta ketahanan fisik.',
   },
   {
     title: 'Progres & Streak',
@@ -55,7 +55,7 @@ const MODES = [
     href: '/progress',
     requiresAuth: false,
     description:
-      'Kalender latihan bulanan interaktif, penghitung streak harian beruntun, serta total durasi dan estimasi kalori terbakar.',
+      'Pelacakan konsistensi latihan harian, durasi aktif, dan akumulasi kalori secara terstruktur.',
   },
   {
     title: '5 Liga & Leaderboard',
@@ -65,7 +65,7 @@ const MODES = [
     href: '/leaderboard',
     requiresAuth: false,
     description:
-      'Sistem kompetisi 5 kasta liga (Bronze, Silver, Gold, Diamond, Celestial) berbasis EXP mingguan dengan siklus evaluasi 7 hari.',
+      'Papan peringkat mingguan dengan sistem promosi dan degradasi bertingkat berdasarkan capaian latihan.',
   },
 ] as const;
 
@@ -119,9 +119,6 @@ export default function Home() {
           <div>
             <div className="font-display font-black text-xl tracking-wider bg-gradient-to-r from-white via-cyan to-magenta bg-clip-text text-transparent">
               GYMQUEST
-            </div>
-            <div className="font-mono text-[9px] tracking-widest text-muted uppercase hidden sm:block">
-              AI COMPUTER VISION · GAMIFIED WORKOUTS
             </div>
           </div>
         </Link>
@@ -182,14 +179,6 @@ export default function Home() {
         <div className="pointer-events-none absolute top-1/3 right-10 w-[500px] h-[300px] bg-magenta/15 blur-[140px] rounded-full" />
 
         <div className="mx-auto w-full max-w-6xl relative z-10 space-y-8">
-          {/* TAG BADGE */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-cyan/40 bg-cyan/10 backdrop-blur-md text-xs font-mono text-cyan shadow-[0_0_20px_rgba(0,229,255,0.2)] animate-hero-sway">
-            <span className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
-            <InteractiveText
-              text="PLATFORM OLAHRAGA GAMIFIKASI #1 DI PERAMBAN ANDA"
-              className="text-cyan"
-            />
-          </div>
 
           {/* MAIN HEADLINE */}
           <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.18] text-balance max-w-4xl text-white animate-hero-sway-delayed">
@@ -205,42 +194,8 @@ export default function Home() {
 
           {/* SUBHEADLINE */}
           <p className="max-w-2xl font-body text-base sm:text-xl text-muted leading-relaxed">
-            Personal trainer digital 100% tanpa alat gym, didukung pelacakan postur AI MediaPipe
-            real-time di browser Anda, animasi pertarungan Dragon Ball Kamehameha 1v1, dan
-            kompetisi 5 kasta liga mingguan.
+            Platform kebugaran digital berbasis Computer Vision untuk memandu latihan fisik secara real-time langsung di peramban, dilengkapi analisis postur tubuh, tantangan interaktif, dan sistem liga kebugaran terstruktur.
           </p>
-
-          {/* QUICK HIGHLIGHT BADGES */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl pt-2 text-xs font-mono">
-            <div className="p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm space-y-1">
-              <div className="flex items-center gap-1.5 text-cyan font-bold text-sm sm:text-base">
-                <IconShield size={16} className="text-cyan" />
-                <span>100% Client-Side</span>
-              </div>
-              <div className="text-muted text-[11px]">Privasi aman tanpa upload video</div>
-            </div>
-            <div className="p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm space-y-1">
-              <div className="flex items-center gap-1.5 text-magenta font-bold text-sm sm:text-base">
-                <IconCyberBot size={16} className="text-magenta" />
-                <span>MediaPipe AI</span>
-              </div>
-              <div className="text-muted text-[11px]">33 sendi tubuh & koreksi form</div>
-            </div>
-            <div className="p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm space-y-1">
-              <div className="flex items-center gap-1.5 text-yellow-400 font-bold text-sm sm:text-base">
-                <IconCrown size={16} className="text-yellow-400" />
-                <span>5 Kasta Liga</span>
-              </div>
-              <div className="text-muted text-[11px]">Promosi & Degradasi 7 Hari</div>
-            </div>
-            <div className="p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm space-y-1">
-              <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-sm sm:text-base">
-                <IconBolt size={16} className="text-emerald-400" />
-                <span>1v1 Kamehameha</span>
-              </div>
-              <div className="text-muted text-[11px]">Adu Push-Up Dragon Ball</div>
-            </div>
-          </div>
 
           {/* CALL TO ACTION BUTTONS */}
           <div className="flex flex-wrap items-center gap-4 pt-4">
@@ -268,27 +223,26 @@ export default function Home() {
             </button>
           </div>
 
-          {/* FEATURE SPOTLIGHT: DRAGON BALL KAMEHAMEHA CLASH */}
+          {/* FEATURE SPOTLIGHT: ARENA PUSH-UP BATTLE */}
           <div className="mt-12 rounded-2xl border-2 border-magenta/40 bg-gradient-to-r from-magenta/15 via-void to-cyan/15 p-6 sm:p-8 backdrop-blur-md shadow-[0_0_50px_rgba(255,0,122,0.15)] flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-magenta/20 text-magenta font-mono text-xs font-bold uppercase tracking-wider">
                 <IconBolt size={14} className="text-magenta" glow />
-                <span>FITUR BARU ARENA</span>
+                <span>FITUR ARENA</span>
               </div>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-                <span>Adu Push-Up: KAMEHAMEHA CLASH!</span>
+                <span>Tantangan Push-Up Interaktif 1v1</span>
                 <IconBurst size={26} className="text-amber-400 animate-pulse" glow />
               </h2>
               <p className="text-sm text-muted max-w-xl">
-                Tantang Bot AI (Easy, Medium, Hard) atau duel 2 pemain bersama teman. Turunkan badan
-                untuk mengumpulkan Ki, lalu dorong push-up untuk menembakkan gelombang Kamehameha raksasa!
+                Uji ketahanan fisik melawan bot virtual atau bertanding bersama rekan secara real-time dengan pelacakan repetisi otomatis berbasis sensor kamera.
               </p>
             </div>
             <button
               onClick={handleArenaClick}
               className="whitespace-nowrap px-6 py-3 rounded-xl bg-magenta text-white font-display font-bold text-sm hover:bg-magenta/80 transition-all shadow-[0_0_25px_rgba(255,0,122,0.5)] hover:scale-105 flex items-center gap-2"
             >
-              <span>Coba Duel Sekarang</span>
+              <span>Mulai Tantangan</span>
               <IconCombat size={18} className="text-white" />
             </button>
           </div>
@@ -383,8 +337,8 @@ export default function Home() {
                 <span className="font-display font-bold text-lg text-white">GYMQUEST</span>
               </div>
               <p className="text-xs text-muted leading-relaxed font-body">
-                Platform latihan kebugaran rumahan tanpa alat yang menggabungkan kecerdasan buatan
-                Computer Vision MediaPipe dengan gamifikasi RPG modern.
+                Platform latihan kebugaran rumahan tanpa alat yang memadukan teknologi
+                Computer Vision MediaPipe dengan gamifikasi RPG interaktif.
               </p>
               <div className="p-2.5 rounded-lg border border-cyan/20 bg-cyan/5 text-[10px] font-mono text-cyan flex items-start gap-1.5">
                 <IconLock size={13} className="text-cyan shrink-0 mt-0.5" />
@@ -409,7 +363,7 @@ export default function Home() {
                 <li>
                   <button onClick={handleArenaClick} className="hover:text-magenta transition-colors text-left flex items-center gap-2">
                     <IconCombat size={14} className="text-magenta" />
-                    <span>Arena Mode (Kamehameha Clash)</span>
+                    <span>Arena Mode (Tantangan 1v1)</span>
                   </button>
                 </li>
                 <li>
@@ -501,7 +455,7 @@ export default function Home() {
                 </div>
               </div>
               <span className="self-start sm:self-auto px-3 py-1 rounded-full border border-cyan/40 bg-cyan/10 text-[11px] font-mono text-cyan">
-                Karya Inovasi Digital Mahasiswa
+                International Web Technology Competition
               </span>
             </div>
 
@@ -521,7 +475,7 @@ export default function Home() {
                   M. Faqih Ridho
                 </div>
                 <div className="text-[11px] font-mono text-cyan">
-                  Lead Developer & AI Architect
+                  Ketua Tim
                 </div>
               </div>
 
@@ -539,7 +493,7 @@ export default function Home() {
                   Ananda Fitri Wibowo
                 </div>
                 <div className="text-[11px] font-mono text-magenta">
-                  Biomechanics & Vision Testing
+                  Anggota Tim
                 </div>
               </div>
 
@@ -557,7 +511,7 @@ export default function Home() {
                   Muhammad Ardiansyah Tri Wibowo
                 </div>
                 <div className="text-[11px] font-mono text-cyan">
-                  Frontend & UI/UX Engineering
+                  Anggota Tim
                 </div>
               </div>
 
@@ -575,7 +529,7 @@ export default function Home() {
                   Muhammad Ziddan Habibi
                 </div>
                 <div className="text-[11px] font-mono text-yellow-400">
-                  Game Mechanics & Systems
+                  Anggota Tim
                 </div>
               </div>
             </div>
@@ -592,7 +546,7 @@ export default function Home() {
               </span>
             </p>
             <div className="font-mono text-[11px] text-muted whitespace-nowrap">
-              © 2026 GymQuest. Hak Cipta Dilindungi.
+              © 2026 GymQuest · untuk perlombaan gayatama
             </div>
           </div>
         </div>
@@ -640,8 +594,8 @@ export default function Home() {
                   <span className="text-cyan font-bold">1.</span>
                   <div>
                     <strong className="text-cyan">Collab & Tanding Real-Time:</strong> Arena Mode
-                    dirancang untuk bertarung push-up 1v1 (Kamehameha Clash) secara langsung dengan
-                    teman atau komunitas gym lain di ruangan yang sama maupun online.
+                    dirancang untuk duel push-up 1v1 secara langsung dengan teman atau komunitas latihan
+                    dalam ruangan yang sama maupun online.
                   </div>
                 </li>
                 <li className="flex items-start gap-2">

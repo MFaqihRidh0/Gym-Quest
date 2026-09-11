@@ -90,18 +90,22 @@ export default function ProgressPage() {
           <Link href="/arena" className="text-muted hover:text-magenta transition-colors hidden sm:inline">
             Arena Mode
           </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-            Beranda
-          </Link>
           <UserNavButton />
         </nav>
       </header>
 
       <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:py-12 space-y-8">
+        {/* TOMBOL KEMBALI KE BERANDA (DI BODY DENGAN TATA LETAK PAS) */}
+        <div>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm group"
+          >
+            <span className="text-base group-hover:-translate-x-1 transition-transform">←</span>
+            <span>Kembali ke Beranda</span>
+          </Link>
+        </div>
+
         {/* HERO TITLE & STREAK BANNER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
           <div>

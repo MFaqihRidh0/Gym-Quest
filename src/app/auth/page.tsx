@@ -121,7 +121,7 @@ function AuthContent() {
       {/* TOP NAVIGATION / TOMBOL KEMBALI */}
       <div className="flex items-center justify-between">
         <Link
-          href={redirectTarget === '/' ? '/' : redirectTarget}
+          href="/"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-white/5 hover:border-cyan hover:bg-cyan/10 text-xs font-mono text-muted hover:text-white transition-all group shadow-sm"
         >
           <span className="text-base group-hover:-translate-x-1 transition-transform">←</span>
@@ -188,7 +188,7 @@ function AuthContent() {
               </div>
               <div>
                 <div className="font-bold text-white">Akses Penuh Arena Mode</div>
-                <div className="text-[11px] text-muted">Duel push-up 1v1 Kamehameha Clash & mini-game</div>
+                <div className="text-[11px] text-muted">Duel push-up 1v1 interaktif & tantangan kebugaran</div>
               </div>
             </div>
 
@@ -219,7 +219,7 @@ function AuthContent() {
               <span>Standar Keamanan Data Pengguna</span>
             </div>
             <p className="text-[11px] text-muted font-body leading-relaxed">
-              Kata sandi Anda diamankan dengan enkripsi hash Bcrypt. Kamera AI MediaPipe berjalan sepenuhnya di perangkat lokal Anda tanpa pernah mengunggah rekaman video ke server.
+              Kata sandi Anda diamankan dengan enkripsi hash modern. Sistem Computer Vision MediaPipe berjalan sepenuhnya di perangkat lokal Anda tanpa pernah mengunggah rekaman video ke server.
             </p>
           </div>
 

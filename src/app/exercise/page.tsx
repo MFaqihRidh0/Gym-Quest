@@ -49,13 +49,10 @@ export default function ExercisePage() {
   }
 
   return (
-    <main className="flex h-dvh flex-col">
-      <header className="glass-panel flex items-center justify-between border-x-0 border-t-0 px-5 py-3">
-        <span className="font-display text-sm tracking-wide">
+    <main className="flex h-dvh flex-col bg-transparent">
+      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
+        <Link href="/" className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors">
           GYMQUEST <span className="text-muted">· Exercise Tracker</span>
-        </span>
-        <Link href="/" className="font-body text-sm text-muted hover:text-cyan">
-          ← Kembali
         </Link>
       </header>
 
@@ -65,16 +62,27 @@ export default function ExercisePage() {
         formOkRef={formOkRef}
         scanning={running}
       >
-        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-5 sm:p-6">
-          <div className="flex justify-end gap-3">
-            {running && (
-              <div className="glass-panel clip-corner pointer-events-auto flex items-center px-4 py-2">
-                <span className="font-mono text-sm text-primary">
-                  {formatCountdown(Math.max(remaining, 0))}
-                </span>
-              </div>
-            )}
-            <ExerciseDock active={exerciseCode} onSelect={setExerciseCode} />
+        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-5 sm:p-6 mt-4">
+          <div className="flex justify-between items-start gap-3">
+            {/* TOMBOL KEMBALI DI BODY COCKPIT */}
+            <Link
+              href="/"
+              className="pointer-events-auto inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-void/80 border border-white/20 hover:border-cyan hover:text-cyan text-xs font-mono text-white transition-all backdrop-blur-md shadow-lg group"
+            >
+              <span className="text-base group-hover:-translate-x-1 transition-transform">←</span>
+              <span>Kembali ke Beranda</span>
+            </Link>
+
+            <div className="flex items-center gap-3">
+              {running && (
+                <div className="glass-panel clip-corner pointer-events-auto flex items-center px-4 py-2">
+                  <span className="font-mono text-sm text-primary">
+                    {formatCountdown(Math.max(remaining, 0))}
+                  </span>
+                </div>
+              )}
+              <ExerciseDock active={exerciseCode} onSelect={setExerciseCode} />
+            </div>
           </div>
 
           <div className="flex flex-wrap items-end justify-between gap-4">

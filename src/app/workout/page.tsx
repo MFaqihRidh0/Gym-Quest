@@ -601,11 +601,11 @@ function WorkoutRunner() {
                     className="absolute inset-0 w-full h-full pointer-events-none -scale-x-100"
                   />
 
-                  {/* AI HUD Telemetry */}
+                  {/* Vision HUD Telemetry */}
                   <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none z-10">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-black/80 border border-cyan/50 text-xs font-mono text-cyan shadow-lg">
                       <span className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
-                      AI Bio-Scan Tracking
+                      Bio-Scan Vision Tracking
                     </span>
                     {aiAngle !== null && (
                       <span className="px-2.5 py-1 rounded bg-black/80 border border-white/20 text-xs font-mono text-white">
@@ -678,7 +678,7 @@ function WorkoutRunner() {
                     className="text-xs font-mono px-3 py-1.5 rounded-lg border border-cyan/40 bg-cyan/10 text-cyan hover:bg-cyan/20 transition-all flex items-center gap-1.5"
                   >
                     <span>{mode === 'ai_camera' ? '📷' : '🏃'}</span>
-                    <span>{mode === 'ai_camera' ? 'Mode AI Kamera' : 'Mode Animasi'}</span>
+                    <span>{mode === 'ai_camera' ? 'Mode Sensor Kamera' : 'Mode Animasi'}</span>
                   </button>
                 )}
               </div>
@@ -748,7 +748,7 @@ function WorkoutRunner() {
                   </div>
                   <span className="text-[11px] font-mono text-cyan mt-2 block">
                     {mode === 'ai_camera'
-                      ? 'Dihitung otomatis lewat deteksi kamera AI'
+                      ? 'Dihitung otomatis lewat sensor kamera Computer Vision'
                       : 'Tekan tombol di bawah setiap menyelesaikan 1 rep'}
                   </span>
                 </div>
