@@ -35,6 +35,16 @@ export async function signUpUser(
   password: string,
   username: string = 'Knight-01',
 ): Promise<{ user: User | null; error: string | null }> {
+  if (password.length < 8) {
+    return { user: null, error: 'Kata sandi minimal harus terdiri dari 8 karakter.' };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { user: null, error: 'Kata sandi harus mengandung minimal 1 huruf besar (A-Z).' };
+  }
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(password)) {
+    return { user: null, error: 'Kata sandi harus mengandung minimal 1 karakter simbol khusus (contoh: !@#$%^&*).' };
+  }
+
   const client = getSupabaseClient();
   if (!client) {
     return {

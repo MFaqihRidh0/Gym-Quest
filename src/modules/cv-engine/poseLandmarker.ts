@@ -10,17 +10,32 @@ export function loadPoseLandmarker(): Promise<PoseLandmarker> {
   if (!instancePromise) {
     instancePromise = (async () => {
       const fileset = await FilesetResolver.forVisionTasks('/mediapipe/wasm');
-      return PoseLandmarker.createFromOptions(fileset, {
-        baseOptions: {
-          modelAssetPath: '/mediapipe/models/pose_landmarker_lite.task',
-          delegate: 'GPU',
-        },
-        runningMode: 'VIDEO',
-        numPoses: 1,
-        minPoseDetectionConfidence: 0.35,
-        minPosePresenceConfidence: 0.35,
-        minTrackingConfidence: 0.35,
-      });
+      try {
+        return await PoseLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath: '/mediapipe/models/pose_landmarker_lite.task',
+            delegate: 'GPU',
+          },
+          runningMode: 'VIDEO',
+          numPoses: 1,
+          minPoseDetectionConfidence: 0.35,
+          minPosePresenceConfidence: 0.35,
+          minTrackingConfidence: 0.35,
+        });
+      } catch (gpuError) {
+        console.warn('GPU delegate failed for PoseLandmarker, falling back to CPU:', gpuError);
+        return await PoseLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath: '/mediapipe/models/pose_landmarker_lite.task',
+            delegate: 'CPU',
+          },
+          runningMode: 'VIDEO',
+          numPoses: 1,
+          minPoseDetectionConfidence: 0.35,
+          minPosePresenceConfidence: 0.35,
+          minTrackingConfidence: 0.35,
+        });
+      }
     })().catch((error) => {
       instancePromise = null;
       throw error;

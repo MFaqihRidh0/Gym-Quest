@@ -1,150 +1,687 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { UserNavButton } from '@/components/UserNavButton';
+import { AuthModal } from '@/components/AuthModal';
+import { getActiveUser } from '@/modules/auth/syncManager';
+import { soundEngine } from '@/modules/game-engine/audio';
+import type { User } from '@supabase/supabase-js';
+import {
+  IconBolt,
+  IconFlame,
+  IconCyberBot,
+  IconCombat,
+  IconTrophy,
+  IconCrown,
+  IconTarget,
+  IconShield,
+  IconDumbbell,
+  IconBurst,
+  IconChart,
+  IconCamera,
+  IconUsers,
+  IconLock,
+} from '@/components/ui/CyberIcons';
 
 const MODES = [
   {
     title: 'Program Latihan',
     accent: 'cyan',
+    iconType: 'dumbbell',
     status: 'Aktif',
     href: '/programs',
+    requiresAuth: false,
     description:
       'Program latihan rumahan tanpa alat (Full Body, Cardio, Core, Stretching) dengan panduan form 3D 360°, timer, dan deteksi AI kamera.',
   },
   {
-    title: 'Arena Mode',
+    title: 'Arena Mode (1v1 Battle)',
     accent: 'magenta',
-    status: 'Aktif',
+    iconType: 'combat',
+    status: 'Komunitas & PvP',
     href: '/arena',
+    requiresAuth: true,
     description:
-      'Mini-game interaktif Kuda Poni (Push-up) dan Kangguru (Angkat Barbel) yang dikendalikan langsung oleh gerakan fisik nyata.',
+      'Adu push-up 1v1 Kamehameha Clash Dragon Ball melawan Bot AI atau teman secara real-time, serta mini-game Kuda Poni & Kangguru.',
   },
   {
     title: 'Progres & Streak',
     accent: 'cyan',
+    iconType: 'chart',
     status: 'Aktif',
     href: '/progress',
+    requiresAuth: false,
     description:
       'Kalender latihan bulanan interaktif, penghitung streak harian beruntun, serta total durasi dan estimasi kalori terbakar.',
   },
   {
     title: '5 Liga & Leaderboard',
     accent: 'yellow',
-    status: 'Aktif',
+    iconType: 'trophy',
+    status: 'Mingguan',
     href: '/leaderboard',
+    requiresAuth: false,
     description:
-      'Sistem kompetisi 5 kasta liga (Iron, Bronze, Silver, Gold, Titan) berbasis EXP mingguan dengan siklus evaluasi 7 hari.',
+      'Sistem kompetisi 5 kasta liga (Bronze, Silver, Gold, Diamond, Celestial) berbasis EXP mingguan dengan siklus evaluasi 7 hari.',
   },
 ] as const;
 
 export default function Home() {
+  const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [showArenaLoginGate, setShowArenaLoginGate] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Check login state on mount
+  useEffect(() => {
+    let isMounted = true;
+    getActiveUser().then((u) => {
+      if (isMounted) setCurrentUser(u);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleArenaClick = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    soundEngine.playCountdownTick();
+
+    if (currentUser) {
+      router.push('/arena');
+    } else {
+      setShowArenaLoginGate(true);
+    }
+  };
+
+  const handleAuthSuccess = (u: User) => {
+    setCurrentUser(u);
+    setShowAuthModal(false);
+    setShowArenaLoginGate(false);
+    // Masuk ke Arena setelah login berhasil
+    router.push('/arena');
+  };
+
   return (
-    <main className="flex flex-1 flex-col">
-      <header className="glass-panel sticky top-0 z-10 flex items-center justify-between border-x-0 border-t-0 px-5 py-3">
-        <span className="font-display text-sm tracking-wide">GYMQUEST</span>
-        <nav className="flex items-center gap-5 font-body text-sm text-muted">
-          <Link href="/programs" className="text-white hover:text-cyan transition-colors font-medium">
-            Program
+    <main className="min-h-screen flex flex-col bg-void text-primary selection:bg-cyan selection:text-void">
+      {/* 1. PROMINENT MODERN HEADER */}
+      <header className="glass-panel sticky top-0 z-30 flex items-center justify-between border-x-0 border-t-0 px-6 py-4 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        {/* LOGO & BRAND */}
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan via-blue-600 to-magenta p-0.5 shadow-[0_0_20px_rgba(0,229,255,0.4)] group-hover:scale-105 transition-transform">
+            <div className="w-full h-full bg-void rounded-[10px] flex items-center justify-center">
+              <IconBolt size={22} className="text-cyan" glow />
+            </div>
+          </div>
+          <div>
+            <div className="font-display font-black text-xl tracking-wider bg-gradient-to-r from-white via-cyan to-magenta bg-clip-text text-transparent">
+              GYMQUEST
+            </div>
+            <div className="font-mono text-[9px] tracking-widest text-muted uppercase hidden sm:block">
+              AI COMPUTER VISION · GAMIFIED WORKOUTS
+            </div>
+          </div>
+        </Link>
+
+        {/* NAVIGATION LINKS */}
+        <nav className="flex items-center gap-2 sm:gap-6 font-body text-sm">
+          <Link
+            href="/programs"
+            className="text-white hover:text-cyan transition-colors font-medium flex items-center gap-1.5 px-2 py-1"
+          >
+            <IconDumbbell size={16} className="text-cyan" />
+            <span className="hidden md:inline">Program</span>
           </Link>
-          <Link href="/leaderboard" className="transition-colors hover:text-yellow-400 font-medium">
-            Leaderboard
+
+          <Link
+            href="/leaderboard"
+            className="text-white hover:text-yellow-400 transition-colors font-medium flex items-center gap-1.5 px-2 py-1"
+          >
+            <IconTrophy size={16} className="text-yellow-400" />
+            <span className="hidden md:inline">Leaderboard</span>
           </Link>
-          <Link href="/progress" className="transition-colors hover:text-cyan">
-            Progres
+
+          <Link
+            href="/progress"
+            className="text-muted hover:text-cyan transition-colors font-medium flex items-center gap-1.5 px-2 py-1"
+          >
+            <IconChart size={16} className="text-cyan" />
+            <span className="hidden md:inline">Progres</span>
           </Link>
-          <Link href="/arena" className="transition-colors hover:text-magenta">
-            Arena
-          </Link>
-          <Link href="/kalibrasi" className="transition-colors hover:text-cyan hidden sm:inline">
+
+          {/* ARENA LINK (INTERCEPTED WITH LOGIN CHECK) */}
+          <button
+            onClick={handleArenaClick}
+            className="text-magenta hover:text-white font-medium flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-magenta/40 hover:bg-magenta/20 transition-all shadow-[0_0_12px_rgba(255,0,122,0.2)]"
+          >
+            <IconCombat size={16} className="text-magenta" glow />
+            <span>Arena</span>
+            <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-magenta animate-ping" />
+          </button>
+
+          <Link
+            href="/kalibrasi"
+            className="text-muted hover:text-cyan transition-colors text-xs font-mono hidden lg:inline px-2 py-1"
+          >
             Kalibrasi
           </Link>
-          <UserNavButton />
+
+          <div className="pl-2 border-l border-white/10">
+            <UserNavButton />
+          </div>
         </nav>
       </header>
 
-      <section className="mx-auto w-full max-w-5xl flex-1 px-5 py-16 sm:py-24">
-        <p className="font-mono text-xs tracking-widest text-cyan uppercase">◉ Platform Latihan Rumahan & Gamifikasi</p>
+      {/* 2. HERO SECTION */}
+      <section className="relative overflow-hidden px-5 py-16 sm:py-24 flex-1 flex flex-col justify-center">
+        {/* BACKGROUND GLOW ACCENTS */}
+        <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-cyan/15 blur-[120px] rounded-full" />
+        <div className="pointer-events-none absolute top-1/3 right-10 w-[500px] h-[300px] bg-magenta/15 blur-[140px] rounded-full" />
 
-        <h1 className="mt-5 max-w-3xl font-display text-4xl leading-tight font-bold text-balance sm:text-6xl">
-          Olahraga di rumah terasa seperti main game
-        </h1>
+        <div className="mx-auto w-full max-w-6xl relative z-10 space-y-8">
+          {/* TAG BADGE */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-cyan/40 bg-cyan/10 backdrop-blur-md text-xs font-mono text-cyan shadow-[0_0_20px_rgba(0,229,255,0.2)]">
+            <span className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
+            <span>PLATFORM OLAHRAGA GAMIFIKASI #1 DI PERAMBAN ANDA</span>
+          </div>
 
-        <p className="mt-5 max-w-xl font-body text-base text-muted sm:text-lg">
-          Personal trainer digital tanpa alat gym yang berjalan 100% langsung di browsermu. Dilengkapi program terstruktur, panduan visual 3D 360°, timer istirahat, dan leaderboard 5 liga mingguan.
-        </p>
+          {/* MAIN HEADLINE */}
+          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.1] text-balance max-w-4xl text-white">
+            Olahraga di Rumah Terasa Seperti{' '}
+            <span className="bg-gradient-to-r from-cyan via-teal-300 to-magenta bg-clip-text text-transparent underline decoration-cyan/40 decoration-wavy">
+              Main Game RPG
+            </span>
+          </h1>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/programs"
-            className="clip-corner bg-gradient-to-r from-cyan to-magenta px-6 py-3 font-body text-sm font-bold text-void transition-shadow duration-[var(--dur-fast)] hover:shadow-[var(--glow-cyan)]"
-          >
-            Mulai Program Latihan ▸
-          </Link>
-          <Link
-            href="/leaderboard"
-            className="clip-corner border border-yellow-400/50 bg-yellow-400/10 px-6 py-3 font-body text-sm font-semibold text-yellow-400 transition-colors hover:bg-yellow-400/20"
-          >
-            Cek Liga & Leaderboard 🏆
-          </Link>
-          <Link
-            href="/arena"
-            className="clip-corner border border-magenta/40 bg-magenta/10 px-6 py-3 font-body text-sm font-semibold text-magenta transition-colors hover:bg-magenta/20"
-          >
-            Arena Mode 🎮
-          </Link>
-        </div>
+          {/* SUBHEADLINE */}
+          <p className="max-w-2xl font-body text-base sm:text-xl text-muted leading-relaxed">
+            Personal trainer digital 100% tanpa alat gym, didukung pelacakan postur AI MediaPipe
+            real-time di browser Anda, animasi pertarungan Dragon Ball Kamehameha 1v1, dan
+            kompetisi 5 kasta liga mingguan.
+          </p>
 
-        <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {MODES.map((mode) => {
-            const card = (
-              <article
-                key={mode.title}
-                className="glass-panel clip-corner flex h-full flex-col gap-3 p-6 transition-all hover:border-white/25"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <h2
-                    className={`font-display text-lg font-semibold ${
-                      mode.accent === 'magenta'
-                        ? 'text-magenta'
-                        : mode.accent === 'yellow'
-                          ? 'text-yellow-400'
-                          : 'text-cyan'
-                    }`}
-                  >
-                    {mode.title}
-                  </h2>
-                  <span
-                    className={`clip-corner px-2 py-0.5 font-mono text-[10px] tracking-wider uppercase ${
-                      mode.status !== 'Aktif'
-                        ? 'bg-white/8 text-muted'
-                        : mode.accent === 'magenta'
-                          ? 'bg-magenta/15 text-magenta'
+          {/* QUICK HIGHLIGHT BADGES */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl pt-2 text-xs font-mono">
+            <div className="p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm space-y-1">
+              <div className="flex items-center gap-1.5 text-cyan font-bold text-sm sm:text-base">
+                <IconShield size={16} className="text-cyan" />
+                <span>100% Client-Side</span>
+              </div>
+              <div className="text-muted text-[11px]">Privasi aman tanpa upload video</div>
+            </div>
+            <div className="p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm space-y-1">
+              <div className="flex items-center gap-1.5 text-magenta font-bold text-sm sm:text-base">
+                <IconCyberBot size={16} className="text-magenta" />
+                <span>MediaPipe AI</span>
+              </div>
+              <div className="text-muted text-[11px]">33 sendi tubuh & koreksi form</div>
+            </div>
+            <div className="p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm space-y-1">
+              <div className="flex items-center gap-1.5 text-yellow-400 font-bold text-sm sm:text-base">
+                <IconCrown size={16} className="text-yellow-400" />
+                <span>5 Kasta Liga</span>
+              </div>
+              <div className="text-muted text-[11px]">Promosi & Degradasi 7 Hari</div>
+            </div>
+            <div className="p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm space-y-1">
+              <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-sm sm:text-base">
+                <IconBolt size={16} className="text-emerald-400" />
+                <span>1v1 Kamehameha</span>
+              </div>
+              <div className="text-muted text-[11px]">Adu Push-Up Dragon Ball</div>
+            </div>
+          </div>
+
+          {/* CALL TO ACTION BUTTONS */}
+          <div className="flex flex-wrap items-center gap-4 pt-4">
+            <Link
+              href="/programs"
+              className="clip-corner bg-gradient-to-r from-cyan to-magenta px-8 py-4 font-body text-sm font-bold text-void transition-all duration-200 hover:shadow-[0_0_30px_rgba(0,229,255,0.6)] hover:scale-105"
+            >
+              Mulai Program Latihan ▸
+            </Link>
+
+            <Link
+              href="/leaderboard"
+              className="clip-corner border border-yellow-400/50 bg-yellow-400/10 px-7 py-4 font-body text-sm font-semibold text-yellow-400 transition-all hover:bg-yellow-400/20 hover:scale-105 flex items-center gap-2"
+            >
+              <IconTrophy size={18} className="text-yellow-400" glow />
+              <span>Cek Liga & Leaderboard</span>
+            </Link>
+
+            <button
+              onClick={handleArenaClick}
+              className="clip-corner border border-magenta/60 bg-magenta/15 px-7 py-4 font-body text-sm font-bold text-white transition-all hover:bg-magenta/25 hover:scale-105 shadow-[0_0_20px_rgba(255,0,122,0.3)] flex items-center gap-2"
+            >
+              <IconCombat size={18} className="text-magenta" glow />
+              <span>Arena Mode (1v1 Push-Up)</span>
+            </button>
+          </div>
+
+          {/* FEATURE SPOTLIGHT: DRAGON BALL KAMEHAMEHA CLASH */}
+          <div className="mt-12 rounded-2xl border-2 border-magenta/40 bg-gradient-to-r from-magenta/15 via-void to-cyan/15 p-6 sm:p-8 backdrop-blur-md shadow-[0_0_50px_rgba(255,0,122,0.15)] flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-magenta/20 text-magenta font-mono text-xs font-bold uppercase tracking-wider">
+                <IconBolt size={14} className="text-magenta" glow />
+                <span>FITUR BARU ARENA</span>
+              </div>
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
+                <span>Adu Push-Up: KAMEHAMEHA CLASH!</span>
+                <IconBurst size={26} className="text-amber-400 animate-pulse" glow />
+              </h2>
+              <p className="text-sm text-muted max-w-xl">
+                Tantang Bot AI (Easy, Medium, Hard) atau duel 2 pemain bersama teman. Turunkan badan
+                untuk mengumpulkan Ki, lalu dorong push-up untuk menembakkan gelombang Kamehameha raksasa!
+              </p>
+            </div>
+            <button
+              onClick={handleArenaClick}
+              className="whitespace-nowrap px-6 py-3 rounded-xl bg-magenta text-white font-display font-bold text-sm hover:bg-magenta/80 transition-all shadow-[0_0_25px_rgba(255,0,122,0.5)] hover:scale-105 flex items-center gap-2"
+            >
+              <span>Coba Duel Sekarang</span>
+              <IconCombat size={18} className="text-white" />
+            </button>
+          </div>
+
+          {/* 4 FEATURE MODE CARDS */}
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {MODES.map((mode) => {
+              const card = (
+                <article
+                  key={mode.title}
+                  className="glass-panel clip-corner flex h-full flex-col justify-between p-6 transition-all duration-300 hover:border-white/30 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] bg-void/80 space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                        {mode.iconType === 'dumbbell' && <IconDumbbell size={24} className="text-cyan" glow />}
+                        {mode.iconType === 'combat' && <IconCombat size={24} className="text-magenta" glow />}
+                        {mode.iconType === 'chart' && <IconChart size={24} className="text-cyan" glow />}
+                        {mode.iconType === 'trophy' && <IconTrophy size={24} className="text-amber-400" glow />}
+                      </div>
+                      <span
+                        className={`clip-corner px-2 py-0.5 font-mono text-[10px] tracking-wider uppercase ${
+                          mode.accent === 'magenta'
+                            ? 'bg-magenta/15 text-magenta border border-magenta/30'
+                            : mode.accent === 'yellow'
+                              ? 'bg-yellow-400/15 text-yellow-400 border border-yellow-400/30'
+                              : 'bg-cyan/15 text-cyan border border-cyan/30'
+                        }`}
+                      >
+                        {mode.status}
+                      </span>
+                    </div>
+
+                    <h3
+                      className={`font-display text-lg font-bold ${
+                        mode.accent === 'magenta'
+                          ? 'text-magenta'
                           : mode.accent === 'yellow'
-                            ? 'bg-yellow-400/15 text-yellow-400'
-                            : 'bg-cyan/15 text-cyan'
-                    }`}
+                            ? 'text-yellow-400'
+                            : 'text-cyan'
+                      }`}
+                    >
+                      {mode.title}
+                    </h3>
+
+                    <p className="font-body text-xs text-muted leading-relaxed">
+                      {mode.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs font-mono text-muted group-hover:text-white">
+                    <span>Buka Fitur</span>
+                    <span className="text-base">→</span>
+                  </div>
+                </article>
+              );
+
+              if (mode.requiresAuth) {
+                return (
+                  <button
+                    key={mode.title}
+                    onClick={handleArenaClick}
+                    className="text-left group cursor-pointer focus:outline-none"
                   >
-                    {mode.status}
+                    {card}
+                  </button>
+                );
+              }
+
+              return (
+                <Link key={mode.title} href={mode.href} className="group">
+                  {card}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. DEDICATED MODERN FOOTER PANEL */}
+      <footer className="glass-panel border-x-0 border-b-0 bg-void/95 border-t border-white/10 mt-16 pt-12 pb-8 px-6 backdrop-blur-xl">
+        <div className="mx-auto w-full max-w-6xl space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* COLUMN 1: BRANDING & MISSION */}
+            <div className="space-y-4 md:col-span-1">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan to-magenta p-0.5">
+                  <div className="w-full h-full bg-void rounded-[6px] flex items-center justify-center text-sm font-bold text-cyan">
+                    GQ
+                  </div>
+                </div>
+                <span className="font-display font-bold text-lg text-white">GYMQUEST</span>
+              </div>
+              <p className="text-xs text-muted leading-relaxed font-body">
+                Platform latihan kebugaran rumahan tanpa alat yang menggabungkan kecerdasan buatan
+                Computer Vision MediaPipe dengan gamifikasi RPG modern.
+              </p>
+              <div className="p-2.5 rounded-lg border border-cyan/20 bg-cyan/5 text-[10px] font-mono text-cyan flex items-start gap-1.5">
+                <IconLock size={13} className="text-cyan shrink-0 mt-0.5" />
+                <span>
+                  <strong>Privasi Terjamin:</strong> Video kamera Anda diproses 100% lokal di browser dan tidak pernah dikirim ke server.
+                </span>
+              </div>
+            </div>
+
+            {/* COLUMN 2: FITUR UTAMA */}
+            <div className="space-y-3">
+              <div className="font-display font-bold text-sm text-white uppercase tracking-wider">
+                Navigasi Fitur
+              </div>
+              <ul className="space-y-2 text-xs font-body text-muted">
+                <li>
+                  <Link href="/programs" className="hover:text-cyan transition-colors flex items-center gap-2">
+                    <IconDumbbell size={14} className="text-cyan" />
+                    <span>Program Latihan Rumahan</span>
+                  </Link>
+                </li>
+                <li>
+                  <button onClick={handleArenaClick} className="hover:text-magenta transition-colors text-left flex items-center gap-2">
+                    <IconCombat size={14} className="text-magenta" />
+                    <span>Arena Mode (Kamehameha Clash)</span>
+                  </button>
+                </li>
+                <li>
+                  <Link href="/leaderboard" className="hover:text-yellow-400 transition-colors flex items-center gap-2">
+                    <IconTrophy size={14} className="text-yellow-400" />
+                    <span>5 Kasta Liga & Papan Peringkat</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/progress" className="hover:text-cyan transition-colors flex items-center gap-2">
+                    <IconChart size={14} className="text-cyan" />
+                    <span>Kalender Streak & Evaluasi</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/kalibrasi" className="hover:text-cyan transition-colors flex items-center gap-2">
+                    <IconTarget size={14} className="text-cyan" />
+                    <span>Panduan Kalibrasi Kamera</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* COLUMN 3: TEKNOLOGI */}
+            <div className="space-y-3">
+              <div className="font-display font-bold text-sm text-white uppercase tracking-wider">
+                Teknologi & Standar
+              </div>
+              <ul className="space-y-2 text-xs font-mono text-muted">
+                <li className="flex items-center gap-1.5">
+                  <IconBolt size={13} className="text-cyan" />
+                  <span>Next.js 15 App Router & Turbopack</span>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <IconCyberBot size={13} className="text-magenta" />
+                  <span>MediaPipe Pose Landmarker Vision</span>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <IconDumbbell size={13} className="text-yellow-400" />
+                  <span>HTML5 Canvas 2D & WebGL Engine</span>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <IconBurst size={13} className="text-amber-400" />
+                  <span>Web Audio API Sound Engine</span>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <IconShield size={13} className="text-cyan" />
+                  <span>Supabase Auth & Cloud Database</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* COLUMN 4: KOMUNITAS & SOSIAL */}
+            <div className="space-y-3">
+              <div className="font-display font-bold text-sm text-white uppercase tracking-wider">
+                Komunitas & Berbagi
+              </div>
+              <p className="text-xs text-muted leading-relaxed font-body">
+                Bagikan rekor repetisi latihanmu langsung ke WhatsApp atau buat poster Instagram Story (9:16)
+                beresolusi tinggi otomatis.
+              </p>
+              <div className="pt-2 flex flex-col gap-2">
+                <button
+                  onClick={handleArenaClick}
+                  className="w-full text-center px-3 py-2 rounded border border-magenta/40 bg-magenta/10 hover:bg-magenta/20 text-magenta font-mono text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <IconUsers size={15} className="text-magenta" />
+                  <span>Masuk Komunitas Arena</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* DEDICATED DEVELOPER TEAM SECTION: "SEMOGA KAMI BERUNTUNG" */}
+          <div className="p-6 rounded-2xl border border-cyan/30 bg-gradient-to-r from-cyan/10 via-white/5 to-magenta/10 space-y-4 shadow-[0_0_30px_rgba(0,229,255,0.08)]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="p-1.5 rounded-lg bg-cyan/20 border border-cyan/40 text-cyan">
+                  <IconCrown size={20} className="text-cyan" glow />
+                </span>
+                <div>
+                  <div className="text-[10px] font-mono tracking-wider text-muted uppercase">
+                    TIM PENGEMBANG
+                  </div>
+                  <h4 className="font-display text-base sm:text-lg font-bold text-white tracking-wide flex items-center gap-2">
+                    <span>Semoga Kami Beruntung</span>
+                    <IconBolt size={16} className="text-amber-400" glow />
+                  </h4>
+                </div>
+              </div>
+              <span className="self-start sm:self-auto px-3 py-1 rounded-full border border-cyan/40 bg-cyan/10 text-[11px] font-mono text-cyan">
+                Karya Inovasi Digital Mahasiswa
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              {/* MEMBER 1: M. FAQIH RIDHO (KETUA) */}
+              <div className="glass-panel p-3.5 rounded-xl border border-cyan/40 bg-cyan/5 hover:border-cyan hover:shadow-[0_0_20px_rgba(0,229,255,0.2)] transition-all space-y-1.5 group">
+                <div className="flex items-center justify-between">
+                  <div className="w-9 h-9 rounded-lg bg-cyan/20 border border-cyan flex items-center justify-center font-display font-bold text-xs text-cyan group-hover:scale-110 transition-transform">
+                    FR
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-400 text-void shadow-[0_0_8px_rgba(251,191,36,0.6)] flex items-center gap-1">
+                    <IconCrown size={10} className="text-void" />
+                    <span>KETUA TIM</span>
                   </span>
                 </div>
-                <p className="font-body text-sm text-muted">{mode.description}</p>
-              </article>
-            );
+                <div className="font-display text-sm font-bold text-white pt-1">
+                  M. Faqih Ridho
+                </div>
+                <div className="text-[11px] font-mono text-cyan">
+                  Lead Developer & AI Architect
+                </div>
+              </div>
 
-            return mode.href ? (
-              <Link key={mode.title} href={mode.href} className="group">
-                {card}
-              </Link>
-            ) : (
-              card
-            );
-          })}
+              {/* MEMBER 2: ANANDA FITRI WIBOWO */}
+              <div className="glass-panel p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-magenta hover:shadow-[0_0_20px_rgba(255,0,122,0.2)] transition-all space-y-1.5 group">
+                <div className="flex items-center justify-between">
+                  <div className="w-9 h-9 rounded-lg bg-magenta/20 border border-magenta flex items-center justify-center font-display font-bold text-xs text-magenta group-hover:scale-110 transition-transform">
+                    AF
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[9px] font-mono text-muted bg-white/10">
+                    ANGGOTA
+                  </span>
+                </div>
+                <div className="font-display text-sm font-bold text-white pt-1">
+                  Ananda Fitri Wibowo
+                </div>
+                <div className="text-[11px] font-mono text-magenta">
+                  Biomechanics & Vision Testing
+                </div>
+              </div>
+
+              {/* MEMBER 3: MUHAMMAD ARDIANSYAH TRI WIBOWO */}
+              <div className="glass-panel p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-cyan hover:shadow-[0_0_20px_rgba(0,229,255,0.2)] transition-all space-y-1.5 group">
+                <div className="flex items-center justify-between">
+                  <div className="w-9 h-9 rounded-lg bg-cyan/20 border border-cyan flex items-center justify-center font-display font-bold text-xs text-cyan group-hover:scale-110 transition-transform">
+                    AT
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[9px] font-mono text-muted bg-white/10">
+                    ANGGOTA
+                  </span>
+                </div>
+                <div className="font-display text-sm font-bold text-white pt-1">
+                  Muhammad Ardiansyah Tri Wibowo
+                </div>
+                <div className="text-[11px] font-mono text-cyan">
+                  Frontend & UI/UX Engineering
+                </div>
+              </div>
+
+              {/* MEMBER 4: MUHAMMAD ZIDDAN HABIBI */}
+              <div className="glass-panel p-3.5 rounded-xl border border-white/10 bg-white/5 hover:border-yellow-400 hover:shadow-[0_0_20px_rgba(250,204,21,0.2)] transition-all space-y-1.5 group">
+                <div className="flex items-center justify-between">
+                  <div className="w-9 h-9 rounded-lg bg-yellow-400/20 border border-yellow-400 flex items-center justify-center font-display font-bold text-xs text-yellow-400 group-hover:scale-110 transition-transform">
+                    ZH
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[9px] font-mono text-muted bg-white/10">
+                    ANGGOTA
+                  </span>
+                </div>
+                <div className="font-display text-sm font-bold text-white pt-1">
+                  Muhammad Ziddan Habibi
+                </div>
+                <div className="text-[11px] font-mono text-yellow-400">
+                  Game Mechanics & Systems
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* BOTTOM DISCLAIMER & COPYRIGHT */}
+          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-body text-muted">
+            <p className="max-w-2xl text-[11px] leading-relaxed text-center md:text-left flex items-start gap-1.5">
+              <IconShield size={14} className="text-yellow-400 shrink-0 mt-0.5" />
+              <span>
+                <strong>Disclaimer Medis:</strong> GymQuest adalah alat bantu kebugaran dan pelacak
+                latihan, bukan pengganti nasihat dokter atau instruktur medis profesional. Segera
+                hentikan latihan jika kamu merasa pusing, nyeri dada, atau cedera sendi.
+              </span>
+            </p>
+            <div className="font-mono text-[11px] text-muted whitespace-nowrap">
+              © 2026 GymQuest. Hak Cipta Dilindungi.
+            </div>
+          </div>
         </div>
+      </footer>
 
-        <p className="mt-12 max-w-2xl font-body text-xs text-muted">
-          GymQuest adalah alat bantu latihan, bukan pengganti nasihat dokter atau pelatih
-          bersertifikat. Hentikan latihan jika kamu merasa nyeri atau tidak nyaman.
-        </p>
-      </section>
+      {/* 4. ARENA MODE LOGIN GATE MODAL */}
+      {showArenaLoginGate && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="glass-panel clip-corner w-full max-w-lg border-2 border-magenta/60 p-6 sm:p-8 bg-void/98 space-y-6 shadow-[0_0_60px_rgba(255,0,122,0.35)] relative overflow-hidden">
+            {/* BACKGROUND GLOW */}
+            <div className="pointer-events-none absolute -top-16 -right-16 w-40 h-40 bg-magenta/30 blur-3xl rounded-full" />
+
+            <div className="flex items-start justify-between border-b border-magenta/20 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-magenta/20 border-2 border-magenta flex items-center justify-center text-2xl shadow-[0_0_20px_rgba(255,0,122,0.4)] animate-pulse">
+                  <IconCombat size={24} className="text-magenta" glow />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-xl text-white">
+                    Login Diperlukan untuk Arena Mode
+                  </h3>
+                  <p className="font-mono text-xs text-magenta font-bold">
+                    Kolaborasi & Pertarungan Komunitas Online
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowArenaLoginGate(false)}
+                className="text-muted hover:text-white text-lg p-1"
+                aria-label="Tutup modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* EXPLANATION WHY LOGIN IS REQUIRED */}
+            <div className="space-y-3.5 text-xs sm:text-sm text-muted font-body leading-relaxed bg-white/5 p-4 rounded-xl border border-white/10">
+              <p className="text-white font-medium text-sm flex items-center gap-1.5">
+                <IconBolt size={14} className="text-cyan" />
+                <span><strong>Mengapa harus masuk ke akun terlebih dahulu?</strong></span>
+              </p>
+
+              <ul className="space-y-2.5 text-xs">
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan font-bold">1.</span>
+                  <div>
+                    <strong className="text-cyan">Collab & Tanding Real-Time:</strong> Arena Mode
+                    dirancang untuk bertarung push-up 1v1 (Kamehameha Clash) secara langsung dengan
+                    teman atau komunitas gym lain di ruangan yang sama maupun online.
+                  </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-yellow-400 font-bold">2.</span>
+                  <div>
+                    <strong className="text-yellow-400">Papan Peringkat Global:</strong> Setiap
+                    kemenangan K.O. dan total repetisimu akan dicatat ke <em>Hall of Fame</em> dan
+                    disinkronkan ke cloud profilmu.
+                  </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-magenta font-bold">3.</span>
+                  <div>
+                    <strong className="text-magenta">EXP & Gelar Liga:</strong> Pertarungan arena
+                    memberikan bonus EXP tinggi untuk menaikkan kasta ligamu ke Diamond dan Celestial!
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            {/* ACTION BUTTONS */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Link
+                href="/auth?redirect=/arena"
+                onClick={() => setShowArenaLoginGate(false)}
+                className="flex-1 clip-corner bg-gradient-to-r from-cyan to-magenta py-3.5 font-mono text-xs font-bold text-void hover:opacity-90 transition-opacity text-center shadow-[0_0_20px_rgba(255,0,122,0.4)] flex items-center justify-center gap-2"
+              >
+                <span>Masuk / Buat Akun di Halaman Login</span>
+                <IconBolt size={14} className="text-void" />
+              </Link>
+
+              <button
+                onClick={() => setShowArenaLoginGate(false)}
+                className="px-5 py-3 rounded border border-white/20 text-xs font-mono text-muted hover:text-white hover:border-white/40 transition-colors"
+              >
+                Kembali
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. AUTH MODAL */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={handleAuthSuccess}
+      />
     </main>
   );
 }

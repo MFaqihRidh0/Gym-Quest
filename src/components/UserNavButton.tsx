@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import {
   getActiveUser,
@@ -9,8 +10,8 @@ import {
   syncLocalToCloud,
 } from '@/modules/auth/syncManager';
 import { getUserProfile } from '@/modules/program-engine/storage';
-import { AuthModal } from './AuthModal';
 import { soundEngine } from '@/modules/game-engine/audio';
+import { IconLock } from '@/components/ui/CyberIcons';
 import type { User } from '@supabase/supabase-js';
 
 export function UserNavButton() {
@@ -127,23 +128,15 @@ export function UserNavButton() {
           )}
         </div>
       ) : (
-        <button
-          onClick={() => {
-            soundEngine.playCountdownTick();
-            setShowAuthModal(true);
-          }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/20 bg-white/5 hover:border-cyan hover:text-cyan text-white transition-colors text-xs font-mono"
+        <Link
+          href="/auth"
+          onClick={() => soundEngine.playCountdownTick()}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/20 bg-white/5 hover:border-cyan hover:bg-cyan/10 hover:text-cyan text-white transition-all text-xs font-mono shadow-sm"
         >
-          <span>👤</span>
+          <IconLock size={13} className="text-cyan" />
           <span>Masuk / Daftar</span>
-        </button>
+        </Link>
       )}
-
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={handleAuthSuccess}
-      />
     </>
   );
 }

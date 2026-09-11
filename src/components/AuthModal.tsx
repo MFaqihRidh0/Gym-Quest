@@ -36,9 +36,24 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMsg('Kata sandi minimal terdiri dari 6 karakter.');
-      return;
+    if (tab === 'register') {
+      if (password.length < 8) {
+        setErrorMsg('Kata sandi harus terdiri dari minimal 8 karakter.');
+        return;
+      }
+      if (!/[A-Z]/.test(password)) {
+        setErrorMsg('Kata sandi harus mengandung minimal 1 huruf besar (A-Z).');
+        return;
+      }
+      if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(password)) {
+        setErrorMsg('Kata sandi harus mengandung minimal 1 karakter simbol khusus (misal: !@#$%^&*).');
+        return;
+      }
+    } else {
+      if (password.length < 6) {
+        setErrorMsg('Kata sandi minimal terdiri dari 6 karakter.');
+        return;
+      }
     }
 
     setLoading(true);
@@ -169,14 +184,21 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-mono text-muted uppercase">Kata Sandi</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-mono text-muted uppercase">Kata Sandi</label>
+              {tab === 'register' ? (
+                <span className="text-[10px] font-mono text-magenta">Min 8 karakter, 1 huruf besar, 1 simbol</span>
+              ) : (
+                <span className="text-[10px] font-mono text-muted">Minimal 6 karakter</span>
+              )}
+            </div>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Minimal 6 karakter"
+                placeholder={tab === 'register' ? 'Min 8 karakter, 1 kapital, 1 simbol' : '••••••••'}
                 className="w-full rounded-lg border border-white/15 bg-white/5 px-3.5 py-2.5 text-white placeholder-muted/50 focus:border-cyan focus:outline-none font-body text-xs pr-10"
               />
               <button

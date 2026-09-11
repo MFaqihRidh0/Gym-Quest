@@ -4,14 +4,26 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePoseDetection } from '@/modules/cv-engine/usePoseDetection';
 import { drawBioScan } from '@/modules/cv-engine/drawBioScan';
-import { usePushUpBattle, type OpponentMode } from '@/modules/game-engine/usePushUpBattle';
+import { usePushUpBattle, type OpponentMode, type BotDifficulty } from '@/modules/game-engine/usePushUpBattle';
 import { ShareAchievementModal } from '@/components/ShareAchievementModal';
 import { UserNavButton } from '@/components/UserNavButton';
 import { getUserProfile } from '@/modules/program-engine/storage';
 import { soundEngine } from '@/modules/game-engine/audio';
+import {
+  IconBolt,
+  IconFlame,
+  IconCyberBot,
+  IconCombat,
+  IconTrophy,
+  IconTarget,
+  IconBurst,
+  IconUsers,
+  DifficultyBadge,
+} from '@/components/ui/CyberIcons';
 
 export default function PushUpBattlePage() {
   const [opponentMode, setOpponentMode] = useState<OpponentMode>('ai_bot');
+  const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>('medium');
   const [showShareModal, setShowShareModal] = useState(false);
   const [cameraLarge, setCameraLarge] = useState(false);
   const profile = getUserProfile();
@@ -23,6 +35,14 @@ export default function PushUpBattlePage() {
   const { videoRef, liveLandmarksRef, status, error, start, stop } = usePoseDetection();
   const p1OverlayCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Dynamic Bot Name based on difficulty & target reps
+  const botName =
+    botDifficulty === 'easy'
+      ? 'CyberBot Trainee (Easy · 10 Push-Up)'
+      : botDifficulty === 'hard'
+        ? 'Super Android-Omega (Hard · 20 Push-Up)'
+        : 'Mecha-Vegeta (Medium · 15 Push-Up)';
+
   // Hook for battle logic
   const {
     p1Reps,
@@ -33,6 +53,9 @@ export default function PushUpBattlePage() {
     isGameOver,
     winner,
     p1FormCorrect,
+    depthPercent,
+    currentPhase,
+    targetReps,
     triggerAttack,
     triggerKiCharge,
     restartGame,
@@ -40,8 +63,9 @@ export default function PushUpBattlePage() {
     battleCanvasRef,
     liveLandmarksRef,
     profile.username || 'Kamu (P1)',
-    opponentMode === 'ai_bot' ? 'Mecha-Vegeta' : 'Pemain 2 (P2)',
+    opponentMode === 'ai_bot' ? botName : 'Pemain 2 (P2)',
     opponentMode,
+    botDifficulty,
   );
 
   // Start webcam on mount
@@ -122,7 +146,7 @@ export default function PushUpBattlePage() {
   return (
     <main className="min-h-screen flex flex-col bg-void text-primary pb-12">
       {/* HEADER */}
-      <header className="glass-panel sticky top-0 z-20 flex items-center justify-between border-x-0 border-t-0 px-5 py-3">
+      <header className="glass-panel sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-x-0 border-t-0 px-5 py-3">
         <div className="flex items-center gap-3">
           <Link
             href="/arena"
@@ -132,7 +156,7 @@ export default function PushUpBattlePage() {
           </Link>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Mode Selector */}
           <div className="flex items-center bg-white/5 border border-white/10 rounded-lg p-1 text-xs font-mono">
             <button
@@ -140,24 +164,60 @@ export default function PushUpBattlePage() {
                 setOpponentMode('ai_bot');
                 restartGame();
               }}
-              className={`px-3 py-1 rounded transition-colors ${
+              className={`px-3 py-1 rounded transition-colors flex items-center gap-1.5 ${
                 opponentMode === 'ai_bot' ? 'bg-cyan text-void font-bold' : 'text-muted hover:text-white'
               }`}
             >
-              vs AI Bot 🤖
+              <IconCyberBot size={14} className={opponentMode === 'ai_bot' ? 'text-void' : 'text-cyan'} />
+              <span>vs AI Bot</span>
             </button>
             <button
               onClick={() => {
                 setOpponentMode('local_pvp');
                 restartGame();
               }}
-              className={`px-3 py-1 rounded transition-colors ${
+              className={`px-3 py-1 rounded transition-colors flex items-center gap-1.5 ${
                 opponentMode === 'local_pvp' ? 'bg-magenta text-white font-bold' : 'text-muted hover:text-white'
               }`}
             >
-              2 Pemain (PVP) 👥
+              <IconUsers size={14} className={opponentMode === 'local_pvp' ? 'text-white' : 'text-magenta'} />
+              <span>2 Pemain (PVP)</span>
             </button>
           </div>
+
+          {/* AI Bot Level Selector (Easy 10, Medium 15, Hard 20 Push-Up) */}
+          {opponentMode === 'ai_bot' && (
+            <div className="flex items-center bg-white/5 border border-white/10 rounded-lg p-1 text-xs font-mono gap-1">
+              <span className="text-[10px] text-muted px-2 hidden sm:inline">Bot Level:</span>
+              <button
+                onClick={() => {
+                  setBotDifficulty('easy');
+                  restartGame();
+                }}
+                title="Level Easy: 10 Push-Up untuk K.O (1 rep / 6 detik)"
+              >
+                <DifficultyBadge level="easy" active={botDifficulty === 'easy'} />
+              </button>
+              <button
+                onClick={() => {
+                  setBotDifficulty('medium');
+                  restartGame();
+                }}
+                title="Level Medium: 15 Push-Up untuk K.O (1 rep / 4 detik)"
+              >
+                <DifficultyBadge level="medium" active={botDifficulty === 'medium'} />
+              </button>
+              <button
+                onClick={() => {
+                  setBotDifficulty('hard');
+                  restartGame();
+                }}
+                title="Level Hard: 20 Push-Up untuk K.O (1 rep / 3 detik)"
+              >
+                <DifficultyBadge level="hard" active={botDifficulty === 'hard'} />
+              </button>
+            </div>
+          )}
 
           <UserNavButton />
         </div>
@@ -167,10 +227,13 @@ export default function PushUpBattlePage() {
         {/* TOP STATUS BAR: MATCH INFO */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-3">
-            <span className="text-3xl animate-pulse">⚡</span>
+            <div className="p-2 rounded-xl bg-cyan/10 border border-cyan/30 text-cyan">
+              <IconBolt size={26} className="text-cyan animate-pulse" glow />
+            </div>
             <div>
               <h1 className="font-display text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-                Adu Push-Up: KAMEHAMEHA CLASH!
+                <span>Adu Push-Up: KAMEHAMEHA CLASH!</span>
+                <IconBurst size={22} className="text-amber-400" glow />
               </h1>
               <p className="text-xs text-muted font-mono">
                 Turun ke lantai untuk charge Ki. Dorong push-up untuk tembakkan gelombang Kamehameha!
@@ -179,6 +242,11 @@ export default function PushUpBattlePage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-cyan/30 bg-cyan/10 text-cyan text-xs font-mono font-bold shadow-[0_0_10px_rgba(0,229,255,0.15)]">
+              <IconTarget size={14} className="text-cyan" />
+              <span>Target K.O:</span>
+              <span className="text-white">{targetReps} Push-Up</span>
+            </div>
             <button
               onClick={() => {
                 soundEngine.playCountdownTick();
@@ -258,22 +326,27 @@ export default function PushUpBattlePage() {
                 </div>
               )}
 
-              {/* CAMERA ERROR OVERLAY */}
-              {status === 'error' && (
+              {/* CAMERA ERROR / IDLE OVERLAY */}
+              {(status === 'error' || status === 'idle') && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-void/95 p-4 text-center space-y-2.5 z-20">
-                  <span className="text-2xl">📷</span>
-                  <p className="font-display text-xs font-bold text-rose-400">Kamera Belum Aktif</p>
-                  <p className="text-[10px] text-muted max-w-xs">
-                    {error?.message || 'Webcam tidak terdeteksi atau izin belum diberikan.'}
+                  <div className="w-11 h-11 rounded-full bg-cyan/15 border border-cyan/40 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,229,255,0.25)]">
+                    📷
+                  </div>
+                  <p className="font-display text-sm font-bold text-white">
+                    {status === 'error' ? 'Kamera Belum Aktif' : 'Aktifkan Kamera AI'}
+                  </p>
+                  <p className="text-[11px] text-muted max-w-xs leading-relaxed">
+                    {error?.message ||
+                      'Izinkan akses webcam di browser Anda untuk mendeteksi repetisi push-up dan charge Ki otomatis.'}
                   </p>
                   <button
                     onClick={() => start()}
-                    className="px-3 py-1 rounded bg-cyan text-void font-bold text-[11px] hover:bg-cyan/80 transition-colors"
+                    className="px-4 py-2 rounded-lg bg-cyan text-void font-bold text-xs hover:bg-cyan/80 transition-all shadow-[0_0_15px_rgba(0,229,255,0.4)] hover:scale-105"
                   >
-                    🔄 Coba Sambungkan Lagi
+                    🔄 Sambungkan Kamera Sekarang
                   </button>
-                  <p className="text-[9px] text-muted font-mono">
-                    Bisa tetap bermain via tombol <strong>+1 Rep</strong> atau tekan <strong>[SPASI]</strong>
+                  <p className="text-[10px] text-muted font-mono pt-1">
+                    Atau gunakan tombol <strong className="text-cyan">+1 Rep</strong> / tekan <strong className="text-white">[SPASI]</strong>
                   </p>
                 </div>
               )}
@@ -292,9 +365,39 @@ export default function PushUpBattlePage() {
                 </div>
               )}
 
+              {/* LIVE DEPTH GAUGE & SENSOR BAR (FLAPPY BIRD MOTION TRACKER) */}
+              {status === 'running' && (
+                <div className="absolute bottom-2 left-2 z-10 p-2 rounded-lg bg-black/80 border border-cyan/40 backdrop-blur-sm flex flex-col gap-1 w-48 sm:w-56 shadow-lg">
+                  <div className="flex items-center justify-between text-[10px] font-mono">
+                    <span className="text-muted">Sensor Gerak AI:</span>
+                    {currentPhase === 'down' ? (
+                      <span className="flex items-center gap-1 font-bold text-amber-300 animate-pulse">
+                        <IconBolt size={12} className="text-amber-300" />
+                        <span>CHARGING KI</span>
+                      </span>
+                    ) : (
+                      <span className="font-bold text-cyan">POSISI ATAS</span>
+                    )}
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-white/15 overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-75 ${
+                        currentPhase === 'down' ? 'bg-amber-400' : 'bg-cyan'
+                      }`}
+                      style={{ width: `${Math.max(8, depthPercent)}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[9px] font-mono text-muted">
+                    <span>Turun (Bawah)</span>
+                    <span className="text-white font-bold">{depthPercent}%</span>
+                    <span>Dorong (Atas)</span>
+                  </div>
+                </div>
+              )}
+
               {/* REP BADGE */}
               <div className="absolute bottom-2 right-2 z-10 px-3 py-1 rounded-lg bg-cyan text-void font-display font-extrabold text-lg shadow-[0_0_15px_rgba(0,229,255,0.6)]">
-                {p1Reps} REPS
+                {p1Reps} / {targetReps} REPS
               </div>
             </div>
 
@@ -303,16 +406,18 @@ export default function PushUpBattlePage() {
               <button
                 onClick={() => triggerKiCharge('p1')}
                 title="Charge Ki (posisi bawah push-up) [Tombol S]"
-                className="flex-1 px-3 py-2 rounded bg-amber-400/15 border border-amber-400/40 hover:bg-amber-400/25 text-amber-300 text-xs font-bold transition-colors text-center"
+                className="flex-1 px-3 py-2 rounded bg-amber-400/15 border border-amber-400/40 hover:bg-amber-400/25 text-amber-300 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
               >
-                ⚡ Charge Ki [S]
+                <IconBolt size={14} className="text-amber-300" glow />
+                <span>Charge Ki [S]</span>
               </button>
               <button
                 onClick={() => triggerAttack('p1')}
                 title="Tembakkan Kamehameha! [Tombol Spasi / A]"
-                className="flex-2 px-3 py-2 rounded bg-cyan/20 border border-cyan/50 hover:bg-cyan/30 text-cyan text-xs font-bold transition-colors text-center shadow-[0_0_12px_rgba(0,229,255,0.25)]"
+                className="flex-2 px-3 py-2 rounded bg-cyan/20 border border-cyan/50 hover:bg-cyan/30 text-cyan text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-[0_0_12px_rgba(0,229,255,0.25)]"
               >
-                💥 +1 KAMEHAMEHA! [Spasi]
+                <IconBurst size={15} className="text-cyan" glow />
+                <span>+1 KAMEHAMEHA! [Spasi]</span>
               </button>
             </div>
           </div>
@@ -321,7 +426,7 @@ export default function PushUpBattlePage() {
           <div className="glass-panel clip-corner border-2 border-magenta/50 p-4 bg-magenta/5 space-y-3 relative overflow-hidden shadow-[0_0_20px_rgba(255,0,122,0.15)]">
             <div className="flex items-center justify-between border-b border-magenta/20 pb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xl">🔥</span>
+                <IconFlame size={18} className="text-magenta" glow />
                 <span className="font-display font-bold text-base text-magenta">
                   {opponentMode === 'ai_bot' ? 'PLAYER 2 (CYBER AI BOT)' : 'PLAYER 2 (TEMAN KAMU)'}
                 </span>
@@ -331,24 +436,32 @@ export default function PushUpBattlePage() {
 
             {/* OPPONENT AVATAR / FEED */}
             <div className="relative aspect-video w-full rounded-xl bg-gradient-to-br from-[#1b0a23] via-[#0b0816] to-[#070c1e] overflow-hidden border border-magenta/30 flex flex-col items-center justify-center p-6 text-center space-y-3">
-              <div className="w-20 h-20 rounded-2xl bg-magenta/20 border-2 border-magenta flex items-center justify-center text-4xl shadow-[0_0_25px_rgba(255,0,122,0.5)] animate-pulse">
-                {opponentMode === 'ai_bot' ? '🤖' : '🥊'}
+              <div className="w-20 h-20 rounded-2xl bg-magenta/20 border-2 border-magenta flex items-center justify-center shadow-[0_0_25px_rgba(255,0,122,0.5)] animate-pulse">
+                {opponentMode === 'ai_bot' ? (
+                  <IconCyberBot size={42} className="text-magenta" glow />
+                ) : (
+                  <IconCombat size={42} className="text-magenta" glow />
+                )}
               </div>
 
               <div>
                 <div className="font-display font-bold text-white text-lg">
-                  {opponentMode === 'ai_bot' ? 'Mecha-Gladiator v2.0' : 'Challenger Lokal'}
+                  {opponentMode === 'ai_bot' ? botName : 'Challenger Lokal'}
                 </div>
                 <div className="text-xs font-mono text-muted">
                   {opponentMode === 'ai_bot'
-                    ? 'Menembakkan serangan api setiap 2-3 detik'
-                    : 'Adu push-up berdua di ruangan yang sama!'}
+                    ? botDifficulty === 'easy'
+                      ? 'Level Easy · Target 10 Push-Up (1 rep / 6 detik)'
+                      : botDifficulty === 'medium'
+                        ? 'Level Medium · Target 15 Push-Up (1 rep / 4 detik)'
+                        : 'Level Hard · Target 20 Push-Up (1 rep / 3 detik)'
+                    : `Adu push-up berdua · Target K.O: ${targetReps} Repetisi!`}
                 </div>
               </div>
 
               {/* REP BADGE */}
               <div className="absolute bottom-2 right-2 z-10 px-3 py-1 rounded-lg bg-magenta text-white font-display font-extrabold text-lg shadow-[0_0_15px_rgba(255,0,122,0.6)]">
-                {p2Reps} REPS
+                {p2Reps} / {targetReps} REPS
               </div>
             </div>
 
@@ -357,16 +470,18 @@ export default function PushUpBattlePage() {
               <button
                 onClick={() => triggerKiCharge('p2')}
                 title="Charge Ki P2 [Tombol K]"
-                className="flex-1 px-3 py-2 rounded bg-amber-400/15 border border-amber-400/40 hover:bg-amber-400/25 text-amber-300 text-xs font-bold transition-colors text-center"
+                className="flex-1 px-3 py-2 rounded bg-amber-400/15 border border-amber-400/40 hover:bg-amber-400/25 text-amber-300 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
               >
-                🔥 Charge Ki [K]
+                <IconFlame size={14} className="text-amber-300" glow />
+                <span>Charge Ki [K]</span>
               </button>
               <button
                 onClick={() => triggerAttack('p2')}
                 title="Tembakkan Final Flash! [Tombol Enter / L]"
-                className="flex-2 px-3 py-2 rounded bg-magenta/20 border border-magenta/50 hover:bg-magenta/30 text-magenta text-xs font-bold transition-colors text-center shadow-[0_0_12px_rgba(255,0,122,0.25)]"
+                className="flex-2 px-3 py-2 rounded bg-magenta/20 border border-magenta/50 hover:bg-magenta/30 text-magenta text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-[0_0_12px_rgba(255,0,122,0.25)]"
               >
-                💥 +1 FINAL FLASH! [Enter]
+                <IconBurst size={15} className="text-magenta" glow />
+                <span>+1 FINAL FLASH! [Enter]</span>
               </button>
             </div>
           </div>
@@ -377,8 +492,14 @@ export default function PushUpBattlePage() {
       {isGameOver && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
           <div className="glass-panel clip-corner w-full max-w-md border-cyan p-6 sm:p-8 text-center bg-void/98 space-y-6 shadow-[0_0_60px_rgba(0,229,255,0.3)]">
-            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-4xl border border-cyan/40 bg-cyan/15">
-              {winner === 'p1' ? '🏆' : winner === 'p2' ? '💥' : '⚡'}
+            <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center border border-cyan/40 bg-cyan/15">
+              {winner === 'p1' ? (
+                <IconTrophy size={36} className="text-cyan" glow />
+              ) : winner === 'p2' ? (
+                <IconFlame size={36} className="text-magenta" glow />
+              ) : (
+                <IconBolt size={36} className="text-amber-400" glow />
+              )}
             </div>
 
             <div className="space-y-1">
@@ -386,9 +507,9 @@ export default function PushUpBattlePage() {
                 Duel Selesai!
               </span>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">
-                {winner === 'p1' && 'Kamu Menang KO! 🎉'}
-                {winner === 'p2' && 'Lawan Menang! Bangkit Lagi! 🔥'}
-                {winner === 'draw' && 'Pertarungan Imbang! ⚡'}
+                {winner === 'p1' && 'Kamu Menang KO!'}
+                {winner === 'p2' && 'Lawan Menang! Bangkit Lagi!'}
+                {winner === 'draw' && 'Pertarungan Imbang!'}
               </h2>
               <p className="text-xs text-muted">
                 Total push-up yang kamu hasilkan: <strong>{p1Reps} Repetisi</strong> vs Lawan:{' '}
@@ -416,15 +537,16 @@ export default function PushUpBattlePage() {
                 onClick={() => setShowShareModal(true)}
                 className="w-full flex items-center justify-center gap-2 clip-corner bg-emerald-500 py-3 font-mono text-xs font-bold text-void hover:bg-emerald-400 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]"
               >
-                <span>📤</span>
-                <span>Bagikan Kemenangan (WhatsApp & IG)</span>
+                <span>Bagikan Rekor Latihan (WhatsApp & IG)</span>
+                <IconBurst size={14} className="text-void" />
               </button>
 
               <button
                 onClick={restartGame}
-                className="w-full clip-corner bg-gradient-to-r from-cyan to-magenta py-3 font-mono text-xs font-bold text-void hover:opacity-90 transition-opacity"
+                className="w-full clip-corner bg-gradient-to-r from-cyan to-magenta py-3 font-mono text-xs font-bold text-void hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               >
-                Tanding Ulang (Rematch) ⚔️
+                <IconCombat size={15} className="text-void" />
+                <span>Tanding Ulang (Rematch)</span>
               </button>
 
               <Link

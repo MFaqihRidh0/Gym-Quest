@@ -22,6 +22,13 @@ import type {
 } from '@/modules/gamification/types';
 import { soundEngine } from '@/modules/game-engine/audio';
 import { UserNavButton } from '@/components/UserNavButton';
+import {
+  IconLeagueBadge,
+  IconTrophy,
+  IconCrown,
+  IconBolt,
+  IconFlame,
+} from '@/components/ui/CyberIcons';
 
 export default function LeaderboardPage() {
   const [seasonState, setSeasonState] = useState<WeeklySeasonState | null>(null);
@@ -275,7 +282,9 @@ export default function LeaderboardPage() {
                       Liga Kamu
                     </span>
                   )}
-                  <span className="text-2xl sm:text-3xl my-1">{tier.badgeIcon}</span>
+                  <div className="my-1 flex items-center justify-center">
+                    <IconLeagueBadge tier={tierId} size={32} />
+                  </div>
                   <span className="font-display text-xs sm:text-sm font-bold text-white line-clamp-1">
                     {tier.name}
                   </span>
@@ -288,8 +297,8 @@ export default function LeaderboardPage() {
           {/* DETAIL KASTA YANG SEDANG DIINSPEKSI */}
           <div className="glass-panel clip-corner border-white/10 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-void/50">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">{viewedLeagueConfig.badgeIcon}</span>
+              <div className="flex items-center gap-2.5">
+                <IconLeagueBadge tier={selectedLeagueTab} size={28} />
                 <h3 className="font-display font-bold text-white text-base">
                   {viewedLeagueConfig.name} — {viewedLeagueConfig.title}
                 </h3>

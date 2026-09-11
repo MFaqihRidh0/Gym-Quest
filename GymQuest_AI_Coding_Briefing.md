@@ -248,16 +248,34 @@ Setiap tahap punya **Tujuan**, **Tugas**, dan **Definition of Done (DoD)**. Chec
 **Tugas:**
 - [x] Pembuatan game push-up battle 2 pemain split-screen (`/arena/battle`):
   - **Dragon Ball Kamehameha & Final Flash Battle Engine**: Karakter dilengkapi efek Super Saiyan Ki Aura, Ki Charge saat posisi kontraksi bawah push-up (`triggerKiCharge`), gelombang energi Kamehameha berpusar ganda (*double-helix energy spirals*) saat push-up sah (`triggerRepAttack`), efek benturan balok energi dahsyat (*Beam Clash*), getaran layar (*screen shake*), dan teks shout anime dinamis (*x10 Kaio-Ken, Super Kamehameha, Final Flash*).
-  - **Live Biometric Camera Feed**: Tampilan webcam Player 1 jernih tanpa overlay penghalang, pemindaian kerangka biomekanik real-time (`drawBioScan`), deteksi postur push-up otomatis, serta tombol toggle ukuran kamera (*expand/shrink*).
+  - **Leveling AI Bot Kompetitif**: Pilihan tingkat kesulitan bot terukur:
+    - **Easy (Mudah):** 10 push-up / menit (1 rep per 6 detik).
+    - **Medium (Sedang):** 15 push-up / menit (1 rep per 4 detik).
+    - **Hard (Sulit):** 20 push-up / menit (1 rep per 3 detik).
+  - **Live Biometric Camera Feed & Multi-Stage Fallback**: Deteksi webcam otomatis dengan fallback bertingkat (ideal 960x540 ➔ facingMode user ➔ video true) dan fallback CPU untuk MediaPipe jika GPU gagal. Tampilan kamera dilengkapi tombol toggle ukuran (*expand/shrink*) serta tombol sambungkan manual teruji.
   - **Dukungan Kontrol Lengkap**: Deteksi webcam AI pose tracking + kontrol keyboard instan (`[Spasi]/[A]` untuk Kamehameha, `[S]` untuk Charge Ki, `[Enter]/[L]` untuk Final Flash, `[K]` untuk Charge Ki P2).
+- [x] **Arena Mode Login Gate**: Intersepsi akses Arena Mode di halaman beranda yang mewajibkan login dengan dialog edukatif (penjelasan fitur kolaborasi real-time, sinkronisasi Hall of Fame, dan perolehan bonus EXP liga).
 - [x] Leaderboard skor Arena Mode & Hall of Fame Push-Up Battle di `/leaderboard`
 - [x] Fitur berbagi pencapaian latihan (`ShareAchievementModal.tsx`): Share langsung ke WhatsApp dengan teks ringkasan & generator otomatis poster Instagram Story beresolusi tinggi (format 9:16 PNG)
 - [ ] Tantangan komunitas mingguan (agregasi total repetisi kumulatif semua pengguna)
 
-**DoD:** Pengguna dapat bertanding push-up 1v1 split-screen dengan animasi pertarungan Kamehameha ala Dragon Ball yang memukau, membagikan kartu rekor latihan ke media sosial, serta melihat kontribusi repetisi mereka terhadap tantangan komunitas global.
+**DoD:** Pengguna dapat bertanding push-up 1v1 split-screen dengan animasi pertarungan Kamehameha ala Dragon Ball yang memukau, memilih tingkat kesulitan bot latihan, membagikan kartu rekor latihan ke media sosial, serta melihat kontribusi repetisi mereka terhadap tantangan komunitas global.
 
 ### Fase 9 — UI/UX, Aksesibilitas & Desain Modern ✅
 **Tugas:**
+- [x] **Redesain Beranda Komprehensif (`/`)**:
+  - Header beranda yang lebih menonjol, elegan, dan proporsional dengan logo neon GYMQUEST, navigasi lengkap dengan ikon vektor kustom, dan status profil pengguna.
+  - **Sistem Vektor Ikon Kustom (`CyberIcons`)**: Menggantikan seluruh emoji sistem/AI generik dengan ikon SVG beresolusi tinggi bertema Cyber-Fitness yang memiliki pendaran neon, warna terkurasi, dan micro-animations.
+  - **Panel Khusus Tim Pengembang ("Semoga Kami Beruntung")**:
+    - **M. Faqih Ridho** (Ketua Tim — Lead Developer & AI Architect)
+    - **Ananda Fitri Wibowo** (Anggota — Biomechanics & Vision Testing)
+    - **Muhammad Ardiansyah Tri Wibowo** (Anggota — Frontend & UI/UX Engineering)
+    - **Muhammad Ziddan Habibi** (Anggota — Game Mechanics & Systems)
+  - **Panel Footer Khusus (Dedicated Footer Panel)**: Struktur 4 kolom (Brand & Misi, Navigasi Fitur, Teknologi & Standar, Komunitas & Sosial) dengan disclaimer medis dan hak cipta.
+- [x] **Halaman Khusus Autentikasi (`/auth`, `/login`, `/register`)**:
+  - Halaman mandiri penuh yang bersih dan rapi menggantikan modal popup sempit yang sebelumnya terpotong layar.
+  - Dilengkapi tombol **`← Kembali ke Beranda`** di pojok kiri atas.
+  - Tata letak 2 kolom estetis (kartu branding, perks Arena Mode, 5 kasta liga di sisi kiri; formulir Masuk/Daftar di sisi kanan).
 - [x] Onboarding ramah pemula dengan dialog terpandu (`OnboardingModal.tsx`)
 - [x] Perombakan tema visual: Mengganti hitam pekat dengan **Subtle Dark Navy** (`#070c1e`, `#131e47`) beraksen neon cyan & magenta yang mewah
 - [x] **Kursor Kustom 3D Barbel**: Kursor bertema barbel krom dengan pendaran neon untuk interaksi klik & hover

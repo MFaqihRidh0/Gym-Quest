@@ -76,14 +76,16 @@ export class PushUpBattleGame {
   // Match State
   public matchDuration = 60; // 60 seconds
   public timeRemaining = 60;
+  public targetReps = 15; // 10 untuk Easy, 15 untuk Medium, 20 untuk Hard
   public isGameOver = false;
   public winner: 'p1' | 'p2' | 'draw' | null = null;
 
   // Callbacks
   public onGameOver?: (winner: 'p1' | 'p2' | 'draw', p1Reps: number, p2Reps: number) => void;
 
-  constructor(canvas: HTMLCanvasElement, p1Name = 'Player 1', p2Name = 'Player 2') {
+  constructor(canvas: HTMLCanvasElement, p1Name = 'Player 1', p2Name = 'Player 2', targetReps = 15) {
     this.canvas = canvas;
+    this.targetReps = targetReps;
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Cannot get 2D context');
     this.ctx = context;
@@ -200,9 +202,10 @@ export class PushUpBattleGame {
     }
     active.lastRepTime = now;
 
-    // Hitung damage
-    const baseDamage = 12;
-    const comboBonus = Math.min(active.combo * 4, 25);
+    // Hitung damage proporsional: tepat targetReps repetisi menghabisi 100 HP lawan!
+    // Easy (10 push-up) = 10 damage/rep. Medium (15) = ~7 damage/rep. Hard (20) = 5 damage/rep.
+    const baseDamage = Math.round(100 / this.targetReps);
+    const comboBonus = Math.min(active.combo * 2, 8);
     const totalDamage = baseDamage + comboBonus;
 
     // Set animation states
@@ -243,13 +246,13 @@ export class PushUpBattleGame {
     // Spawn floating damage text & Anime shout
     let shoutWord = '';
     if (isP1) {
-      if (active.combo >= 4) shoutWord = '💥 x10 KAIO-KEN KAMEHAMEHA! 💥';
-      else if (active.combo >= 2) shoutWord = '⚡ SUPER KAMEHAMEHA! ⚡';
-      else shoutWord = '⚡ KA-ME-HA-ME-HA! ⚡';
+      if (active.combo >= 4) shoutWord = '>>> x10 KAIO-KEN KAMEHAMEHA! <<<';
+      else if (active.combo >= 2) shoutWord = '>> SUPER KAMEHAMEHA! <<';
+      else shoutWord = '> KA-ME-HA-ME-HA! <';
     } else {
-      if (active.combo >= 4) shoutWord = '💥 MAXIMUM FINAL FLASH! 💥';
-      else if (active.combo >= 2) shoutWord = '🔥 SUPER FINAL FLASH! 🔥';
-      else shoutWord = '🔥 GALICK GUN! 🔥';
+      if (active.combo >= 4) shoutWord = '>>> MAXIMUM FINAL FLASH! <<<';
+      else if (active.combo >= 2) shoutWord = '>> SUPER FINAL FLASH! <<';
+      else shoutWord = '> GALICK GUN! <';
     }
 
     this.spawnFloatingText(shoutWord, active.x, active.y - 85, '#ffffff', 22);
@@ -275,8 +278,9 @@ export class PushUpBattleGame {
       });
     }
 
-    // Check Knockout (KO)
-    if (target.hp <= 0) {
+    // Check Knockout (KO): jika HP habis atau repetisi mencapai target (10 Easy / 15 Medium / 20 Hard)
+    if (target.hp <= 0 || active.reps >= this.targetReps) {
+      target.hp = 0;
       this.endGame(isP1 ? 'p1' : 'p2');
     }
   }
@@ -767,7 +771,7 @@ export class PushUpBattleGame {
     ctx.font = 'bold 11px monospace';
     ctx.textAlign = 'left';
     ctx.fillText(`${this.player1.name} (HP: ${Math.round(this.player1.hp)})`, 27, 16);
-    ctx.fillText(`PUSH-UP: ${this.player1.reps}`, 27, 68);
+    ctx.fillText(`PUSH-UP: ${this.player1.reps} / ${this.targetReps}`, 27, 68);
 
     // 2. P2 HP & Ki Bar (Top Right)
     ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
@@ -789,20 +793,24 @@ export class PushUpBattleGame {
     ctx.font = 'bold 11px monospace';
     ctx.textAlign = 'right';
     ctx.fillText(`${this.player2.name} (HP: ${Math.round(this.player2.hp)})`, w - 27, 16);
-    ctx.fillText(`PUSH-UP: ${this.player2.reps}`, w - 27, 68);
+    ctx.fillText(`PUSH-UP: ${this.player2.reps} / ${this.targetReps}`, w - 27, 68);
 
-    // 3. Center Match Timer
+    // 3. Center Match Timer & Target Reps
     ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(w / 2 - 40, 12, 80, 44, 10);
+    ctx.roundRect(w / 2 - 45, 10, 90, 42, 8);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = this.timeRemaining <= 10 ? '#ff007a' : '#ffd600';
-    ctx.font = 'bold 24px monospace';
+    ctx.font = 'bold 22px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(`${Math.ceil(this.timeRemaining)}`, w / 2, 42);
+    ctx.fillText(`${Math.ceil(this.timeRemaining)}s`, w / 2, 38);
+
+    ctx.fillStyle = '#00e5ff';
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText(`TARGET: ${this.targetReps} REPS`, w / 2, 68);
   }
 }

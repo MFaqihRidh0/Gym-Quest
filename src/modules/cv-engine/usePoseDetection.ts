@@ -6,27 +6,47 @@ import { PoseSmoother } from './smoothing';
 import type { CvEngineError, DetectionStatus, PoseLandmarks } from './types';
 
 function describeCameraError(error: unknown): CvEngineError {
-  if (!window.isSecureContext) {
+  if (typeof window !== 'undefined' && !window.isSecureContext) {
     return {
       kind: 'insecure-context',
       message: 'Kamera hanya bisa diakses lewat HTTPS atau localhost.',
     };
   }
-  if (error instanceof DOMException) {
-    if (error.name === 'NotAllowedError') {
+  if (error instanceof DOMException || (error && typeof error === 'object' && 'name' in error)) {
+    const err = error as DOMException;
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
       return {
         kind: 'denied',
-        message: 'Izin kamera ditolak. Aktifkan izin kamera di pengaturan browser, lalu coba lagi.',
+        message: 'Izin webcam belum diberikan. Klik ikon gembok di sebelah URL browser dan izinkan akses kamera, lalu coba lagi.',
       };
     }
-    if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
+    if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
       return {
         kind: 'not-found',
-        message: 'Kamera tidak terdeteksi. Sambungkan webcam atau gunakan perangkat berkamera.',
+        message: 'Webcam tidak terdeteksi. Sambungkan kamera atau gunakan perangkat berkamera.',
+      };
+    }
+    if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+      return {
+        kind: 'unknown',
+        message: 'Kamera sedang dipakai oleh aplikasi lain (seperti Zoom, Google Meet, OBS, atau tab lain). Tutup aplikasi tersebut lalu coba lagi.',
+      };
+    }
+    if (err.name === 'OverconstrainedError') {
+      return {
+        kind: 'unknown',
+        message: 'Resolusi kamera yang diminta tidak didukung oleh perangkat Anda.',
+      };
+    }
+    if (err.name === 'AbortError') {
+      return {
+        kind: 'unknown',
+        message: 'Proses pembukaan kamera diinterupsi. Silakan klik tombol coba lagi.',
       };
     }
   }
-  return { kind: 'unknown', message: 'Kamera gagal dinyalakan. Coba muat ulang halaman.' };
+  const detail = error instanceof Error ? error.message : String(error);
+  return { kind: 'unknown', message: `Kamera gagal dinyalakan: ${detail}. Coba klik tombol sambungkan kamera lagi.` };
 }
 
 /** ~12 Hz: cukup responsif untuk panel status, jauh lebih murah dari 30 Hz. */
@@ -54,6 +74,7 @@ export function usePoseDetection(): PoseDetectionResult {
   const fpsWindowRef = useRef<number[]>([]);
   const liveLandmarksRef = useRef<PoseLandmarks | null>(null);
   const lastUiSyncRef = useRef(0);
+  const isCancelledRef = useRef(false);
 
   const [landmarks, setLandmarks] = useState<PoseLandmarks | null>(null);
   const [status, setStatus] = useState<DetectionStatus>('idle');
@@ -61,6 +82,7 @@ export function usePoseDetection(): PoseDetectionResult {
   const [fps, setFps] = useState(0);
 
   const stop = useCallback(() => {
+    isCancelledRef.current = true;
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -79,6 +101,7 @@ export function usePoseDetection(): PoseDetectionResult {
   }, []);
 
   const start = useCallback(async () => {
+    isCancelledRef.current = false;
     setError(null);
     setStatus('loading');
 
@@ -86,6 +109,7 @@ export function usePoseDetection(): PoseDetectionResult {
     try {
       landmarker = await loadPoseLandmarker();
     } catch {
+      if (isCancelledRef.current) return;
       setStatus('error');
       setError({
         kind: 'model-load',
@@ -95,21 +119,57 @@ export function usePoseDetection(): PoseDetectionResult {
       return;
     }
 
+    if (isCancelledRef.current) return;
+
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        // 960x540 sudah cukup: model lite menskalakan ulang input secara
-        // internal, jadi resolusi lebih tinggi hanya menambah biaya upload.
+      stream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 960 }, height: { ideal: 540 }, facingMode: 'user' },
         audio: false,
       });
-      streamRef.current = stream;
-      const video = videoRef.current;
-      if (!video) return;
-      video.srcObject = stream;
+    } catch (primaryError) {
+      console.warn('Initial getUserMedia constraints failed, trying fallback:', primaryError);
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: false,
+        });
+      } catch (secondaryError) {
+        console.warn('Secondary getUserMedia constraints failed, trying simple video:', secondaryError);
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        } catch (finalError) {
+          if (isCancelledRef.current) return;
+          setStatus('error');
+          setError(describeCameraError(finalError));
+          return;
+        }
+      }
+    }
+
+    if (isCancelledRef.current) {
+      stream?.getTracks().forEach((t) => t.stop());
+      return;
+    }
+
+    streamRef.current = stream;
+    const video = videoRef.current;
+    if (!video) return;
+    video.srcObject = stream;
+    video.muted = true;
+    video.setAttribute('playsinline', 'true');
+
+    try {
       await video.play();
-    } catch (cameraError) {
-      setStatus('error');
-      setError(describeCameraError(cameraError));
+    } catch (playError) {
+      console.warn('Video play was delayed or blocked, waiting for metadata:', playError);
+    }
+
+    if (isCancelledRef.current) {
+      stream?.getTracks().forEach((t) => t.stop());
       return;
     }
 
