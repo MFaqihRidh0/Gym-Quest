@@ -651,36 +651,38 @@ export function ExerciseVisual3D({
 
         case 'plank': {
           const breath = Math.sin(t * 2.5) * 0.015;
-          const phi = 0.10; // Incline plank yang pas menapak lantai
+          const phi = 0.04; // Garis plank lurus sejajar lantai
           mannequin.rotation.x = Math.PI / 2 - phi;
 
-          // Jari kaki menapak kokoh di lantai y = -1.18
-          const toeFloorY = -1.18;
-          const toeZ = -0.85;
-          const legLength = 0.92;
-          mannequin.position.y = toeFloorY + legLength * Math.sin(phi) + breath;
-          mannequin.position.z = toeZ + legLength * Math.cos(phi);
+          // Tinggi tubuh pas ditopang siku & lengan bawah di lantai (y = -1.18)
+          mannequin.position.y = -0.84 + breath;
+          mannequin.position.z = 0.12;
 
-          // Mata dan kepala menghadap ke depan (gaze forward along floor)
-          neck.rotation.x = -0.45;
+          // Mata dan kepala menghadap ke bawah/depan lantai
+          neck.rotation.x = -0.40;
 
-          // Forearms resting flat forward on floor
-          leftShoulder.rotation.z = -0.28;
-          rightShoulder.rotation.z = 0.28;
-          leftShoulder.rotation.x = -1.48;
-          rightShoulder.rotation.x = -1.48;
+          // Lengan atas tegak lurus turun ke lantai menopang bahu
+          leftShoulder.rotation.z = -0.12;
+          rightShoulder.rotation.z = 0.12;
+          leftShoulder.rotation.x = -1.52;
+          rightShoulder.rotation.x = -1.52;
+          leftShoulder.rotation.y = 0;
+          rightShoulder.rotation.y = 0;
 
-          leftElbow.rotation.x = 1.48;
-          rightElbow.rotation.x = 1.48;
+          // Lengan bawah (forearm) menghadap LURUS KE DEPAN menapak lantai (bukan ke dalam tubuh)
+          leftElbow.rotation.x = -1.48;
+          rightElbow.rotation.x = -1.48;
+          leftElbow.rotation.z = 0.10;
+          rightElbow.rotation.z = -0.10;
 
-          // Straight plank legs, jari kaki menapak kokoh di lantai
-          leftHip.rotation.z = -0.10;
-          rightHip.rotation.z = 0.10;
-          leftFoot.rotation.x = -0.65 + phi;
-          rightFoot.rotation.x = -0.65 + phi;
+          // Kaki lurus, jari kaki fleksi menapak kokoh di lantai
+          leftHip.rotation.z = -0.08;
+          rightHip.rotation.z = 0.08;
+          leftFoot.rotation.x = -0.82;
+          rightFoot.rotation.x = -0.82;
 
-          shadowMesh.position.set(0, -1.19, -0.15);
-          shadowMesh.scale.set(1.0, 1.6, 1);
+          shadowMesh.position.set(0, -1.19, -0.05);
+          shadowMesh.scale.set(1.0, 1.7, 1);
 
           postureLaser.visible = true;
           postureLaser.rotation.x = Math.PI / 2 - phi;
