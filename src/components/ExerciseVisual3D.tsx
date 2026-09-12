@@ -588,46 +588,58 @@ export function ExerciseVisual3D({
 
         case 'push_up': {
           const speed = 2.2;
-          const depth = (Math.sin(t * speed) + 1) / 2; // 0 = bottom, 1 = top
+          const depth = (Math.sin(t * speed) + 1) / 2; // 0 = bawah (dada dekat lantai), 1 = atas (lengan lurus)
 
-          // Jari kaki tetap menapak di lantai (pivot titik tumpu lantai tanpa terangkat)
-          const tiltAngle = depth * 0.20; // Incline tubuh bertumpu di ujung kaki
-          mannequin.rotation.x = Math.PI / 2 + tiltAngle;
+          // Sudut inklinasi tubuh berporos di ujung jari kaki yang menapak tanah
+          // Di bawah (depth = 0), badan hampir horizontal (phi = 0.08 rad)
+          // Di atas (depth = 1), dada terangkat oleh lengan lurus (phi = 0.32 rad)
+          const phi = 0.08 + depth * 0.24;
+          mannequin.rotation.x = Math.PI / 2 - phi;
 
-          // Menjaga ujung jari kaki selalu menapak stabil di lantai y = -1.18
+          // Titik tumpu ujung jari kaki selalu terkunci paten di lantai (y = -1.18, z = -0.85)
           const toeFloorY = -1.18;
-          const toeZ = -0.80;
-          mannequin.position.y = toeFloorY + 0.23 + Math.sin(tiltAngle) * 0.88;
-          mannequin.position.z = toeZ + Math.cos(tiltAngle) * 0.88;
+          const toeZ = -0.85;
+          const legLength = 0.92; // Jarak dari pelvis ke telapak kaki
 
-          // Kaki stabil & jari kaki menapak flat di lantai tanpa terangkat
-          leftHip.rotation.z = -0.12;
-          rightHip.rotation.z = 0.12;
-          leftFoot.rotation.x = 0.48 - tiltAngle;
-          rightFoot.rotation.x = 0.48 - tiltAngle;
+          // Pelvis bergerak memutar (pivot) di atas jari kaki yang menapak tanah tanpa terangkat
+          mannequin.position.y = toeFloorY + legLength * Math.sin(phi);
+          mannequin.position.z = toeZ + legLength * Math.cos(phi);
 
-          // Siku menekuk KELUAR (flared outward at 45 deg) & sudut tekukan wajar/proporsional
-          const flare = 1 - depth; // 1 = di bawah (dada dekat lantai), 0 = di atas
+          // Kaki lurus, pergelangan kaki fleksi sehingga jari kaki menapak kokoh di lantai grid
+          leftHip.rotation.z = -0.10;
+          rightHip.rotation.z = 0.10;
+          leftFoot.rotation.x = -0.65 + phi;
+          rightFoot.rotation.x = -0.65 + phi;
 
-          // Lengan Kiri (siku menekuk KELUAR ke kiri)
-          leftShoulder.rotation.x = -1.30 + flare * 0.45;
-          leftShoulder.rotation.z = -0.32 - flare * 0.65;
-          leftShoulder.rotation.y = -flare * 0.30;
+          // Lengan & Siku:
+          // flare = 1 saat di bawah (siku menekuk 90° ke arah luar 45° dari tubuh)
+          // flare = 0 saat di atas (lengan tegak lurus menopang tubuh di lantai)
+          const flare = 1 - depth;
 
-          leftElbow.rotation.x = -flare * 0.45;
-          leftElbow.rotation.z = flare * 0.85;
+          // Lengan Kiri (siku menekuk keluar 45°)
+          leftShoulder.rotation.x = -1.45 + flare * 0.55;
+          leftShoulder.rotation.z = -0.30 - flare * 0.40;
+          leftShoulder.rotation.y = -flare * 0.25;
 
-          // Lengan Kanan (siku menekuk KELUAR ke kanan)
-          rightShoulder.rotation.x = -1.30 + flare * 0.45;
-          rightShoulder.rotation.z = 0.32 + flare * 0.65;
-          rightShoulder.rotation.y = flare * 0.30;
+          leftElbow.rotation.x = -flare * 0.95;
+          leftElbow.rotation.z = flare * 0.70;
 
-          rightElbow.rotation.x = -flare * 0.45;
-          rightElbow.rotation.z = -flare * 0.85;
+          // Lengan Kanan (siku menekuk keluar 45°)
+          rightShoulder.rotation.x = -1.45 + flare * 0.55;
+          rightShoulder.rotation.z = 0.30 + flare * 0.40;
+          rightShoulder.rotation.y = flare * 0.25;
+
+          rightElbow.rotation.x = -flare * 0.95;
+          rightElbow.rotation.z = -flare * 0.70;
+
+          // Bayangan tanah tepat di bawah tubuh menapak lantai
+          shadowMesh.position.set(0, -1.19, -0.15);
+          shadowMesh.scale.set(1.0, 1.6, 1);
 
           // Straight spine guide laser
           postureLaser.visible = true;
-          postureLaser.position.set(0, mannequin.position.y + 0.16, 0);
+          postureLaser.rotation.x = Math.PI / 2 - phi;
+          postureLaser.position.set(0, mannequin.position.y + 0.15, mannequin.position.z);
 
           if (depth < 0.5) {
             torsoMesh.material = activeMuscleMat;
@@ -638,13 +650,19 @@ export function ExerciseVisual3D({
         }
 
         case 'plank': {
-          const breath = Math.sin(t * 2.5) * 0.02;
-          mannequin.rotation.x = Math.PI / 2;
-          mannequin.position.y = -0.84 + breath;
-          mannequin.position.z = 0.15;
+          const breath = Math.sin(t * 2.5) * 0.015;
+          const phi = 0.10; // Incline plank yang pas menapak lantai
+          mannequin.rotation.x = Math.PI / 2 - phi;
+
+          // Jari kaki menapak kokoh di lantai y = -1.18
+          const toeFloorY = -1.18;
+          const toeZ = -0.85;
+          const legLength = 0.92;
+          mannequin.position.y = toeFloorY + legLength * Math.sin(phi) + breath;
+          mannequin.position.z = toeZ + legLength * Math.cos(phi);
 
           // Mata dan kepala menghadap ke depan (gaze forward along floor)
-          neck.rotation.x = -0.70;
+          neck.rotation.x = -0.45;
 
           // Forearms resting flat forward on floor
           leftShoulder.rotation.z = -0.28;
@@ -655,14 +673,18 @@ export function ExerciseVisual3D({
           leftElbow.rotation.x = 1.48;
           rightElbow.rotation.x = 1.48;
 
-          // Straight plank legs, jari kaki menapak
-          leftHip.rotation.z = -0.14;
-          rightHip.rotation.z = 0.14;
-          leftFoot.rotation.x = 0.48;
-          rightFoot.rotation.x = 0.48;
+          // Straight plank legs, jari kaki menapak kokoh di lantai
+          leftHip.rotation.z = -0.10;
+          rightHip.rotation.z = 0.10;
+          leftFoot.rotation.x = -0.65 + phi;
+          rightFoot.rotation.x = -0.65 + phi;
+
+          shadowMesh.position.set(0, -1.19, -0.15);
+          shadowMesh.scale.set(1.0, 1.6, 1);
 
           postureLaser.visible = true;
-          postureLaser.position.set(0, mannequin.position.y + 0.16, 0);
+          postureLaser.rotation.x = Math.PI / 2 - phi;
+          postureLaser.position.set(0, mannequin.position.y + 0.15, mannequin.position.z);
           torsoMesh.material = activeMuscleMat;
           break;
         }

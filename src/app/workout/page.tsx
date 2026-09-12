@@ -508,78 +508,81 @@ function WorkoutRunner() {
   // LAYAR AKTIF WORKOUT
   return (
     <main className="min-h-screen flex flex-col bg-transparent text-primary">
-      {/* 1. HEADER TOP HUD */}
-      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-4 sm:px-6 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/programs/${program.id}`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-red-500/10 hover:border-red-400/40 hover:text-red-400 text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            Keluar
-          </Link>
-          <span className="text-xs text-white/20">|</span>
-          <span className="font-display text-sm font-bold text-white truncate max-w-[180px] sm:max-w-none">
-            {program.title}
-          </span>
-          <span className="hidden sm:inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cyan/15 text-cyan border border-cyan/30">
-            {program.badge}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 sm:gap-5 text-xs font-mono">
-          <div className="flex items-center gap-1.5">
-            <span className="text-muted">⏱ Waktu:</span>
-            <span className="text-white font-bold">
-              {Math.floor(sessionElapsedSeconds / 60)}:
-              {String(sessionElapsedSeconds % 60).padStart(2, '0')}
+      {/* 1. HEADER TOP HUD & TIMELINE COCKPIT */}
+      <header className="glass-panel sticky top-3 z-20 mx-3 sm:mx-6 rounded-2xl border border-cyan/30 shadow-[0_8px_40px_rgba(0,0,0,0.55)] overflow-hidden bg-void/90 backdrop-blur-xl">
+        {/* ROW 1: TOP HUD STATUS */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/programs/${program.id}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-red-500/10 hover:border-red-400/40 hover:text-red-400 text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Keluar
+            </Link>
+            <span className="text-xs text-white/20">|</span>
+            <span className="font-display text-sm font-bold text-white truncate max-w-[180px] sm:max-w-none">
+              {program.title}
+            </span>
+            <span className="hidden sm:inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cyan/15 text-cyan border border-cyan/30">
+              {program.badge}
             </span>
           </div>
-          <div className="hidden sm:flex items-center gap-1.5">
-            <span className="text-muted">🔥 Kalori:</span>
-            <span className="text-magenta font-bold">~{Math.round(estimatedCalories)} kkal</span>
+
+          <div className="flex items-center gap-3 sm:gap-5 text-xs font-mono">
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted">⏱ Waktu:</span>
+              <span className="text-white font-bold">
+                {Math.floor(sessionElapsedSeconds / 60)}:
+                {String(sessionElapsedSeconds % 60).padStart(2, '0')}
+              </span>
+            </div>
+            <div className="hidden sm:flex items-center gap-1.5">
+              <span className="text-muted">🔥 Kalori:</span>
+              <span className="text-magenta font-bold">~{Math.round(estimatedCalories)} kkal</span>
+            </div>
+            <button
+              onClick={() => setIsPaused(!isPaused)}
+              className={`clip-corner px-3.5 py-1 text-xs font-mono transition-all ${
+                isPaused
+                  ? 'bg-yellow-400 text-void font-bold shadow-[0_0_10px_rgba(255,214,0,0.5)]'
+                  : 'border border-white/20 bg-white/5 text-white hover:border-cyan'
+              }`}
+            >
+              {isPaused ? '▶ Lanjutkan' : '❚❚ Jeda'}
+            </button>
           </div>
-          <button
-            onClick={() => setIsPaused(!isPaused)}
-            className={`clip-corner px-3 py-1 text-xs font-mono transition-all ${
-              isPaused
-                ? 'bg-yellow-400 text-void font-bold shadow-[0_0_10px_rgba(255,214,0,0.5)]'
-                : 'border border-white/20 bg-white/5 text-white hover:border-cyan'
-            }`}
-          >
-            {isPaused ? '▶ Lanjutkan' : '❚❚ Jeda'}
-          </button>
+        </div>
+
+        {/* ROW 2: TIMELINE ROADMAP STRIP (Seluruh Gerakan Latihan) */}
+        <div className="w-full px-4 sm:px-6 py-2.5 overflow-x-auto scrollbar-none bg-[#08102a]/70">
+          <div className="flex items-center gap-2 min-w-max">
+            {program.exercises.map((exRef, idx) => {
+              const item = EXERCISE_CATALOG[exRef.exerciseId];
+              const isCurrent = idx === exerciseIndex;
+              const isPassed = idx < exerciseIndex;
+              return (
+                <div
+                  key={`${exRef.exerciseId}-${idx}`}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono shrink-0 border transition-all ${
+                    isCurrent
+                      ? 'border-cyan bg-cyan/20 text-cyan font-bold shadow-[0_0_15px_rgba(0,229,255,0.25)]'
+                      : isPassed
+                        ? 'border-white/10 bg-white/5 text-muted opacity-60'
+                        : 'border-white/5 bg-white/[0.02] text-muted'
+                  }`}
+                >
+                  <span className="text-[10px] w-4 h-4 rounded-full flex items-center justify-center bg-black/60">
+                    {isPassed ? '✓' : idx + 1}
+                  </span>
+                  <span className="truncate max-w-[130px]">{item?.name || 'Gerakan'}</span>
+                  {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </header>
-
-      {/* 2. TIMELINE ROADMAP STRIP (Seluruh Gerakan Latihan) */}
-      <div className="w-full border-b border-cyan/20 bg-[#08102a]/80 px-4 sm:px-6 py-2.5 overflow-x-auto scrollbar-none shrink-0 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto flex items-center gap-2">
-          {program.exercises.map((exRef, idx) => {
-            const item = EXERCISE_CATALOG[exRef.exerciseId];
-            const isCurrent = idx === exerciseIndex;
-            const isPassed = idx < exerciseIndex;
-            return (
-              <div
-                key={`${exRef.exerciseId}-${idx}`}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono shrink-0 border transition-all ${
-                  isCurrent
-                    ? 'border-cyan bg-cyan/20 text-cyan font-bold shadow-[0_0_15px_rgba(0,229,255,0.25)]'
-                    : isPassed
-                      ? 'border-white/10 bg-white/5 text-muted opacity-60'
-                      : 'border-white/5 bg-white/[0.02] text-muted'
-                }`}
-              >
-                <span className="text-[10px] w-4 h-4 rounded-full flex items-center justify-center bg-black/60">
-                  {isPassed ? '✓' : idx + 1}
-                </span>
-                <span className="truncate max-w-[130px]">{item?.name || 'Gerakan'}</span>
-                {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />}
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* 3. MAIN STAGE WORKOUT COCKPIT (Menghilangkan Ruang Kosong!) */}
       <div className="mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col justify-center">
