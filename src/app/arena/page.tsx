@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { UserNavButton } from '@/components/UserNavButton';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useLanguage } from '@/modules/i18n';
 import { soundEngine } from '@/modules/game-engine/audio';
 import { formatCountdown, useCountdown } from '@/lib/useCountdown';
 import { drawBioScan } from '@/modules/cv-engine/drawBioScan';
@@ -42,20 +44,35 @@ function SelectScreen({
   onStart: () => void;
   loading: boolean;
 }) {
+  const { t } = useLanguage();
+
+  const gamesList: { code: ArenaGame; label: string; description: string }[] = [
+    {
+      code: 'pony',
+      label: t.arena.ponyLabel,
+      description: t.arena.ponyDesc,
+    },
+    {
+      code: 'kangaroo',
+      label: t.arena.kangarooLabel,
+      description: t.arena.kangarooDesc,
+    },
+  ];
+
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-5 py-12">
-      {/* TOMBOL KEMBALI KE BERANDA (DI BODY DENGAN TATA LETAK PAS) */}
+      {/* TOMBOL KEMBALI KE BERANDA */}
       <Link
         href="/"
         className="inline-flex items-center gap-2 self-start px-4 py-2 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm group"
       >
         <span className="text-base group-hover:-translate-x-1 transition-transform">←</span>
-        <span>Kembali ke Beranda</span>
+        <span>{t.common.backToHome}</span>
       </Link>
 
       <div>
-        <p className="font-mono text-xs tracking-widest text-magenta uppercase">Arena mode</p>
-        <h1 className="mt-2 font-display text-2xl font-bold">Pilih game</h1>
+        <p className="font-mono text-xs tracking-widest text-magenta uppercase">{t.nav.arena}</p>
+        <h1 className="mt-2 font-display text-2xl font-bold">{t.arena.chooseOpponentTitle}</h1>
       </div>
 
       {/* CARD KHUSUS 1v1 PUSH-UP BATTLE (2-PLAYER) */}
@@ -69,14 +86,14 @@ function SelectScreen({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-display text-base sm:text-lg font-bold text-white group-hover:text-magenta transition-colors">
-                  1v1 Push-Up Battle
+                  {t.arena.pageTitle}
                 </h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-magenta text-white uppercase tracking-wider">
-                  2-Pemain / Bot Virtual
+                  PvP / AI Bot
                 </span>
               </div>
               <p className="font-body text-xs text-muted mt-1">
-                Adu push-up split-screen dengan 2 karakter animasi yang saling serang. Siapa yang paling kuat bertahan?
+                {t.arena.pageSubtitle}
               </p>
             </div>
           </div>
@@ -85,12 +102,12 @@ function SelectScreen({
       </Link>
 
       <div className="flex items-center gap-2 text-xs font-mono text-muted uppercase tracking-wider">
-        <span>Game Solo Lainnya</span>
+        <span>{t.arena.otherSoloGames}</span>
         <div className="flex-1 h-px bg-white/10" />
       </div>
 
       <div className="flex flex-col gap-3">
-        {GAMES.map((item) => {
+        {gamesList.map((item) => {
           const active = item.code === game;
           return (
             <button
@@ -115,28 +132,28 @@ function SelectScreen({
       {game === 'pony' ? (
         <div className="flex flex-col gap-2">
           <p className="font-mono text-[11px] tracking-widest text-muted uppercase">
-            Gerakan push-up
+            {t.arena.pushUpMovement}
           </p>
           <div className="glass-panel clip-corner p-3 text-left border-cyan/60">
             <span className="font-body text-sm font-semibold text-cyan">
-              Push-up Vertikal
+              {t.arena.verticalPushUp}
             </span>
             <p className="mt-1 font-body text-xs text-muted">
-              Kuda poni naik saat Anda mendorong badan ke atas, dan turun saat dada mendekati lantai. Sesuaikan ritme dengan celah laser!
+              {t.arena.ponyInstructions}
             </p>
           </div>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
           <p className="font-mono text-[11px] tracking-widest text-muted uppercase">
-            Gerakan angkat barbel
+            {t.arena.overheadMovement}
           </p>
           <div className="glass-panel clip-corner p-3 text-left border-magenta/60">
             <span className="font-body text-sm font-semibold text-magenta">
-              Angkat Barbel (Overhead Press)
+              {t.arena.overheadPress}
             </span>
             <p className="mt-1 font-body text-xs text-muted">
-              Kangguru melompat saat kedua tangan diangkat ke atas, dan mendarat saat tangan diturunkan. <strong>Tahan tangan di atas</strong> sampai rintangan trapesium panjang berhasil dilewati!
+              {t.arena.kangarooInstructions}
             </p>
           </div>
         </div>
@@ -147,11 +164,11 @@ function SelectScreen({
         disabled={loading}
         className="clip-corner bg-magenta px-5 py-3 font-body text-sm font-semibold text-void transition-shadow duration-[var(--dur-fast)] hover:shadow-[var(--glow-magenta)] disabled:opacity-60"
       >
-        {loading ? 'Memuat model…' : 'Mulai main ▸'}
+        {loading ? t.arena.loadingModel : t.arena.startGame}
       </button>
 
       <p className="font-body text-xs text-muted">
-        Sesi berlangsung {SESSION_SECONDS} detik. Tiap repetisi valid memberi bonus skor.
+        {t.arena.sessionDurationNotice}
       </p>
     </div>
   );
@@ -164,6 +181,7 @@ function PipCamera({
   videoRef: React.RefObject<HTMLVideoElement | null>;
   landmarksRef: React.RefObject<PoseLandmarks | null>;
 }) {
+  const { t } = useLanguage();
   const [large, setLarge] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -217,7 +235,7 @@ function PipCamera({
         className="clip-corner absolute bottom-1.5 right-1.5 z-30 bg-void/85 px-2 py-0.5 font-mono text-[10px] text-cyan border border-cyan/30 hover:border-cyan transition-colors"
         title="Ubah ukuran kamera"
       >
-        {large ? 'Kecilkan ↘' : 'Perbesar ↖'}
+        {large ? t.arena.shrinkCamera : t.arena.enlargeCamera}
       </button>
     </div>
   );
@@ -246,6 +264,7 @@ function EndOverlay({
   onPlayAgain: () => void;
   onBackToMenu: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-void/70">
       <div className="glass-panel clip-corner flex flex-col items-center gap-3 px-8 py-7 text-center">
@@ -257,13 +276,13 @@ function EndOverlay({
             onClick={onPlayAgain}
             className="clip-corner bg-magenta px-5 py-2.5 font-body text-sm font-semibold text-void transition-shadow duration-[var(--dur-fast)] hover:shadow-[var(--glow-magenta)]"
           >
-            Main lagi
+            {t.arena.playAgain}
           </button>
           <button
             onClick={onBackToMenu}
             className="clip-corner border border-muted px-5 py-2.5 font-body text-sm font-semibold hover:border-cyan hover:text-cyan"
           >
-            Menu
+            {t.arena.mainMenu}
           </button>
         </div>
       </div>
@@ -272,6 +291,7 @@ function EndOverlay({
 }
 
 export default function ArenaPage() {
+  const { t, language } = useLanguage();
   const [game, setGame] = useState<ArenaGame>('pony');
   const [controlMode, setControlMode] = useState<ArenaControlMode>('push_up');
   const [started, setStarted] = useState(false);
@@ -335,9 +355,12 @@ export default function ArenaPage() {
       <main className="flex h-dvh flex-col bg-transparent">
         <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
           <Link href="/" className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors">
-            GYMQUEST <span className="text-muted">· Arena</span>
+            GYMQUEST <span className="text-muted">· {t.nav.arena}</span>
           </Link>
-          <UserNavButton />
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher compact />
+            <UserNavButton />
+          </div>
         </header>
         <SelectScreen
           game={game}
@@ -351,14 +374,14 @@ export default function ArenaPage() {
 
   const gameLabel =
     game === 'pony'
-      ? 'Kuda Poni Terbang (Push-up)'
-      : 'Kangguru Angkat Barbel';
+      ? `${t.arena.ponyLabel} (${t.arena.verticalPushUp})`
+      : t.arena.kangarooLabel;
 
   return (
     <main className="flex h-dvh flex-col bg-transparent">
       <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
         <span className="font-display text-sm tracking-wide text-white">
-          GYMQUEST <span className="text-muted">· Arena — {gameLabel}</span>
+          GYMQUEST <span className="text-muted">· {t.nav.arena} — {gameLabel}</span>
         </span>
         <div className="flex items-center gap-3">
           <button
@@ -372,7 +395,7 @@ export default function ArenaPage() {
             onClick={handleBackToMenu}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide"
           >
-            ← Ganti Game
+            {t.arena.switchGame}
           </button>
         </div>
       </header>
@@ -388,7 +411,7 @@ export default function ArenaPage() {
           <span className="text-primary">{formatCountdown(Math.max(remaining, 0))}</span>
           <span
             className="flex items-center gap-1 font-mono text-xs text-magenta font-bold"
-            aria-label={`${currentState.lives} nyawa tersisa`}
+            aria-label={`${currentState.lives} lives`}
           >
             {'♥ '.repeat(Math.max(currentState.lives, 0))}
             <span className="text-muted/30">{'♡ '.repeat(Math.max(3 - currentState.lives, 0))}</span>
@@ -408,11 +431,11 @@ export default function ArenaPage() {
           <EndOverlay
             title={
               currentState.timeUp
-                ? 'WAKTU HABIS!'
-                : '3 NYAWA HABIS! 💥'
+                ? t.arena.timeUp
+                : t.arena.gameOver
             }
             score={currentState.score}
-            detail={`Skor akhir: ${currentState.score} · Berhasil ${currentState.reps} repetisi valid`}
+            detail={`${t.workout.summaryTitle}: ${currentState.score} · ${currentState.reps} ${t.programs.repsPerSet}`}
             onPlayAgain={handlePlayAgain}
             onBackToMenu={handleBackToMenu}
           />

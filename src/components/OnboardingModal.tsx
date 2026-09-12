@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import type { FitnessGoal, FitnessLevel, SessionDuration, UserProfile } from '@/modules/program-engine/types';
 import { saveUserProfile } from '@/modules/program-engine/storage';
+import { useLanguage } from '@/modules/i18n';
 
 interface OnboardingModalProps {
   initialProfile: UserProfile;
@@ -12,6 +13,7 @@ interface OnboardingModalProps {
 }
 
 export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }: OnboardingModalProps) {
+  const { t } = useLanguage();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [level, setLevel] = useState<FitnessLevel>(initialProfile.level || 'pemula');
   const [goal, setGoal] = useState<FitnessGoal>(initialProfile.goal || 'otot');
@@ -39,15 +41,17 @@ export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }:
         <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs font-bold text-cyan uppercase tracking-wider">
-              Onboarding Profil
+              {t.onboarding.title}
             </span>
-            <span className="text-xs text-muted">· Langkah {step} dari 3</span>
+            <span className="text-xs text-muted">
+              · {t.onboarding.stepOf.replace('{step}', String(step))}
+            </span>
           </div>
           <button
             onClick={onClose}
             className="text-xs font-mono text-muted hover:text-white transition-colors"
           >
-            Lewati ✕
+            {t.onboarding.skip}
           </button>
         </div>
 
@@ -55,9 +59,9 @@ export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }:
         {step === 1 && (
           <div className="space-y-4">
             <div>
-              <h2 className="font-display text-2xl font-bold text-white">Apa level kebugaranmu?</h2>
+              <h2 className="font-display text-2xl font-bold text-white">{t.onboarding.step1Title}</h2>
               <p className="mt-1 text-sm text-muted">
-                Kami akan menyesuaikan jumlah repetisi dan waktu istirahat agar sesuai dengan kemampuanmu.
+                {t.onboarding.step1Desc}
               </p>
             </div>
 
@@ -65,18 +69,18 @@ export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }:
               {[
                 {
                   id: 'pemula',
-                  title: 'Pemula (Beginner)',
-                  desc: 'Baru mulai latihan fisik, butuh gerakan dasar yang aman dan ramah sendi.',
+                  title: t.onboarding.beginnerTitle,
+                  desc: t.onboarding.beginnerDesc,
                 },
                 {
                   id: 'menengah',
-                  title: 'Menengah (Intermediate)',
-                  desc: 'Sudah terbiasa berolahraga 1-2 kali seminggu, siap untuk variasi gerakan.',
+                  title: t.onboarding.intermediateTitle,
+                  desc: t.onboarding.intermediateDesc,
                 },
                 {
                   id: 'mahir',
-                  title: 'Mahir (Advanced)',
-                  desc: 'Mencari intensitas tinggi, repetisi padat, dan durasi istirahat minimal.',
+                  title: t.onboarding.advancedTitle,
+                  desc: t.onboarding.advancedDesc,
                 },
               ].map((item) => (
                 <button
@@ -90,7 +94,7 @@ export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }:
                 >
                   <div className="font-display font-semibold text-white flex items-center justify-between">
                     <span>{item.title}</span>
-                    {level === item.id && <span className="text-cyan text-sm">● Terpilih</span>}
+                    {level === item.id && <span className="text-cyan text-sm">{t.onboarding.selected}</span>}
                   </div>
                   <p className="mt-1 text-xs text-muted leading-relaxed">{item.desc}</p>
                 </button>
@@ -102,7 +106,7 @@ export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }:
                 onClick={() => setStep(2)}
                 className="clip-corner bg-cyan px-6 py-2.5 font-body text-sm font-semibold text-void hover:shadow-[var(--glow-cyan)] transition-shadow"
               >
-                Lanjut ▸
+                {t.onboarding.next}
               </button>
             </div>
           </div>
@@ -112,9 +116,9 @@ export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }:
         {step === 2 && (
           <div className="space-y-4">
             <div>
-              <h2 className="font-display text-2xl font-bold text-white">Apa target utamamu?</h2>
+              <h2 className="font-display text-2xl font-bold text-white">{t.onboarding.step2Title}</h2>
               <p className="mt-1 text-sm text-muted">
-                Program harian akan diprioritaskan sesuai hasil yang paling ingin kamu capai.
+                {t.onboarding.step2Desc}
               </p>
             </div>
 
@@ -122,21 +126,21 @@ export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }:
               {[
                 {
                   id: 'kurus',
-                  title: 'Bakar Lemak & Kurus',
-                  badge: '🔥 Cardio & Fat Loss',
-                  desc: 'Dominan gerakan kardio dinamis untuk membakar kalori tinggi secara efisien.',
+                  title: t.onboarding.goalFatLossTitle,
+                  badge: t.onboarding.goalFatLossBadge,
+                  desc: t.onboarding.goalFatLossDesc,
                 },
                 {
                   id: 'otot',
-                  title: 'Bangun Otot & Kekuatan',
-                  badge: '💪 Hypertrophy & Strength',
-                  desc: 'Fokus gerakan tahanan tubuh seperti push-up, squat, dan core untuk kekencangan otot.',
+                  title: t.onboarding.goalMuscleTitle,
+                  badge: t.onboarding.goalMuscleBadge,
+                  desc: t.onboarding.goalMuscleDesc,
                 },
                 {
                   id: 'stamina',
-                  title: 'Tingkatkan Stamina & Fleksibilitas',
-                  badge: '⚡ Endurance & Mobility',
-                  desc: 'Meningkatkan kapasitas paru-paru, kebugaran kardiovaskular, dan kelenturan sendi.',
+                  title: t.onboarding.goalStaminaTitle,
+                  badge: t.onboarding.goalStaminaBadge,
+                  desc: t.onboarding.goalStaminaDesc,
                 },
               ].map((item) => (
                 <button
@@ -164,13 +168,13 @@ export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }:
                 onClick={() => setStep(1)}
                 className="px-4 py-2 font-body text-sm text-muted hover:text-white transition-colors"
               >
-                ◂ Kembali
+                {t.onboarding.back}
               </button>
               <button
                 onClick={() => setStep(3)}
                 className="clip-corner bg-cyan px-6 py-2.5 font-body text-sm font-semibold text-void hover:shadow-[var(--glow-cyan)] transition-shadow"
               >
-                Lanjut ▸
+                {t.onboarding.next}
               </button>
             </div>
           </div>
@@ -180,17 +184,17 @@ export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }:
         {step === 3 && (
           <div className="space-y-4">
             <div>
-              <h2 className="font-display text-2xl font-bold text-white">Berapa lama waktu per sesi?</h2>
+              <h2 className="font-display text-2xl font-bold text-white">{t.onboarding.step3Title}</h2>
               <p className="mt-1 text-sm text-muted">
-                Pilih durasi yang paling realistis untuk kamu jalani secara konsisten setiap hari di rumah.
+                {t.onboarding.step3Desc}
               </p>
             </div>
 
             <div className="grid grid-cols-3 gap-3 pt-2">
               {[
-                { min: 10, label: '10 Menit', subtitle: 'Kilat & Padat' },
-                { min: 15, label: '15 Menit', subtitle: 'Paling Ideal' },
-                { min: 20, label: '20 Menit', subtitle: 'Maksimal' },
+                { min: 10, label: t.onboarding.duration10Label, subtitle: t.onboarding.duration10Sub },
+                { min: 15, label: t.onboarding.duration15Label, subtitle: t.onboarding.duration15Sub },
+                { min: 20, label: t.onboarding.duration20Label, subtitle: t.onboarding.duration20Sub },
               ].map((item) => (
                 <button
                   key={item.min}
@@ -210,7 +214,7 @@ export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }:
             <div className="rounded-lg bg-white/5 border border-white/10 p-3 mt-4 text-xs text-muted flex items-start gap-2.5">
               <span className="text-cyan text-base">ℹ</span>
               <span>
-                Pengaturan ini dapat kamu ubah kapan saja di halaman profil/program. GymQuest akan merekomendasikan program latihan yang cocok dengan pilihanmu.
+                {t.onboarding.durationTip}
               </span>
             </div>
 
@@ -219,13 +223,13 @@ export function OnboardingModal({ initialProfile, isOpen, onClose, onComplete }:
                 onClick={() => setStep(2)}
                 className="px-4 py-2 font-body text-sm text-muted hover:text-white transition-colors"
               >
-                ◂ Kembali
+                {t.onboarding.back}
               </button>
               <button
                 onClick={handleFinish}
                 className="clip-corner bg-gradient-to-r from-cyan to-magenta px-7 py-2.5 font-body text-sm font-bold text-void hover:opacity-90 transition-opacity"
               >
-                Selesai & Mulai Latihan ▸
+                {t.onboarding.finishBtn}
               </button>
             </div>
           </div>

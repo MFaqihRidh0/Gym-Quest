@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { soundEngine } from '@/modules/game-engine/audio';
+import { useLanguage } from '@/modules/i18n';
 
 export interface AchievementShareData {
   title?: string;
@@ -20,6 +21,7 @@ interface ShareAchievementModalProps {
 }
 
 export function ShareAchievementModal({ isOpen, onClose, data }: ShareAchievementModalProps) {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -28,32 +30,32 @@ export function ShareAchievementModal({ isOpen, onClose, data }: ShareAchievemen
 
   const username = data.username || 'Knight-01';
   const league = data.leagueName || 'Iron Initiate';
-  const workoutTitle = data.title || 'Sesi Latihan GymQuest';
+  const workoutTitle = data.title || 'GymQuest Workout';
 
   // Format teks untuk WhatsApp / Clipboard
-  const shareText = `🔥 *REKOR LATIHAN GYMQUEST* 🔥%0A%0A` +
-    `👤 Atlet: *${username}*%0A` +
-    `🏆 Liga: *${league}*%0A` +
-    `🎯 Latihan: *${workoutTitle}*%0A` +
+  const shareText = `${t.shareModal.whatsappMessageHeader}%0A%0A` +
+    `👤 ${t.shareModal.athlete}: *${username}*%0A` +
+    `🏆 ${t.shareModal.league}: *${league}*%0A` +
+    `🎯 ${t.shareModal.exercise}: *${workoutTitle}*%0A` +
     `━━━━━━━━━━━━━━━━━━%0A` +
-    `💪 Total Repetisi: *${data.reps} Rep*%0A` +
-    `⏱️ Total Waktu: *${data.durationMinutes} Menit*%0A` +
-    `🔥 Kalori Terbakar: *~${data.calories} kkal*%0A` +
-    `⚡ Daily Streak: *${data.streakDays} Hari Beruntun*%0A` +
+    `💪 ${t.shareModal.totalReps}: *${data.reps} Rep*%0A` +
+    `⏱️ ${t.shareModal.totalTime}: *${data.durationMinutes} ${t.shareModal.minutesUnit}*%0A` +
+    `🔥 ${t.shareModal.burnedCalories}: *~${data.calories} kcal*%0A` +
+    `⚡ ${t.shareModal.dailyStreak}: *${data.streakDays} ${t.shareModal.streakDays}*%0A` +
     `━━━━━━━━━━━━━━━━━━%0A` +
-    `Olahraga rumahan rasa game cyberpunk! Ayo tanding bareng di *GymQuest*: ${typeof window !== 'undefined' ? window.location.origin : 'https://gymquest.app'}`;
+    `${t.shareModal.callToAction}: ${typeof window !== 'undefined' ? window.location.origin : 'https://gymquest.app'}`;
 
-  const cleanCopyText = `🔥 REKOR LATIHAN GYMQUEST 🔥\n\n` +
-    `👤 Atlet: ${username}\n` +
-    `🏆 Liga: ${league}\n` +
-    `🎯 Latihan: ${workoutTitle}\n` +
+  const cleanCopyText = `${t.shareModal.whatsappMessageHeader.replace(/\*/g, '')}\n\n` +
+    `👤 ${t.shareModal.athlete}: ${username}\n` +
+    `🏆 ${t.shareModal.league}: ${league}\n` +
+    `🎯 ${t.shareModal.exercise}: ${workoutTitle}\n` +
     `──────────────────\n` +
-    `💪 Total Repetisi: ${data.reps} Rep\n` +
-    `⏱️ Total Waktu: ${data.durationMinutes} Menit\n` +
-    `🔥 Kalori Terbakar: ~${data.calories} kkal\n` +
-    `⚡ Daily Streak: ${data.streakDays} Hari Beruntun\n` +
+    `💪 ${t.shareModal.totalReps}: ${data.reps} Rep\n` +
+    `⏱️ ${t.shareModal.totalTime}: ${data.durationMinutes} ${t.shareModal.minutesUnit}\n` +
+    `🔥 ${t.shareModal.burnedCalories}: ~${data.calories} kcal\n` +
+    `⚡ ${t.shareModal.dailyStreak}: ${data.streakDays} ${t.shareModal.streakDays}\n` +
     `──────────────────\n` +
-    `Olahraga rumahan rasa game cyberpunk! Ayo tanding bareng di GymQuest!`;
+    `${t.shareModal.callToAction}!`;
 
   const handleShareWhatsApp = () => {
     soundEngine.playPoint();
@@ -222,9 +224,9 @@ export function ShareAchievementModal({ isOpen, onClose, data }: ShareAchievemen
             <span className="text-3xl">📤</span>
             <div>
               <h2 className="font-display text-xl sm:text-2xl font-bold text-white tracking-wide">
-                Bagikan Pencapaian
+                {t.shareModal.title}
               </h2>
-              <p className="text-xs font-mono text-muted">Pamerkan progres latihanmu ke teman!</p>
+              <p className="text-xs font-mono text-muted">{t.shareModal.subtitle}</p>
             </div>
           </div>
           <button
@@ -239,7 +241,7 @@ export function ShareAchievementModal({ isOpen, onClose, data }: ShareAchievemen
         <div className="rounded-xl border border-cyan/40 bg-gradient-to-br from-[#0c163b] to-[#050814] p-5 space-y-4 shadow-[0_0_30px_rgba(0,229,255,0.15)] relative overflow-hidden">
           <div className="flex items-center justify-between text-[11px] font-mono">
             <span className="text-cyan font-bold">◈ GYMQUEST QUEST CARD ◈</span>
-            <span className="text-yellow-400 font-bold">🔥 {data.streakDays} Hari Streak</span>
+            <span className="text-yellow-400 font-bold">🔥 {data.streakDays} {t.shareModal.streakDays}</span>
           </div>
 
           <div className="flex items-center gap-3 py-1">
@@ -254,15 +256,15 @@ export function ShareAchievementModal({ isOpen, onClose, data }: ShareAchievemen
 
           <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-white/10">
             <div className="bg-white/5 p-2 rounded-lg border border-white/10">
-              <div className="text-[10px] font-mono text-muted uppercase">Repetisi</div>
+              <div className="text-[10px] font-mono text-muted uppercase">{t.shareModal.reps}</div>
               <div className="font-display text-lg font-bold text-cyan">{data.reps}</div>
             </div>
             <div className="bg-white/5 p-2 rounded-lg border border-white/10">
-              <div className="text-[10px] font-mono text-muted uppercase">Waktu</div>
-              <div className="font-display text-lg font-bold text-white">{data.durationMinutes} mnt</div>
+              <div className="text-[10px] font-mono text-muted uppercase">{t.shareModal.time}</div>
+              <div className="font-display text-lg font-bold text-white">{data.durationMinutes} {t.shareModal.minutesUnit}</div>
             </div>
             <div className="bg-white/5 p-2 rounded-lg border border-white/10">
-              <div className="text-[10px] font-mono text-muted uppercase">Kalori</div>
+              <div className="text-[10px] font-mono text-muted uppercase">{t.shareModal.calories}</div>
               <div className="font-display text-lg font-bold text-magenta">~{data.calories}</div>
             </div>
           </div>
@@ -275,7 +277,7 @@ export function ShareAchievementModal({ isOpen, onClose, data }: ShareAchievemen
             className="w-full flex items-center justify-center gap-2 clip-corner bg-emerald-500 py-3 font-mono text-xs font-bold text-void hover:bg-emerald-400 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]"
           >
             <span className="text-base">💬</span>
-            <span>Bagikan ke WhatsApp</span>
+            <span>{t.shareModal.shareToWhatsapp}</span>
           </button>
 
           <button
@@ -284,7 +286,7 @@ export function ShareAchievementModal({ isOpen, onClose, data }: ShareAchievemen
             className="w-full flex items-center justify-center gap-2 clip-corner bg-gradient-to-r from-cyan to-magenta py-3 font-mono text-xs font-bold text-void hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(0,229,255,0.3)] disabled:opacity-50"
           >
             <span className="text-base">📸</span>
-            <span>{downloading ? 'Membuat Poster…' : 'Unduh Poster Instagram Story (9:16)'}</span>
+            <span>{downloading ? t.shareModal.generatingPoster : t.shareModal.downloadPoster}</span>
           </button>
 
           <button
@@ -292,7 +294,7 @@ export function ShareAchievementModal({ isOpen, onClose, data }: ShareAchievemen
             className="w-full flex items-center justify-center gap-2 clip-corner border border-white/20 bg-white/5 py-2.5 font-mono text-xs font-semibold text-white hover:border-white/40 transition-colors"
           >
             <span>📋</span>
-            <span>{copied ? '✓ Teks Berhasil Disalin!' : 'Salin Teks Ringkasan'}</span>
+            <span>{copied ? t.shareModal.copiedToast : t.shareModal.copySummary}</span>
           </button>
         </div>
       </div>

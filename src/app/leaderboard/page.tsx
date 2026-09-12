@@ -22,6 +22,8 @@ import type {
 } from '@/modules/gamification/types';
 import { soundEngine } from '@/modules/game-engine/audio';
 import { UserNavButton } from '@/components/UserNavButton';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useLanguage, getLocalizedLeague } from '@/modules/i18n';
 import {
   IconLeagueBadge,
   IconTrophy,
@@ -31,6 +33,7 @@ import {
 } from '@/components/ui/CyberIcons';
 
 export default function LeaderboardPage() {
+  const { t, language } = useLanguage();
   const [seasonState, setSeasonState] = useState<WeeklySeasonState | null>(null);
   const [selectedLeagueTab, setSelectedLeagueTab] = useState<LeagueTier>('iron');
   const [timeLeft, setTimeLeft] = useState<{
@@ -118,13 +121,13 @@ export default function LeaderboardPage() {
   if (!seasonState) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-transparent text-primary">
-        <p className="font-mono text-sm text-muted animate-pulse">Memuat data liga mingguan…</p>
+        <p className="font-mono text-sm text-muted animate-pulse">{t.common.loading}</p>
       </main>
     );
   }
 
-  const currentLeagueConfig = LEAGUES_CONFIG[seasonState.leagueId];
-  const viewedLeagueConfig = LEAGUES_CONFIG[selectedLeagueTab];
+  const currentLeagueConfig = getLocalizedLeague(seasonState.leagueId, language);
+  const viewedLeagueConfig = getLocalizedLeague(selectedLeagueTab, language);
   const nextTier = getNextLeague(seasonState.leagueId);
   const prevTier = getPreviousLeague(seasonState.leagueId);
 
@@ -142,19 +145,20 @@ export default function LeaderboardPage() {
             href="/"
             className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors"
           >
-            GYMQUEST <span className="text-muted">· Leaderboard</span>
+            GYMQUEST <span className="text-muted">· {t.nav.leaderboard}</span>
           </Link>
         </div>
         <nav className="flex items-center gap-4 text-sm font-body">
           <Link href="/programs" className="text-muted hover:text-cyan transition-colors">
-            Program Latihan
+            {t.nav.programs}
           </Link>
           <Link href="/progress" className="text-muted hover:text-cyan transition-colors">
-            Progres
+            {t.nav.progress}
           </Link>
           <Link href="/arena" className="text-muted hover:text-magenta transition-colors hidden sm:inline">
-            Arena Mode
+            {t.nav.arena}
           </Link>
+          <LanguageSwitcher compact />
           <UserNavButton />
         </nav>
       </header>
@@ -174,7 +178,7 @@ export default function LeaderboardPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm group"
           >
             <span className="text-base group-hover:-translate-x-1 transition-transform">←</span>
-            <span>Kembali ke Beranda</span>
+            <span>{t.common.backToHome}</span>
           </Link>
         </div>
 
@@ -184,16 +188,15 @@ export default function LeaderboardPage() {
             <div className="space-y-2 max-w-xl">
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono uppercase font-bold tracking-wider bg-cyan/15 text-cyan border border-cyan/30">
-                  Musim #{seasonState.seasonNumber}
+                  {t.leaderboard.currentLeagueBadge}: {currentLeagueConfig.name}
                 </span>
-                <span className="text-xs text-muted font-mono">Siklus 7 Hari</span>
+                <span className="text-xs text-muted font-mono">7 {t.leaderboard.days}</span>
               </div>
               <h1 className="font-display text-3xl sm:text-4xl font-bold text-white tracking-tight">
-                Klasemen Liga {currentLeagueConfig.name} {currentLeagueConfig.badgeIcon}
+                {t.leaderboard.pageTitle} · {currentLeagueConfig.name} {currentLeagueConfig.badgeIcon}
               </h1>
               <p className="text-sm text-muted">
-                Tingkatkan terus perolehan EXP mingguanmu dari program latihan dan tantangan fisik.
-                3 teratas akan naik kasta, 5 bertahan, dan 3 terbawah turun kasta di akhir minggu!
+                {t.leaderboard.pageSubtitle}
               </p>
             </div>
 
@@ -202,9 +205,9 @@ export default function LeaderboardPage() {
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-cyan font-bold tracking-wider flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-cyan animate-ping" />
-                  SISA WAKTU MUSIM
+                  {t.leaderboard.seasonEndsIn}
                 </span>
-                <span className="text-muted">7 Hari</span>
+                <span className="text-muted">7 {t.leaderboard.days}</span>
               </div>
 
               {/* DIGITS */}
@@ -213,25 +216,25 @@ export default function LeaderboardPage() {
                   <div className="font-display text-2xl sm:text-3xl font-bold text-white">
                     {timeLeft.days}
                   </div>
-                  <div className="text-[10px] font-mono text-muted uppercase">Hari</div>
+                  <div className="text-[10px] font-mono text-muted uppercase">{t.leaderboard.days}</div>
                 </div>
                 <div className="bg-white/5 rounded-lg p-2 border border-white/10">
                   <div className="font-display text-2xl sm:text-3xl font-bold text-white">
                     {String(timeLeft.hours).padStart(2, '0')}
                   </div>
-                  <div className="text-[10px] font-mono text-muted uppercase">Jam</div>
+                  <div className="text-[10px] font-mono text-muted uppercase">{t.leaderboard.hours}</div>
                 </div>
                 <div className="bg-white/5 rounded-lg p-2 border border-white/10">
                   <div className="font-display text-2xl sm:text-3xl font-bold text-white">
                     {String(timeLeft.minutes).padStart(2, '0')}
                   </div>
-                  <div className="text-[10px] font-mono text-muted uppercase">Mnt</div>
+                  <div className="text-[10px] font-mono text-muted uppercase">{t.leaderboard.minutes}</div>
                 </div>
                 <div className="bg-white/5 rounded-lg p-2 border border-white/10">
                   <div className="font-display text-2xl sm:text-3xl font-bold text-cyan">
                     {String(timeLeft.seconds).padStart(2, '0')}
                   </div>
-                  <div className="text-[10px] font-mono text-muted uppercase">Dtk</div>
+                  <div className="text-[10px] font-mono text-muted uppercase">{t.common.seconds}</div>
                 </div>
               </div>
 
@@ -244,8 +247,8 @@ export default function LeaderboardPage() {
                   />
                 </div>
                 <div className="flex justify-between text-[10px] font-mono text-muted">
-                  <span>Mulai Musim</span>
-                  <span>Evaluasi Kasta</span>
+                  <span>{t.leaderboard.seasonStarts}</span>
+                  <span>{t.leaderboard.seasonEvaluation}</span>
                 </div>
               </div>
             </div>
@@ -256,17 +259,17 @@ export default function LeaderboardPage() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-mono uppercase tracking-widest text-muted">
-              Hirarki 5 Tingkat Liga
+              {t.leaderboard.tierHierarchyTitle}
             </h2>
             <span className="text-[11px] font-mono text-cyan">
-              Kamu berada di:{' '}
+              {t.leaderboard.youAreIn}{' '}
               <strong className="text-white">{currentLeagueConfig.name}</strong>
             </span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
             {LEAGUE_TIERS_ORDER.map((tierId) => {
-              const tier = LEAGUES_CONFIG[tierId];
+              const tier = getLocalizedLeague(tierId, language);
               const isCurrent = seasonState.leagueId === tierId;
               const isSelected = selectedLeagueTab === tierId;
 
@@ -287,7 +290,7 @@ export default function LeaderboardPage() {
                 >
                   {isCurrent && (
                     <span className="absolute -top-2 px-2 py-0.2 bg-cyan text-void text-[9px] font-mono font-bold rounded-full uppercase tracking-wider">
-                      Liga Kamu
+                      {t.leaderboard.yourLeague}
                     </span>
                   )}
                   <div className="my-1 flex items-center justify-center">
@@ -321,7 +324,7 @@ export default function LeaderboardPage() {
             </div>
 
             <div className="text-right sm:border-l sm:border-white/10 sm:pl-5 shrink-0">
-              <div className="text-[10px] font-mono text-muted">Standar Acuan EXP</div>
+              <div className="text-[10px] font-mono text-muted">{t.leaderboard.expBenchmark}</div>
               <div className="font-display text-xl font-bold text-yellow-400">
                 ~{viewedLeagueConfig.minExpBenchmark} EXP
               </div>
@@ -343,13 +346,13 @@ export default function LeaderboardPage() {
                       {userCompetitor.username}
                     </span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan text-void">
-                      KAMU
+                      {t.leaderboard.you}
                     </span>
                   </div>
                   <div className="text-xs text-muted flex items-center gap-3 mt-0.5">
-                    <span>Level {userCompetitor.level}</span>
+                    <span>{t.common.level} {userCompetitor.level}</span>
                     <span>•</span>
-                    <span className="text-yellow-400">🔥 Streak {userCompetitor.streakDays} Hari</span>
+                    <span className="text-yellow-400">🔥 {t.progress.streakTitle} {userCompetitor.streakDays} {t.leaderboard.days}</span>
                   </div>
                 </div>
               </div>
@@ -357,7 +360,7 @@ export default function LeaderboardPage() {
               {/* USER RANK & ZONE STATUS */}
               <div className="flex items-center gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-white/10">
                 <div className="text-right">
-                  <div className="text-[10px] font-mono text-muted uppercase">Peringkat Bracket</div>
+                  <div className="text-[10px] font-mono text-muted uppercase">{t.leaderboard.bracketRank}</div>
                   <div className="font-display text-3xl font-extrabold text-white">
                     #{userRank}{' '}
                     <span className="text-sm font-normal text-muted">/ 11</span>
@@ -367,20 +370,20 @@ export default function LeaderboardPage() {
                 <div className="h-10 w-px bg-white/15" />
 
                 <div>
-                  <div className="text-[10px] font-mono text-muted uppercase">Status Musim</div>
+                  <div className="text-[10px] font-mono text-muted uppercase">{t.leaderboard.seasonStatus}</div>
                   {userZone === 'promotion' && (
                     <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-1 rounded-md">
-                      ⬆ PROMOSI KE {LEAGUES_CONFIG[nextTier].name.toUpperCase()}
+                      {t.leaderboard.promoteTo} {getLocalizedLeague(nextTier, language).name.toUpperCase()}
                     </span>
                   )}
                   {userZone === 'safe' && (
                     <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-cyan-400 bg-cyan-500/20 border border-cyan-500/40 px-2.5 py-1 rounded-md">
-                      ⬌ BERTAHAN DI {currentLeagueConfig.name.toUpperCase()}
+                      {t.leaderboard.stayIn} {currentLeagueConfig.name.toUpperCase()}
                     </span>
                   )}
                   {userZone === 'demotion' && (
                     <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-rose-400 bg-rose-500/20 border border-rose-500/40 px-2.5 py-1 rounded-md">
-                      ⬇ DEGRADASI KE {LEAGUES_CONFIG[prevTier].name.toUpperCase()}
+                      {t.leaderboard.demoteTo} {getLocalizedLeague(prevTier, language).name.toUpperCase()}
                     </span>
                   )}
                 </div>
@@ -390,16 +393,16 @@ export default function LeaderboardPage() {
             {/* EXP INSIGHTS & ACTIONS */}
             <div className="pt-3 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="text-muted font-mono">
-                Akumulasi Minggu Ini:{' '}
+                {t.leaderboard.weeklyAccumulation}{' '}
                 <strong className="text-cyan font-bold">{userCompetitor.weeklyExp} EXP</strong>
                 {userRank > 3 && (
                   <span className="ml-2 text-yellow-400">
-                    (Butuh +{Math.max(10, rank3Exp - userCompetitor.weeklyExp + 10)} EXP untuk masuk Zona Promosi)
+                    ({t.leaderboard.expNeededForPromo.replace('{exp}', String(Math.max(10, rank3Exp - userCompetitor.weeklyExp + 10)))})
                   </span>
                 )}
                 {userRank <= 3 && (
                   <span className="ml-2 text-emerald-400">
-                    (Aman di Zona Promosi! Selisih +{userCompetitor.weeklyExp - rank8Exp} EXP di atas zona degradasi)
+                    ({t.leaderboard.safeInPromoZone.replace('{exp}', String(userCompetitor.weeklyExp - rank8Exp))})
                   </span>
                 )}
               </div>
@@ -409,12 +412,12 @@ export default function LeaderboardPage() {
                   href="/programs"
                   className="clip-corner bg-gradient-to-r from-cyan to-magenta px-4 py-2 font-mono text-xs font-bold text-void hover:opacity-90 transition-opacity"
                 >
-                  Latihan Tambah EXP ▸
+                  {t.leaderboard.trainForExp}
                 </Link>
                 {/* Tombol simulasi EXP untuk kemudahan verifikasi langsung */}
                 <button
                   onClick={() => handleAddDemoExp(150)}
-                  title="Klik untuk mensimulasikan perolehan +150 EXP sesi latihan dan melihat perubahan posisi ranking seketika"
+                  title="Test EXP Boost"
                   className="px-3 py-2 rounded border border-white/20 bg-white/5 hover:border-cyan text-white text-[11px] font-mono transition-colors"
                 >
                   +150 EXP (Test)
@@ -430,10 +433,10 @@ export default function LeaderboardPage() {
             <span className="text-2xl">🟢</span>
             <div className="text-xs">
               <div className="font-bold text-emerald-400 uppercase font-mono tracking-wider">
-                Rank 1 — 3: Promosi
+                {t.leaderboard.rulePromoTitle}
               </div>
               <p className="text-muted mt-0.5">
-                3 atlet teratas dengan EXP tertinggi akan otomatis naik ke tingkat liga berikutnya di akhir 7 hari.
+                {t.leaderboard.rulePromoDesc}
               </p>
             </div>
           </div>
@@ -442,10 +445,10 @@ export default function LeaderboardPage() {
             <span className="text-2xl">🟡</span>
             <div className="text-xs">
               <div className="font-bold text-cyan-400 uppercase font-mono tracking-wider">
-                Rank 4 — 8: Bertahan
+                {t.leaderboard.ruleSafeTitle}
               </div>
               <p className="text-muted mt-0.5">
-                5 atlet di posisi menengah berhasil mengamankan posisi dan menetap di liga saat ini.
+                {t.leaderboard.ruleSafeDesc}
               </p>
             </div>
           </div>
@@ -454,10 +457,10 @@ export default function LeaderboardPage() {
             <span className="text-2xl">🔴</span>
             <div className="text-xs">
               <div className="font-bold text-rose-400 uppercase font-mono tracking-wider">
-                Rank 9 — 11: Degradasi
+                {t.leaderboard.ruleDemoTitle}
               </div>
               <p className="text-muted mt-0.5">
-                3 atlet terbawah akan terdegradasi turun 1 tingkat liga (kecuali di kasta Iron Initiate).
+                {t.leaderboard.ruleDemoDesc}
               </p>
             </div>
           </div>
@@ -468,13 +471,13 @@ export default function LeaderboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-display text-xl font-bold text-white">
-                Papan Peringkat Bracket Minggu Ini
+                {t.leaderboard.weeklyBracketTitle}
               </h2>
               <p className="text-xs text-muted">
-                11 kontestan di {currentLeagueConfig.name} yang bersaing dalam siklus 7 hari aktif.
+                {t.leaderboard.weeklyBracketDesc.replace('{league}', currentLeagueConfig.name)}
               </p>
             </div>
-            <span className="text-xs font-mono text-cyan">11 Kontestan</span>
+            <span className="text-xs font-mono text-cyan">{t.leaderboard.contestantsCount}</span>
           </div>
 
           <div className="space-y-2">
@@ -505,9 +508,9 @@ export default function LeaderboardPage() {
                       }`}
                     >
                       <span>
-                        {zone === 'promotion' && `⬆ ZONA PROMOSI (Naik ke ${LEAGUES_CONFIG[nextTier].name})`}
-                        {zone === 'safe' && `⬌ ZONA BERTAHAN (Menetap di ${currentLeagueConfig.name})`}
-                        {zone === 'demotion' && `⬇ ZONA DEGRADASI (Turun ke ${LEAGUES_CONFIG[prevTier].name})`}
+                        {zone === 'promotion' && t.leaderboard.zonePromoHeader.replace('{league}', getLocalizedLeague(nextTier, language).name)}
+                        {zone === 'safe' && t.leaderboard.zoneSafeHeader.replace('{league}', currentLeagueConfig.name)}
+                        {zone === 'demotion' && t.leaderboard.zoneDemoHeader.replace('{league}', getLocalizedLeague(prevTier, language).name)}
                       </span>
                       <div
                         className={`flex-1 h-px ${
@@ -566,7 +569,7 @@ export default function LeaderboardPage() {
                           </span>
                           {competitor.isUser && (
                             <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan text-void font-bold uppercase">
-                              Kamu
+                              {t.leaderboard.you}
                             </span>
                           )}
                         </div>
@@ -597,7 +600,7 @@ export default function LeaderboardPage() {
                     {/* STATUS PILL & EXP DISPLAY */}
                     <div className="flex items-center gap-4 text-right shrink-0">
                       <div className="hidden sm:block">
-                        <div className="text-[10px] font-mono text-muted">Streak</div>
+                        <div className="text-[10px] font-mono text-muted">{t.leaderboard.colStreak}</div>
                         <div className="text-xs font-mono text-yellow-400 font-bold">
                           🔥 {competitor.streakDays}h
                         </div>
@@ -605,18 +608,18 @@ export default function LeaderboardPage() {
 
                       <div className="min-w-[90px]">
                         <div className="font-display font-bold text-sm sm:text-base text-white">
-                          {competitor.weeklyExp.toLocaleString('id-ID')}{' '}
+                          {competitor.weeklyExp.toLocaleString(language === 'id' ? 'id-ID' : 'en-US')}{' '}
                           <span className="text-[10px] font-mono text-cyan">EXP</span>
                         </div>
                         <div className="text-[10px] font-mono">
                           {zone === 'promotion' && (
-                            <span className="text-emerald-400 font-semibold">⬆ Promosi</span>
+                            <span className="text-emerald-400 font-semibold">{t.leaderboard.statusPromoted}</span>
                           )}
                           {zone === 'safe' && (
-                            <span className="text-muted">⬌ Bertahan</span>
+                            <span className="text-muted">{t.leaderboard.statusRetained}</span>
                           )}
                           {zone === 'demotion' && (
-                            <span className="text-rose-400 font-semibold">⬇ Degradasi</span>
+                            <span className="text-rose-400 font-semibold">{t.leaderboard.statusDemoted}</span>
                           )}
                         </div>
                       </div>
@@ -635,18 +638,18 @@ export default function LeaderboardPage() {
               <div className="flex items-center gap-2">
                 <span className="text-xl">⚔️</span>
                 <h2 className="font-display text-xl font-bold text-white">
-                  Hall of Fame Arena Mode & 1v1 Battle
+                  {t.leaderboard.hallOfFameTitle}
                 </h2>
               </div>
               <p className="text-xs text-muted">
-                Pencapaian rekor tertinggi mini-game dan duel adu push-up komunitas GymQuest.
+                {t.leaderboard.hallOfFameDesc}
               </p>
             </div>
             <Link
               href="/arena/battle"
               className="clip-corner bg-gradient-to-r from-magenta to-cyan px-4 py-2 font-mono text-xs font-bold text-white hover:opacity-90 transition-opacity shrink-0"
             >
-              Tanding 1v1 Battle Sekarang ⚔️
+              {t.leaderboard.start1v1Battle}
             </Link>
           </div>
 
@@ -660,12 +663,12 @@ export default function LeaderboardPage() {
                 </span>
               </div>
               <div>
-                <h3 className="font-display text-base font-bold text-white">1v1 Push-Up Battle</h3>
+                <h3 className="font-display text-base font-bold text-white">{t.leaderboard.battle1v1}</h3>
                 <p className="text-xs text-muted">Adu banyak push-up split-screen KO.</p>
               </div>
               <div className="bg-white/5 rounded-lg p-2.5 border border-white/10 flex items-center justify-between text-xs font-mono">
                 <div>
-                  <div className="text-[10px] text-muted">Rekor Tertinggi</div>
+                  <div className="text-[10px] text-muted">{t.leaderboard.topRecord}</div>
                   <div className="font-bold text-white">CyberSpartan</div>
                 </div>
                 <div className="text-right">
@@ -677,7 +680,7 @@ export default function LeaderboardPage() {
                 href="/arena/battle"
                 className="block w-full text-center clip-corner border border-magenta/50 bg-magenta/15 py-2 font-mono text-xs font-bold text-magenta hover:bg-magenta/25 transition-colors"
               >
-                Mulai Adu Push-Up ▸
+                {t.leaderboard.start1v1Battle} ▸
               </Link>
             </div>
 
@@ -686,16 +689,16 @@ export default function LeaderboardPage() {
               <div className="flex items-center justify-between">
                 <span className="text-2xl">🐎</span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan/20 text-cyan font-bold border border-cyan/40">
-                  Solo Push-up
+                  {t.leaderboard.soloPushUp}
                 </span>
               </div>
               <div>
-                <h3 className="font-display text-base font-bold text-white">Kuda Poni Terbang</h3>
-                <p className="text-xs text-muted">Kendali vertikal via repetisi push-up.</p>
+                <h3 className="font-display text-base font-bold text-white">{t.leaderboard.ponyTitle}</h3>
+                <p className="text-xs text-muted">{t.leaderboard.ponyDesc}</p>
               </div>
               <div className="bg-white/5 rounded-lg p-2.5 border border-white/10 flex items-center justify-between text-xs font-mono">
                 <div>
-                  <div className="text-[10px] text-muted">Top Score</div>
+                  <div className="text-[10px] text-muted">{t.leaderboard.topRecord}</div>
                   <div className="font-bold text-white">AeroPhoenix</div>
                 </div>
                 <div className="text-right">
@@ -707,7 +710,7 @@ export default function LeaderboardPage() {
                 href="/arena"
                 className="block w-full text-center clip-corner border border-cyan/40 bg-cyan/10 py-2 font-mono text-xs font-semibold text-cyan hover:bg-cyan/20 transition-colors"
               >
-                Mainkan Solo ▸
+                {t.leaderboard.playSolo}
               </Link>
             </div>
 
@@ -720,12 +723,12 @@ export default function LeaderboardPage() {
                 </span>
               </div>
               <div>
-                <h3 className="font-display text-base font-bold text-white">Kangguru Angkat Barbel</h3>
-                <p className="text-xs text-muted">Melompati rintangan dengan angkat tangan.</p>
+                <h3 className="font-display text-base font-bold text-white">{t.leaderboard.kangarooTitle}</h3>
+                <p className="text-xs text-muted">{t.leaderboard.kangarooDesc}</p>
               </div>
               <div className="bg-white/5 rounded-lg p-2.5 border border-white/10 flex items-center justify-between text-xs font-mono">
                 <div>
-                  <div className="text-[10px] text-muted">Top Score</div>
+                  <div className="text-[10px] text-muted">{t.leaderboard.topRecord}</div>
                   <div className="font-bold text-white">TitanForge</div>
                 </div>
                 <div className="text-right">
@@ -737,7 +740,7 @@ export default function LeaderboardPage() {
                 href="/arena"
                 className="block w-full text-center clip-corner border border-yellow-400/40 bg-yellow-400/10 py-2 font-mono text-xs font-semibold text-yellow-400 hover:bg-yellow-400/20 transition-colors"
               >
-                Mainkan Solo ▸
+                {t.leaderboard.playSolo}
               </Link>
             </div>
           </div>
@@ -756,36 +759,40 @@ export default function LeaderboardPage() {
 
             <div className="space-y-2">
               <span className="text-xs font-mono tracking-widest text-cyan uppercase font-bold">
-                Evaluasi Musim #{activeEvaluation.seasonNumber} Selesai
+                {t.leaderboard.evalCompleted.replace('{season}', String(activeEvaluation.seasonNumber))}
               </span>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">
-                {activeEvaluation.outcome === 'promoted' && 'Selamat! Kamu Naik Liga!'}
-                {activeEvaluation.outcome === 'retained' && 'Kamu Berhasil Bertahan!'}
-                {activeEvaluation.outcome === 'relegated' && 'Degradasi Liga! Tetap Semangat!'}
+                {activeEvaluation.outcome === 'promoted' && t.leaderboard.evalPromotedTitle}
+                {activeEvaluation.outcome === 'retained' && t.leaderboard.evalRetainedTitle}
+                {activeEvaluation.outcome === 'relegated' && t.leaderboard.evalRelegatedTitle}
               </h2>
               <p className="text-xs text-muted">
                 {activeEvaluation.outcome === 'promoted' &&
-                  `Dedikasi luar biasamu mengantarkanmu ke peringkat #${activeEvaluation.finalRank} dengan perolehan ${activeEvaluation.finalWeeklyExp} EXP!`}
+                  t.leaderboard.evalPromotedDesc
+                    .replace('{rank}', String(activeEvaluation.finalRank))
+                    .replace('{exp}', String(activeEvaluation.finalWeeklyExp))}
                 {activeEvaluation.outcome === 'retained' &&
-                  `Kamu mengakhiri musim di peringkat #${activeEvaluation.finalRank} dan mempertahankan posisimu di ${LEAGUES_CONFIG[activeEvaluation.newLeague].name}.`}
+                  t.leaderboard.evalRetainedDesc
+                    .replace('{rank}', String(activeEvaluation.finalRank))
+                    .replace('{league}', getLocalizedLeague(activeEvaluation.newLeague, language).name)}
                 {activeEvaluation.outcome === 'relegated' &&
-                  `Kamu finis di peringkat #${activeEvaluation.finalRank}. Saatnya bangkit kembali di musim baru untuk merebut tiket promosi!`}
+                  t.leaderboard.evalRelegatedDesc.replace('{rank}', String(activeEvaluation.finalRank))}
               </p>
             </div>
 
             {/* TRANSISI KASTA */}
             <div className="flex items-center justify-center gap-4 py-3 bg-white/5 rounded-xl border border-white/10">
               <div className="text-center">
-                <span className="text-2xl">{LEAGUES_CONFIG[activeEvaluation.oldLeague].badgeIcon}</span>
+                <span className="text-2xl">{getLocalizedLeague(activeEvaluation.oldLeague, language).badgeIcon}</span>
                 <span className="block text-[10px] font-mono text-muted mt-1">
-                  {LEAGUES_CONFIG[activeEvaluation.oldLeague].name}
+                  {getLocalizedLeague(activeEvaluation.oldLeague, language).name}
                 </span>
               </div>
               <span className="text-xl text-cyan font-bold">➔</span>
               <div className="text-center">
-                <span className="text-2xl">{LEAGUES_CONFIG[activeEvaluation.newLeague].badgeIcon}</span>
+                <span className="text-2xl">{getLocalizedLeague(activeEvaluation.newLeague, language).badgeIcon}</span>
                 <span className="block text-[10px] font-mono text-cyan font-bold mt-1">
-                  {LEAGUES_CONFIG[activeEvaluation.newLeague].name}
+                  {getLocalizedLeague(activeEvaluation.newLeague, language).name}
                 </span>
               </div>
             </div>
@@ -794,7 +801,7 @@ export default function LeaderboardPage() {
               onClick={handleCloseEvaluationModal}
               className="w-full clip-corner bg-gradient-to-r from-cyan to-magenta py-3 font-body text-xs font-bold text-void hover:opacity-90 transition-opacity"
             >
-              Mulai Musim #{activeEvaluation.seasonNumber + 1} Sekarang ▸
+              {t.leaderboard.startNextSeason.replace('{season}', String(activeEvaluation.seasonNumber + 1))}
             </button>
           </div>
         </div>

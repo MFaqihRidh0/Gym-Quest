@@ -12,9 +12,11 @@ import {
 import { getUserProfile } from '@/modules/program-engine/storage';
 import { soundEngine } from '@/modules/game-engine/audio';
 import { IconLock } from '@/components/ui/CyberIcons';
+import { useLanguage } from '@/modules/i18n';
 import type { User } from '@supabase/supabase-js';
 
 export function UserNavButton() {
+  const { t, language, setLanguage } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState(getUserProfile());
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -48,7 +50,7 @@ export function UserNavButton() {
     await signOutUser();
     setUser(null);
     setIsDropdownOpen(false);
-    setSyncToast('Berhasil keluar akun.');
+    setSyncToast(t.nav.logoutSuccess);
     setTimeout(() => setSyncToast(null), 3000);
   };
 
@@ -61,9 +63,9 @@ export function UserNavButton() {
       await syncCloudToLocal(user.id);
       setProfile(getUserProfile());
       soundEngine.playPoint();
-      setSyncToast('Sinkronisasi cloud berhasil!');
+      setSyncToast(t.nav.syncSuccess);
     } else {
-      setSyncToast('Gagal menyinkronkan data.');
+      setSyncToast(t.nav.syncFailed);
     }
     setIsSyncing(false);
     setTimeout(() => setSyncToast(null), 3000);
@@ -85,25 +87,25 @@ export function UserNavButton() {
           >
             <span className="text-base">{profile.avatar || '⚔️'}</span>
             <span className="text-white font-bold max-w-[100px] truncate">
-              {profile.username || user.email?.split('@')[0] || 'Knight'}
+              {profile.username || user.email?.split('@')[0] || t.nav.guestUser}
             </span>
             <span
               className={`w-2 h-2 rounded-full ${
                 isConfigured ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-slate-500'
               }`}
-              title={isConfigured ? 'Tersambung ke Supabase Cloud' : 'Mode Offline'}
+              title={isConfigured ? t.nav.onlineMode : t.nav.offlineMode}
             />
           </button>
 
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-56 glass-panel clip-corner border-white/20 bg-[#070c1e]/98 p-3 shadow-[0_0_30px_rgba(0,0,0,0.8)] z-50 space-y-3">
               <div className="border-b border-white/10 pb-2">
-                <div className="text-[10px] font-mono text-muted uppercase">Akun Masuk</div>
+                <div className="text-[10px] font-mono text-muted uppercase">{t.nav.profile}</div>
                 <div className="text-xs font-bold text-white truncate">{user.email}</div>
                 <div className="flex items-center gap-2 mt-1 text-[11px] font-mono text-cyan">
-                  <span>Level: {profile.level}</span>
+                  <span>{t.common.level}: {profile.level}</span>
                   <span>•</span>
-                  <span>🔥 {profile.streakDays}h</span>
+                  <span>🔥 {profile.streakDays}{t.common.minutes ? '' : 'd'}</span>
                 </div>
               </div>
 
@@ -113,14 +115,14 @@ export function UserNavButton() {
                   disabled={isSyncing}
                   className="w-full text-left px-2.5 py-1.5 rounded hover:bg-white/5 text-white flex items-center justify-between transition-colors disabled:opacity-50"
                 >
-                  <span>{isSyncing ? 'Menyinkronkan…' : 'Sinkronkan Cloud'}</span>
+                  <span>{isSyncing ? t.common.loading : t.nav.syncCloud}</span>
                   <span>🔄</span>
                 </button>
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-2.5 py-1.5 rounded hover:bg-rose-500/10 text-rose-400 flex items-center justify-between transition-colors"
                 >
-                  <span>Keluar Akun</span>
+                  <span>{t.nav.logout}</span>
                   <span>🚪</span>
                 </button>
               </div>
@@ -134,7 +136,7 @@ export function UserNavButton() {
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/20 bg-white/5 hover:border-cyan hover:bg-cyan/10 hover:text-cyan text-white transition-all text-xs font-mono shadow-sm"
         >
           <IconLock size={13} className="text-cyan" />
-          <span>Masuk / Daftar</span>
+          <span>{t.nav.login} / {t.nav.register}</span>
         </Link>
       )}
     </>

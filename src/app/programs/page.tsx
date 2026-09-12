@@ -8,22 +8,25 @@ import type { ProgramCategory, UserProfile, WorkoutProgram } from '@/modules/pro
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { CustomWorkoutModal } from '@/components/CustomWorkoutModal';
 import { UserNavButton } from '@/components/UserNavButton';
-
-const CATEGORIES: { id: ProgramCategory | 'all'; label: string; icon: string }[] = [
-  { id: 'all', label: 'Semua Program', icon: '⚡' },
-  { id: 'full_body', label: 'Full Body', icon: '🏋️' },
-  { id: 'cardio', label: 'Cardio', icon: '🔥' },
-  { id: 'core', label: 'Core & Abs', icon: '🛡️' },
-  { id: 'stretching', label: 'Stretching', icon: '🧘' },
-  { id: 'custom', label: 'Rutinitas Kustom', icon: '⚙️' },
-];
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useLanguage, getLocalizedPrograms, getLocalizedProgram, getLocalizedLevel } from '@/modules/i18n';
 
 export default function ProgramsPage() {
+  const { t, language } = useLanguage();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
   const [customPrograms, setCustomPrograms] = useState<WorkoutProgram[]>([]);
   const [activeCategory, setActiveCategory] = useState<ProgramCategory | 'all'>('all');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showCustomModal, setShowCustomModal] = useState(false);
+
+  const categories = [
+    { id: 'all' as const, label: t.programs.catAll, icon: '⚡' },
+    { id: 'full_body' as const, label: t.programs.catFullBody, icon: '🏋️' },
+    { id: 'cardio' as const, label: t.programs.catCardio, icon: '🔥' },
+    { id: 'core' as const, label: t.programs.catCore, icon: '🛡️' },
+    { id: 'stretching' as const, label: t.programs.catStretching, icon: '🧘' },
+    { id: 'custom' as const, label: t.programs.catCustom, icon: '⚙️' },
+  ];
 
   useEffect(() => {
     const p = getUserProfile();
@@ -36,13 +39,15 @@ export default function ProgramsPage() {
     }
   }, []);
 
-  const allPrograms = [...DEFAULT_PROGRAMS, ...customPrograms];
+  const localizedDefaults = getLocalizedPrograms(DEFAULT_PROGRAMS, language);
+  const allPrograms = [...localizedDefaults, ...customPrograms];
   const filteredPrograms =
     activeCategory === 'all'
       ? allPrograms
       : allPrograms.filter((p) => p.category === activeCategory);
 
-  const recommended = getRecommendedProgram(profile.level, profile.goal, profile.targetDurationMinutes);
+  const recommendedRaw = getRecommendedProgram(profile.level, profile.goal, profile.targetDurationMinutes);
+  const recommended = recommendedRaw ? getLocalizedProgram(recommendedRaw, language) : null;
 
   return (
     <main className="min-h-screen flex flex-col bg-transparent text-primary">
@@ -50,20 +55,21 @@ export default function ProgramsPage() {
       <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
         <div className="flex items-center gap-3">
           <Link href="/" className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors">
-            GYMQUEST <span className="text-muted">· Programs</span>
+            GYMQUEST <span className="text-muted">· {t.nav.programs}</span>
           </Link>
         </div>
         <nav className="flex items-center gap-4 text-sm font-body">
           <Link href="/leaderboard" className="text-yellow-400 hover:text-yellow-300 transition-colors font-medium">
-            Leaderboard 🏆
+            {t.nav.leaderboard} 🏆
           </Link>
           <Link href="/progress" className="text-muted hover:text-cyan transition-colors flex items-center gap-1.5">
-            <span>🔥 Streak:</span>
-            <span className="text-cyan font-mono font-bold">{profile.streakDays} hari</span>
+            <span>🔥 {t.progress.streakTitle}:</span>
+            <span className="text-cyan font-mono font-bold">{profile.streakDays} {t.progress.streakDays}</span>
           </Link>
           <Link href="/arena" className="text-muted hover:text-magenta transition-colors hidden sm:inline">
-            Arena Mode
+            {t.nav.arena}
           </Link>
+          <LanguageSwitcher compact />
           <UserNavButton />
         </nav>
       </header>
@@ -76,19 +82,19 @@ export default function ProgramsPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm group"
           >
             <span className="text-base group-hover:-translate-x-1 transition-transform">←</span>
-            <span>Kembali ke Beranda</span>
+            <span>{t.common.backToHome}</span>
           </Link>
         </div>
 
         {/* BANNER HEADER & PROFILE RECAP */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-6">
           <div>
-            <p className="font-mono text-xs tracking-widest text-cyan uppercase">Home Workout Engine</p>
+            <p className="font-mono text-xs tracking-widest text-cyan uppercase">{t.programs.homeWorkoutEngine}</p>
             <h1 className="mt-1 font-display text-3xl sm:text-4xl font-bold">
-              Program Latihan Rumahan
+              {t.programs.pageTitle}
             </h1>
             <p className="mt-2 text-sm text-muted max-w-xl">
-              Latihan fisik terstruktur tanpa alat gym. Dilengkapi panduan postur, timer otomatis, dan deteksi gerakan berbasis kamera via webcam.
+              {t.programs.pageSubtitle}
             </p>
           </div>
 
@@ -97,13 +103,13 @@ export default function ProgramsPage() {
               onClick={() => setShowOnboarding(true)}
               className="clip-corner border border-cyan/40 bg-cyan/10 px-3.5 py-2 text-xs font-mono text-cyan hover:bg-cyan/20 transition-all flex items-center gap-1.5"
             >
-              <span>⚙</span> Profil: <strong className="uppercase">{profile.level}</strong> · {profile.goal}
+              <span>⚙</span> {t.common.level}: <strong className="uppercase">{getLocalizedLevel(profile.level, language)}</strong>
             </button>
             <button
               onClick={() => setShowCustomModal(true)}
               className="clip-corner bg-magenta px-4 py-2 text-xs font-bold text-void hover:shadow-[var(--glow-magenta)] transition-all"
             >
-              + Buat Rutinitas
+              + {t.programs.createCustomButton}
             </button>
           </div>
         </div>
@@ -114,33 +120,27 @@ export default function ProgramsPage() {
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-2">
                 <div className="inline-flex items-center gap-2 rounded-full border border-cyan/40 bg-cyan/20 px-3 py-1 text-[11px] font-mono text-cyan">
-                  <span>★ REKOMENDASI HARI INI</span>
+                  <span>★ {t.programs.recommendedBadge}</span>
                   <span>·</span>
                   <span className="uppercase">{recommended.badge}</span>
                 </div>
                 <h2 className="font-display text-2xl font-bold text-white">{recommended.title}</h2>
                 <p className="text-sm text-muted max-w-2xl">{recommended.description}</p>
                 <div className="flex items-center gap-4 text-xs font-mono text-muted pt-1">
-                  <span>⏱ {recommended.estimatedMinutes} Menit</span>
+                  <span>⏱ {recommended.estimatedMinutes} {t.common.minutes}</span>
                   <span>·</span>
-                  <span>⚡ {recommended.exercises.length} Gerakan</span>
+                  <span>⚡ {recommended.exercises.length} {t.programs.exerciseCount}</span>
                   <span>·</span>
-                  <span className="capitalize text-cyan">Level {recommended.level}</span>
+                  <span className="capitalize text-cyan">{t.common.level}: {getLocalizedLevel(recommended.level, language)}</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 shrink-0">
                 <Link
-                  href={`/programs/${recommended.id}`}
-                  className="clip-corner border border-white/20 bg-white/5 px-4 py-2.5 font-body text-xs font-semibold text-white hover:border-white/40 transition-colors"
-                >
-                  Lihat Gerakan
-                </Link>
-                <Link
                   href={`/workout?programId=${recommended.id}`}
                   className="clip-corner bg-cyan px-5 py-2.5 font-body text-xs font-bold text-void hover:shadow-[var(--glow-cyan)] transition-shadow"
                 >
-                  Mulai Sekarang ▸
+                  {t.programs.startProgramButton} ▸
                 </Link>
               </div>
             </div>
@@ -149,7 +149,7 @@ export default function ProgramsPage() {
 
         {/* KATEGORI FILTER */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const isActive = activeCategory === cat.id;
             return (
               <button
@@ -207,8 +207,8 @@ export default function ProgramsPage() {
 
                 <div className="space-y-4 pt-4 border-t border-white/10">
                   <div className="flex items-center justify-between text-[11px] font-mono text-muted">
-                    <span>{program.exercises.length} Latihan</span>
-                    <span className="capitalize">{program.level}</span>
+                    <span>{program.exercises.length} {t.programs.exerciseCount}</span>
+                    <span className="capitalize">{getLocalizedLevel(program.level, language)}</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -216,7 +216,7 @@ export default function ProgramsPage() {
                       href={`/programs/${program.id}`}
                       className="clip-corner border border-white/15 bg-white/5 py-2 text-center text-xs font-medium text-white hover:border-cyan hover:text-cyan transition-colors"
                     >
-                      Detail
+                      {t.programs.detail}
                     </Link>
                     <Link
                       href={`/workout?programId=${program.id}`}
@@ -226,7 +226,7 @@ export default function ProgramsPage() {
                           : 'bg-cyan hover:shadow-[var(--glow-cyan)]'
                       }`}
                     >
-                      Mulai ▸
+                      {t.common.start} ▸
                     </Link>
                   </div>
                 </div>
@@ -237,13 +237,13 @@ export default function ProgramsPage() {
 
         {filteredPrograms.length === 0 && (
           <div className="text-center py-16 border border-dashed border-white/15 rounded-xl">
-            <p className="text-muted text-sm">Belum ada program untuk kategori ini.</p>
+            <p className="text-muted text-sm">{t.programs.emptyCustom}</p>
             {activeCategory === 'custom' && (
               <button
                 onClick={() => setShowCustomModal(true)}
                 className="mt-4 clip-corner bg-magenta px-5 py-2.5 text-xs font-bold text-void"
               >
-                + Buat Program Kustom Sekarang
+                + {t.programs.createCustomButton}
               </button>
             )}
           </div>

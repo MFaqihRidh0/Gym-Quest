@@ -4,10 +4,12 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { UserNavButton } from '@/components/UserNavButton';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AuthModal } from '@/components/AuthModal';
 import { InteractiveText } from '@/components/ui/InteractiveText';
 import { getActiveUser } from '@/modules/auth/syncManager';
 import { soundEngine } from '@/modules/game-engine/audio';
+import { useLanguage } from '@/modules/i18n';
 import type { User } from '@supabase/supabase-js';
 import {
   IconBolt,
@@ -26,54 +28,51 @@ import {
   IconLock,
 } from '@/components/ui/CyberIcons';
 
-const MODES = [
-  {
-    title: 'Program Latihan',
-    accent: 'cyan',
-    iconType: 'dumbbell',
-    status: 'Aktif',
-    href: '/programs',
-    requiresAuth: false,
-    description:
-      'Program latihan fisik mandiri dengan panduan postur 3D dan penghitung repetisi otomatis berbasis kamera.',
-  },
-  {
-    title: 'Arena Mode (1v1 Battle)',
-    accent: 'magenta',
-    iconType: 'combat',
-    status: 'Komunitas & PvP',
-    href: '/arena',
-    requiresAuth: true,
-    description:
-      'Mode tantangan interaktif dan duel push-up real-time untuk menguji performa serta ketahanan fisik.',
-  },
-  {
-    title: 'Progres & Streak',
-    accent: 'cyan',
-    iconType: 'chart',
-    status: 'Aktif',
-    href: '/progress',
-    requiresAuth: false,
-    description:
-      'Pelacakan konsistensi latihan harian, durasi aktif, dan akumulasi kalori secara terstruktur.',
-  },
-  {
-    title: '5 Liga & Leaderboard',
-    accent: 'yellow',
-    iconType: 'trophy',
-    status: 'Mingguan',
-    href: '/leaderboard',
-    requiresAuth: false,
-    description:
-      'Papan peringkat mingguan dengan sistem promosi dan degradasi bertingkat berdasarkan capaian latihan.',
-  },
-] as const;
-
 export default function Home() {
   const router = useRouter();
+  const { t, language } = useLanguage();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showArenaLoginGate, setShowArenaLoginGate] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const modes = [
+    {
+      title: t.home.modeProgramsTitle,
+      accent: 'cyan' as const,
+      iconType: 'dumbbell' as const,
+      status: t.home.modeProgramsBadge,
+      href: '/programs',
+      requiresAuth: false,
+      description: t.home.modeProgramsDesc,
+    },
+    {
+      title: t.home.modeArenaTitle,
+      accent: 'magenta' as const,
+      iconType: 'combat' as const,
+      status: t.home.modeArenaBadge,
+      href: '/arena',
+      requiresAuth: true,
+      description: t.home.modeArenaDesc,
+    },
+    {
+      title: t.home.modeProgressTitle,
+      accent: 'cyan' as const,
+      iconType: 'chart' as const,
+      status: t.home.modeProgressBadge,
+      href: '/progress',
+      requiresAuth: false,
+      description: t.home.modeProgressDesc,
+    },
+    {
+      title: t.home.modeLeaderboardTitle,
+      accent: 'yellow' as const,
+      iconType: 'trophy' as const,
+      status: t.home.modeLeaderboardBadge,
+      href: '/leaderboard',
+      requiresAuth: false,
+      description: t.home.modeLeaderboardDesc,
+    },
+  ];
 
   // Check login state on mount
   useEffect(() => {
@@ -130,7 +129,7 @@ export default function Home() {
             className="text-white hover:text-cyan transition-colors font-medium flex items-center gap-1.5 px-2 py-1"
           >
             <IconDumbbell size={16} className="text-cyan" />
-            <span className="hidden md:inline">Program</span>
+            <span className="hidden md:inline">{t.nav.programs}</span>
           </Link>
 
           <Link
@@ -138,7 +137,7 @@ export default function Home() {
             className="text-white hover:text-yellow-400 transition-colors font-medium flex items-center gap-1.5 px-2 py-1"
           >
             <IconTrophy size={16} className="text-yellow-400" />
-            <span className="hidden md:inline">Leaderboard</span>
+            <span className="hidden md:inline">{t.nav.leaderboard}</span>
           </Link>
 
           <Link
@@ -146,7 +145,7 @@ export default function Home() {
             className="text-muted hover:text-cyan transition-colors font-medium flex items-center gap-1.5 px-2 py-1"
           >
             <IconChart size={16} className="text-cyan" />
-            <span className="hidden md:inline">Progres</span>
+            <span className="hidden md:inline">{t.nav.progress}</span>
           </Link>
 
           {/* ARENA LINK (INTERCEPTED WITH LOGIN CHECK) */}
@@ -155,16 +154,11 @@ export default function Home() {
             className="text-magenta hover:text-white font-medium flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-magenta/40 hover:bg-magenta/20 transition-all shadow-[0_0_12px_rgba(255,0,122,0.2)]"
           >
             <IconCombat size={16} className="text-magenta" glow />
-            <span>Arena</span>
+            <span>{t.nav.arena}</span>
             <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-magenta animate-ping" />
           </button>
 
-          <Link
-            href="/kalibrasi"
-            className="text-muted hover:text-cyan transition-colors text-xs font-mono hidden lg:inline px-2 py-1"
-          >
-            Kalibrasi
-          </Link>
+          <LanguageSwitcher compact />
 
           <div className="pl-2 border-l border-white/10">
             <UserNavButton />
@@ -179,13 +173,12 @@ export default function Home() {
         <div className="pointer-events-none absolute top-1/3 right-10 w-[500px] h-[300px] bg-magenta/15 blur-[140px] rounded-full" />
 
         <div className="mx-auto w-full max-w-6xl relative z-10 space-y-8">
-
           {/* MAIN HEADLINE */}
           <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.18] text-balance max-w-4xl text-white animate-hero-sway-delayed">
-            <InteractiveText text="Olahraga di Rumah Terasa Seperti" />{' '}
+            <InteractiveText text={t.home.heroTitleLine1} />{' '}
             <span className="inline-block relative underline decoration-cyan/40 decoration-wavy">
               <InteractiveText
-                text="Main Game RPG"
+                text={t.home.heroTitleLine2}
                 isGradient={true}
                 baseDelay={32}
               />
@@ -194,7 +187,7 @@ export default function Home() {
 
           {/* SUBHEADLINE */}
           <p className="max-w-2xl font-body text-base sm:text-xl text-muted leading-relaxed">
-            Platform kebugaran digital berbasis Computer Vision untuk memandu latihan fisik secara real-time langsung di peramban, dilengkapi analisis postur tubuh, tantangan interaktif, dan sistem liga kebugaran terstruktur.
+            {t.home.heroSubtitle}
           </p>
 
           {/* CALL TO ACTION BUTTONS */}
@@ -203,7 +196,7 @@ export default function Home() {
               href="/programs"
               className="clip-corner bg-gradient-to-r from-cyan to-magenta px-8 py-4 font-body text-sm font-bold text-void transition-all duration-200 hover:shadow-[0_0_30px_rgba(0,229,255,0.6)] hover:scale-105"
             >
-              Mulai Program Latihan ▸
+              {t.home.ctaStart} ▸
             </Link>
 
             <Link
@@ -211,7 +204,7 @@ export default function Home() {
               className="clip-corner border border-yellow-400/50 bg-yellow-400/10 px-7 py-4 font-body text-sm font-semibold text-yellow-400 transition-all hover:bg-yellow-400/20 hover:scale-105 flex items-center gap-2"
             >
               <IconTrophy size={18} className="text-yellow-400" glow />
-              <span>Cek Liga & Leaderboard</span>
+              <span>{t.nav.leaderboard}</span>
             </Link>
 
             <button
@@ -219,7 +212,7 @@ export default function Home() {
               className="clip-corner border border-magenta/60 bg-magenta/15 px-7 py-4 font-body text-sm font-bold text-white transition-all hover:bg-magenta/25 hover:scale-105 shadow-[0_0_20px_rgba(255,0,122,0.3)] flex items-center gap-2"
             >
               <IconCombat size={18} className="text-magenta" glow />
-              <span>Arena Mode (1v1 Push-Up)</span>
+              <span>{t.home.modeArenaTitle}</span>
             </button>
           </div>
 
@@ -228,28 +221,28 @@ export default function Home() {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-magenta/20 text-magenta font-mono text-xs font-bold uppercase tracking-wider">
                 <IconBolt size={14} className="text-magenta" glow />
-                <span>FITUR ARENA</span>
+                <span>{t.home.modeArenaBadge}</span>
               </div>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-                <span>Tantangan Push-Up Interaktif 1v1</span>
+                <span>{t.home.modeArenaTitle}</span>
                 <IconBurst size={26} className="text-amber-400 animate-pulse" glow />
               </h2>
               <p className="text-sm text-muted max-w-xl">
-                Uji ketahanan fisik melawan bot virtual atau bertanding bersama rekan secara real-time dengan pelacakan repetisi otomatis berbasis sensor kamera.
+                {t.home.modeArenaDesc}
               </p>
             </div>
             <button
               onClick={handleArenaClick}
               className="whitespace-nowrap px-6 py-3 rounded-xl bg-magenta text-white font-display font-bold text-sm hover:bg-magenta/80 transition-all shadow-[0_0_25px_rgba(255,0,122,0.5)] hover:scale-105 flex items-center gap-2"
             >
-              <span>Mulai Tantangan</span>
+              <span>{t.common.start}</span>
               <IconCombat size={18} className="text-white" />
             </button>
           </div>
 
           {/* 4 FEATURE MODE CARDS */}
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {MODES.map((mode) => {
+            {modes.map((mode) => {
               const card = (
                 <article
                   key={mode.title}
@@ -294,7 +287,7 @@ export default function Home() {
                   </div>
 
                   <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs font-mono text-muted group-hover:text-white">
-                    <span>Buka Fitur</span>
+                    <span>{t.common.start}</span>
                     <span className="text-base">→</span>
                   </div>
                 </article>
@@ -337,13 +330,12 @@ export default function Home() {
                 <span className="font-display font-bold text-lg text-white">GYMQUEST</span>
               </div>
               <p className="text-xs text-muted leading-relaxed font-body">
-                Platform latihan kebugaran rumahan tanpa alat yang memadukan teknologi
-                Computer Vision MediaPipe dengan gamifikasi RPG interaktif.
+                {t.home.footerAboutDesc}
               </p>
               <div className="p-2.5 rounded-lg border border-cyan/20 bg-cyan/5 text-[10px] font-mono text-cyan flex items-start gap-1.5">
                 <IconLock size={13} className="text-cyan shrink-0 mt-0.5" />
                 <span>
-                  <strong>Privasi Terjamin:</strong> Video kamera Anda diproses 100% lokal di browser dan tidak pernah dikirim ke server.
+                  <strong>{t.home.statPrivacy}:</strong> {t.home.statLocalDesc}
                 </span>
               </div>
             </div>
@@ -351,37 +343,31 @@ export default function Home() {
             {/* COLUMN 2: FITUR UTAMA */}
             <div className="space-y-3">
               <div className="font-display font-bold text-sm text-white uppercase tracking-wider">
-                Navigasi Fitur
+                {t.home.footerQuickLinks}
               </div>
               <ul className="space-y-2 text-xs font-body text-muted">
                 <li>
                   <Link href="/programs" className="hover:text-cyan transition-colors flex items-center gap-2">
                     <IconDumbbell size={14} className="text-cyan" />
-                    <span>Program Latihan Rumahan</span>
+                    <span>{t.nav.programs}</span>
                   </Link>
                 </li>
                 <li>
                   <button onClick={handleArenaClick} className="hover:text-magenta transition-colors text-left flex items-center gap-2">
                     <IconCombat size={14} className="text-magenta" />
-                    <span>Arena Mode (Tantangan 1v1)</span>
+                    <span>{t.home.modeArenaTitle}</span>
                   </button>
                 </li>
                 <li>
                   <Link href="/leaderboard" className="hover:text-yellow-400 transition-colors flex items-center gap-2">
                     <IconTrophy size={14} className="text-yellow-400" />
-                    <span>5 Kasta Liga & Papan Peringkat</span>
+                    <span>{t.home.modeLeaderboardTitle}</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/progress" className="hover:text-cyan transition-colors flex items-center gap-2">
                     <IconChart size={14} className="text-cyan" />
-                    <span>Kalender Streak & Evaluasi</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/kalibrasi" className="hover:text-cyan transition-colors flex items-center gap-2">
-                    <IconTarget size={14} className="text-cyan" />
-                    <span>Panduan Kalibrasi Kamera</span>
+                    <span>{t.home.modeProgressTitle}</span>
                   </Link>
                 </li>
               </ul>
@@ -437,7 +423,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* DEDICATED DEVELOPER TEAM SECTION: "SEMOGA KAMI BERUNTUNG" */}
+          {/* DEDICATED DEVELOPER TEAM SECTION */}
           <div className="p-6 rounded-2xl border border-cyan/30 bg-gradient-to-r from-cyan/10 via-white/5 to-magenta/10 space-y-4 shadow-[0_0_30px_rgba(0,229,255,0.08)]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
               <div className="flex items-center gap-2.5">
@@ -446,7 +432,7 @@ export default function Home() {
                 </span>
                 <div>
                   <div className="text-[10px] font-mono tracking-wider text-muted uppercase">
-                    TIM PENGEMBANG
+                    {t.home.footerDeveloperTeam}
                   </div>
                   <h4 className="font-display text-base sm:text-lg font-bold text-white tracking-wide flex items-center gap-2">
                     <span>Semoga Kami Beruntung</span>
@@ -455,7 +441,7 @@ export default function Home() {
                 </div>
               </div>
               <span className="self-start sm:self-auto px-3 py-1 rounded-full border border-cyan/40 bg-cyan/10 text-[11px] font-mono text-cyan">
-                International Web Technology Competition
+                {t.home.footerCompetitionNotice}
               </span>
             </div>
 
@@ -468,14 +454,14 @@ export default function Home() {
                   </div>
                   <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-400 text-void shadow-[0_0_8px_rgba(251,191,36,0.6)] flex items-center gap-1">
                     <IconCrown size={10} className="text-void" />
-                    <span>KETUA TIM</span>
+                    <span>{t.home.footerLeader.toUpperCase()}</span>
                   </span>
                 </div>
                 <div className="font-display text-sm font-bold text-white pt-1">
                   M. Faqih Ridho
                 </div>
                 <div className="text-[11px] font-mono text-cyan">
-                  Ketua Tim
+                  {t.home.footerLeader}
                 </div>
               </div>
 
@@ -486,14 +472,14 @@ export default function Home() {
                     AF
                   </div>
                   <span className="px-2 py-0.5 rounded text-[9px] font-mono text-muted bg-white/10">
-                    ANGGOTA
+                    {t.home.footerMember.toUpperCase()}
                   </span>
                 </div>
                 <div className="font-display text-sm font-bold text-white pt-1">
                   Ananda Fitri Wibowo
                 </div>
                 <div className="text-[11px] font-mono text-magenta">
-                  Anggota Tim
+                  {t.home.footerMember}
                 </div>
               </div>
 
@@ -504,14 +490,14 @@ export default function Home() {
                     AT
                   </div>
                   <span className="px-2 py-0.5 rounded text-[9px] font-mono text-muted bg-white/10">
-                    ANGGOTA
+                    {t.home.footerMember.toUpperCase()}
                   </span>
                 </div>
                 <div className="font-display text-sm font-bold text-white pt-1">
                   Muhammad Ardiansyah Tri Wibowo
                 </div>
                 <div className="text-[11px] font-mono text-cyan">
-                  Anggota Tim
+                  {t.home.footerMember}
                 </div>
               </div>
 
@@ -522,14 +508,14 @@ export default function Home() {
                     ZH
                   </div>
                   <span className="px-2 py-0.5 rounded text-[9px] font-mono text-muted bg-white/10">
-                    ANGGOTA
+                    {t.home.footerMember.toUpperCase()}
                   </span>
                 </div>
                 <div className="font-display text-sm font-bold text-white pt-1">
                   Muhammad Ziddan Habibi
                 </div>
                 <div className="text-[11px] font-mono text-yellow-400">
-                  Anggota Tim
+                  {t.home.footerMember}
                 </div>
               </div>
             </div>
@@ -546,7 +532,7 @@ export default function Home() {
               </span>
             </p>
             <div className="font-mono text-[11px] text-muted whitespace-nowrap">
-              © 2026 GymQuest · untuk perlombaan gayatama
+              {t.home.footerCopyrightNotice}
             </div>
           </div>
         </div>

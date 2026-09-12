@@ -5,8 +5,11 @@ import Link from 'next/link';
 import { calculateSummaryStats, getWorkoutHistory, getUserProfile, DEFAULT_USER_PROFILE } from '@/modules/program-engine/storage';
 import type { UserProfile, WorkoutSessionLog } from '@/modules/program-engine/types';
 import { UserNavButton } from '@/components/UserNavButton';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useLanguage } from '@/modules/i18n';
 
 export default function ProgressPage() {
+  const { t, language } = useLanguage();
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
   const [history, setHistory] = useState<WorkoutSessionLog[]>([]);
   const [selectedDateFilter, setSelectedDateFilter] = useState<string | null>(null);
@@ -77,19 +80,20 @@ export default function ProgressPage() {
       <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
         <div className="flex items-center gap-3">
           <Link href="/" className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors">
-            GYMQUEST <span className="text-muted">· Progress</span>
+            GYMQUEST <span className="text-muted">· {t.nav.progress}</span>
           </Link>
         </div>
         <nav className="flex items-center gap-4 text-sm font-body">
           <Link href="/programs" className="text-muted hover:text-cyan transition-colors">
-            Program Latihan
+            {t.nav.programs}
           </Link>
           <Link href="/leaderboard" className="text-yellow-400 hover:text-yellow-300 transition-colors font-medium">
-            Leaderboard 🏆
+            {t.nav.leaderboard} 🏆
           </Link>
           <Link href="/arena" className="text-muted hover:text-magenta transition-colors hidden sm:inline">
-            Arena Mode
+            {t.nav.arena}
           </Link>
+          <LanguageSwitcher compact />
           <UserNavButton />
         </nav>
       </header>
@@ -102,19 +106,19 @@ export default function ProgressPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm group"
           >
             <span className="text-base group-hover:-translate-x-1 transition-transform">←</span>
-            <span>Kembali ke Beranda</span>
+            <span>{t.common.backToHome}</span>
           </Link>
         </div>
 
         {/* HERO TITLE & STREAK BANNER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
           <div>
-            <p className="font-mono text-xs tracking-widest text-cyan uppercase">Riwayat & Statistik</p>
+            <p className="font-mono text-xs tracking-widest text-cyan uppercase">Analytics & History</p>
             <h1 className="mt-1 font-display text-3xl sm:text-4xl font-bold text-white">
-              Progres Latihanmu
+              {t.progress.pageTitle}
             </h1>
             <p className="mt-1 text-sm text-muted">
-              Pantau konsistensi, streak harian, dan akumulasi kalori yang berhasil kamu bakar.
+              {t.progress.pageSubtitle}
             </p>
           </div>
 
@@ -126,10 +130,10 @@ export default function ProgressPage() {
               <span className="text-3xl">🏆</span>
               <div>
                 <div className="text-[11px] font-mono uppercase text-cyan font-bold tracking-wider">
-                  5 Liga Mingguan
+                  {t.home.modeLeaderboardTitle}
                 </div>
                 <div className="font-display text-sm font-bold text-white flex items-center gap-1">
-                  Lihat Posisi ▸
+                  {t.nav.leaderboard} ▸
                 </div>
               </div>
             </Link>
@@ -138,10 +142,10 @@ export default function ProgressPage() {
               <span className="text-3xl">🔥</span>
               <div>
                 <div className="text-[11px] font-mono uppercase text-yellow-400 font-bold tracking-wider">
-                  Daily Streak
+                  {t.progress.streakTitle}
                 </div>
                 <div className="font-display text-2xl font-bold text-white">
-                  {profile.streakDays} <span className="text-sm font-normal text-muted">Hari Beruntun</span>
+                  {profile.streakDays} <span className="text-sm font-normal text-muted">{t.progress.streakDays}</span>
                 </div>
               </div>
             </div>
@@ -151,35 +155,35 @@ export default function ProgressPage() {
         {/* SUMMARY STATS GRID */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="glass-panel clip-corner border-white/10 p-5">
-            <span className="text-xs font-mono text-muted uppercase">Total Sesi</span>
+            <span className="text-xs font-mono text-muted uppercase">{t.progress.completedSessionsTitle}</span>
             <div className="font-display text-3xl font-bold text-white mt-1">
               {stats.totalSessions}
             </div>
-            <span className="text-[11px] text-cyan mt-1 block">Sesi Selesai</span>
+            <span className="text-[11px] text-cyan mt-1 block">{t.common.completed}</span>
           </div>
 
           <div className="glass-panel clip-corner border-white/10 p-5">
-            <span className="text-xs font-mono text-muted uppercase">Waktu Latihan</span>
+            <span className="text-xs font-mono text-muted uppercase">{t.common.duration}</span>
             <div className="font-display text-3xl font-bold text-cyan mt-1">
               {stats.totalMinutes}
             </div>
-            <span className="text-[11px] text-muted mt-1 block">Total Menit</span>
+            <span className="text-[11px] text-muted mt-1 block">{t.common.minutes}</span>
           </div>
 
           <div className="glass-panel clip-corner border-white/10 p-5">
-            <span className="text-xs font-mono text-muted uppercase">Kalori Terbakar</span>
+            <span className="text-xs font-mono text-muted uppercase">{t.progress.totalCaloriesTitle}</span>
             <div className="font-display text-3xl font-bold text-magenta mt-1">
               {stats.totalCalories}
             </div>
-            <span className="text-[11px] text-muted mt-1 block">Estimasi kkal</span>
+            <span className="text-[11px] text-muted mt-1 block">{t.common.calories}</span>
           </div>
 
           <div className="glass-panel clip-corner border-white/10 p-5">
-            <span className="text-xs font-mono text-muted uppercase">Repetisi</span>
+            <span className="text-xs font-mono text-muted uppercase">{t.common.reps}</span>
             <div className="font-display text-3xl font-bold text-yellow-400 mt-1">
               {stats.totalReps}
             </div>
-            <span className="text-[11px] text-muted mt-1 block">Total Rep Sah</span>
+            <span className="text-[11px] text-muted mt-1 block">{t.common.reps}</span>
           </div>
         </div>
 
@@ -198,13 +202,13 @@ export default function ProgressPage() {
               <div className="flex items-center gap-1">
                 <button
                   onClick={prevMonth}
-                  className="w-8 h-8 rounded border border-white/15 bg-white/5 flex items-center justify-center hover:border-cyan text-sm"
+                  className="p-1 rounded bg-white/5 border border-white/10 hover:bg-white/10 text-xs px-2"
                 >
                   ‹
                 </button>
                 <button
                   onClick={nextMonth}
-                  className="w-8 h-8 rounded border border-white/15 bg-white/5 flex items-center justify-center hover:border-cyan text-sm"
+                  className="p-1 rounded bg-white/5 border border-white/10 hover:bg-white/10 text-xs px-2"
                 >
                   ›
                 </button>
@@ -213,40 +217,48 @@ export default function ProgressPage() {
           </div>
 
           {/* GRID KALENDER */}
-          <div>
-            <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs font-mono text-muted mb-2">
-              {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((d) => (
-                <div key={d} className="py-1">
-                  {d}
-                </div>
-              ))}
+          <div className="space-y-2">
+            <div className="grid grid-cols-7 gap-1 text-center font-mono text-[10px] text-muted uppercase">
+              <span>Min</span>
+              <span>Sen</span>
+              <span>Sel</span>
+              <span>Rab</span>
+              <span>Kam</span>
+              <span>Jum</span>
+              <span>Sab</span>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 sm:gap-2">
+            <div className="grid grid-cols-7 gap-1">
               {/* Empty padding days before first of month */}
-              {Array.from({ length: firstDayOfMonth }).map((_, idx) => (
-                <div key={`empty-${idx}`} className="h-10 sm:h-12 rounded bg-white/[0.02]" />
+              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                <div key={`empty-${i}`} className="h-10 sm:h-12 rounded bg-white/[0.02]" />
               ))}
 
               {/* Day cells */}
-              {Array.from({ length: daysInMonth }).map((_, idx) => {
-                const day = idx + 1;
-                const mStr = String(currentMonth + 1).padStart(2, '0');
-                const dStr = String(day).padStart(2, '0');
-                const dateKey = `${currentYear}-${mStr}-${dStr}`;
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const monthStr = String(currentMonth + 1).padStart(2, '0');
+                const dayStr = String(day).padStart(2, '0');
+                const dateKey = `${currentYear}-${monthStr}-${dayStr}`;
                 const hasWorkout = workoutDates.has(dateKey);
                 const isSelected = selectedDateFilter === dateKey;
 
                 return (
                   <button
-                    key={day}
-                    onClick={() => setSelectedDateFilter(isSelected ? null : dateKey)}
-                    className={`h-10 sm:h-12 rounded flex flex-col items-center justify-center relative border transition-all ${
-                      hasWorkout
-                        ? 'border-cyan bg-cyan/15 text-white font-bold shadow-[0_0_12px_rgba(0,229,255,0.2)]'
-                        : isSelected
-                          ? 'border-white/40 bg-white/10 text-white'
-                          : 'border-white/5 bg-white/[0.02] text-muted hover:border-white/20'
+                    key={`day-${day}`}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedDateFilter(null);
+                      } else {
+                        setSelectedDateFilter(dateKey);
+                      }
+                    }}
+                    className={`h-10 sm:h-12 rounded border flex flex-col items-center justify-center font-mono text-xs relative transition-all ${
+                      isSelected
+                        ? 'border-cyan bg-cyan/20 text-cyan shadow-[0_0_15px_rgba(0,229,255,0.4)] font-bold'
+                        : hasWorkout
+                          ? 'border-cyan/40 bg-cyan/10 text-white hover:border-cyan'
+                          : 'border-white/5 bg-white/[0.02] text-muted hover:bg-white/5'
                     }`}
                   >
                     <span className="text-xs sm:text-sm">{day}</span>
@@ -262,13 +274,13 @@ export default function ProgressPage() {
           {selectedDateFilter && (
             <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs">
               <span className="font-mono text-cyan">
-                Menampilkan aktivitas tanggal: <strong>{selectedDateFilter}</strong>
+                {selectedDateFilter}
               </span>
               <button
                 onClick={() => setSelectedDateFilter(null)}
                 className="text-muted hover:text-white underline"
               >
-                Tampilkan Semua
+                Reset Filter
               </button>
             </div>
           )}
@@ -277,15 +289,15 @@ export default function ProgressPage() {
         {/* LOG RIWAYAT AKTIVITAS */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold text-white">Riwayat Sesi Terakhir</h2>
-            <span className="text-xs font-mono text-muted">{filteredHistory.length} Catatan</span>
+            <h2 className="font-display text-xl font-bold text-white">{t.progress.historySectionTitle}</h2>
+            <span className="text-xs font-mono text-muted">{filteredHistory.length}</span>
           </div>
 
           <div className="space-y-3">
             {filteredHistory.map((item) => {
               const d = new Date(item.timestamp);
-              const dateFormatted = d.toLocaleDateString('id-ID', {
-                weekday: 'long',
+              const dateFormatted = d.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+                weekday: 'short',
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric',
@@ -304,7 +316,7 @@ export default function ProgressPage() {
                         {item.programTitle}
                       </span>
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan/15 text-cyan border border-cyan/30">
-                        Selesai
+                        {t.common.completed}
                       </span>
                     </div>
                     <div className="text-xs text-muted font-mono">{dateFormatted}</div>
@@ -312,18 +324,18 @@ export default function ProgressPage() {
 
                   <div className="flex items-center gap-5 text-xs font-mono">
                     <div>
-                      <span className="text-muted block text-[10px]">Durasi</span>
+                      <span className="text-muted block text-[10px]">{t.common.duration}</span>
                       <span className="text-cyan font-bold">
-                        {Math.round(item.durationSeconds / 60)} Menit
+                        {Math.round(item.durationSeconds / 60)} {t.common.minutes}
                       </span>
                     </div>
                     <div>
-                      <span className="text-muted block text-[10px]">Kalori</span>
-                      <span className="text-magenta font-bold">~{item.caloriesBurned} kkal</span>
+                      <span className="text-muted block text-[10px]">{t.common.calories}</span>
+                      <span className="text-magenta font-bold">~{item.caloriesBurned} {t.common.calories}</span>
                     </div>
                     <div>
-                      <span className="text-muted block text-[10px]">Repetisi</span>
-                      <span className="text-white font-bold">{item.totalRepsCompleted} Rep</span>
+                      <span className="text-muted block text-[10px]">{t.common.reps}</span>
+                      <span className="text-white font-bold">{item.totalRepsCompleted} {t.common.reps}</span>
                     </div>
                   </div>
                 </div>
@@ -334,14 +346,14 @@ export default function ProgressPage() {
               <div className="text-center py-12 border border-dashed border-white/15 rounded-xl space-y-3">
                 <p className="text-muted text-sm">
                   {selectedDateFilter
-                    ? 'Tidak ada latihan tercatat pada tanggal ini.'
-                    : 'Belum ada riwayat latihan. Mulai latihan pertamamu sekarang!'}
+                    ? t.progress.emptyHistoryTitle
+                    : `${t.progress.emptyHistoryTitle}. ${t.progress.emptyHistorySubtitle}`}
                 </p>
                 <Link
                   href="/programs"
                   className="inline-block clip-corner bg-cyan px-5 py-2 text-xs font-bold text-void"
                 >
-                  Pilih Program Latihan ▸
+                  {t.programs.startProgramButton} ▸
                 </Link>
               </div>
             )}

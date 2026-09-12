@@ -4,37 +4,49 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { DEFAULT_PROGRAMS } from '@/modules/program-engine/defaultPrograms';
-import { EXERCISE_CATALOG } from '@/modules/program-engine/exerciseCatalog';
 import { deleteCustomProgram, getCustomPrograms } from '@/modules/program-engine/storage';
 import type { WorkoutProgram } from '@/modules/program-engine/types';
 import { ExerciseVisual } from '@/components/ExerciseVisual';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { UserNavButton } from '@/components/UserNavButton';
+import {
+  useLanguage,
+  getLocalizedProgram,
+  getLocalizedExerciseCatalog,
+  getLocalizedLevel,
+  getLocalizedGoal,
+} from '@/modules/i18n';
 
 export default function ProgramDetailPage() {
   const params = useParams();
   const router = useRouter();
   const programId = params.id as string;
+  const { t, language } = useLanguage();
+  const localizedCatalog = getLocalizedExerciseCatalog(language);
 
-  const [program, setProgram] = useState<WorkoutProgram | null>(null);
+  const [rawProgram, setRawProgram] = useState<WorkoutProgram | null>(null);
 
   useEffect(() => {
     if (!programId) return;
     const defaults = DEFAULT_PROGRAMS.find((p) => p.id === programId);
     if (defaults) {
-      setProgram(defaults);
+      setRawProgram(defaults);
     } else {
       const customs = getCustomPrograms();
       const customFound = customs.find((p) => p.id === programId);
-      if (customFound) setProgram(customFound);
+      if (customFound) setRawProgram(customFound);
     }
   }, [programId]);
+
+  const program = rawProgram ? getLocalizedProgram(rawProgram, language) : null;
 
   if (!program) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-transparent text-primary p-5">
         <div className="text-center space-y-3">
-          <p className="font-mono text-sm text-muted">Program tidak ditemukan atau sedang dimuat…</p>
+          <p className="font-mono text-sm text-muted">{t.programs.notFoundOrLoading}</p>
           <Link href="/programs" className="text-xs text-cyan hover:underline">
-            ← Kembali ke daftar program
+            ← {t.programs.backToProgramList}
           </Link>
         </div>
       </main>
@@ -42,7 +54,7 @@ export default function ProgramDetailPage() {
   }
 
   const handleDelete = () => {
-    if (confirm(`Hapus program kustom "${program.title}"?`)) {
+    if (confirm(`${t.programs.confirmDelete} "${program.title}"?`)) {
       deleteCustomProgram(program.id);
       router.push('/programs');
     }
@@ -53,7 +65,7 @@ export default function ProgramDetailPage() {
       {/* HEADER */}
       <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
         <Link href="/" className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors">
-          GYMQUEST <span className="text-muted">· Detail Program</span>
+          GYMQUEST <span className="text-muted">· {t.programs.detail}</span>
         </Link>
         <div className="flex items-center gap-3">
           {program.isCustom && (
@@ -61,14 +73,16 @@ export default function ProgramDetailPage() {
               onClick={handleDelete}
               className="text-xs text-red-400 hover:text-red-300 font-mono transition-colors"
             >
-              Hapus Program
+              {t.programs.deleteProgram}
             </button>
           )}
+          <LanguageSwitcher compact />
+          <UserNavButton />
           <Link
             href={`/workout?programId=${program.id}`}
             className="clip-corner bg-cyan px-4 py-1.5 font-body text-xs font-bold text-void hover:shadow-[var(--glow-cyan)] transition-shadow"
           >
-            Mulai Latihan ▸
+            {t.common.start} ▸
           </Link>
         </div>
       </header>
@@ -81,7 +95,7 @@ export default function ProgramDetailPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm group"
           >
             <span className="text-base group-hover:-translate-x-1 transition-transform">←</span>
-            <span>Kembali ke Daftar Program</span>
+            <span>{t.programs.backToProgramList}</span>
           </Link>
         </div>
 
@@ -91,8 +105,8 @@ export default function ProgramDetailPage() {
             <span className="text-[11px] font-mono px-2.5 py-0.5 rounded uppercase tracking-wider bg-cyan/15 text-cyan border border-cyan/40">
               {program.badge}
             </span>
-            <span className="text-xs font-mono text-muted">Level: {program.level.toUpperCase()}</span>
-            <span className="text-xs font-mono text-muted">· Target: {program.goal.toUpperCase()}</span>
+            <span className="text-xs font-mono text-muted">{t.common.level}: {getLocalizedLevel(program.level, language).toUpperCase()}</span>
+            <span className="text-xs font-mono text-muted">· Target: {getLocalizedGoal(program.goal, language).toUpperCase()}</span>
           </div>
 
           <h1 className="font-display text-3xl sm:text-4xl font-bold text-white mb-3">
@@ -104,16 +118,16 @@ export default function ProgramDetailPage() {
 
           <div className="grid grid-cols-3 gap-3 border-t border-white/10 pt-4 max-w-md">
             <div>
-              <div className="text-xs text-muted font-mono">Estimasi Waktu</div>
-              <div className="text-lg font-bold text-cyan mt-0.5">{program.estimatedMinutes} Menit</div>
+              <div className="text-xs text-muted font-mono">{t.programs.estimatedDuration}</div>
+              <div className="text-lg font-bold text-cyan mt-0.5">{program.estimatedMinutes} {t.common.minutes}</div>
             </div>
             <div>
-              <div className="text-xs text-muted font-mono">Total Gerakan</div>
-              <div className="text-lg font-bold text-white mt-0.5">{program.exercises.length} Gerakan</div>
+              <div className="text-xs text-muted font-mono">{t.programs.exerciseCount}</div>
+              <div className="text-lg font-bold text-white mt-0.5">{program.exercises.length} {t.programs.exerciseCount}</div>
             </div>
             <div>
-              <div className="text-xs text-muted font-mono">Peralatan</div>
-              <div className="text-lg font-bold text-magenta mt-0.5">Tanpa Alat</div>
+              <div className="text-xs text-muted font-mono">{t.programs.equipmentLabel}</div>
+              <div className="text-lg font-bold text-magenta mt-0.5">{t.programs.noEquipment}</div>
             </div>
           </div>
         </div>
@@ -121,13 +135,13 @@ export default function ProgramDetailPage() {
         {/* EXERCISE LIST */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold text-white">Urutan Rangkaian Gerakan</h2>
-            <span className="text-xs font-mono text-muted">{program.exercises.length} Gerakan Terencana</span>
+            <h2 className="font-display text-xl font-bold text-white">{t.programs.sequenceOrder}</h2>
+            <span className="text-xs font-mono text-muted">{program.exercises.length} {t.programs.plannedExercises}</span>
           </div>
 
           <div className="space-y-4">
             {program.exercises.map((ref, idx) => {
-              const item = EXERCISE_CATALOG[ref.exerciseId];
+              const item = localizedCatalog[ref.exerciseId];
               if (!item) return null;
 
               return (
@@ -152,11 +166,11 @@ export default function ProgramDetailPage() {
 
                       {item.supportedAiCode ? (
                         <span className="inline-flex items-center gap-1.5 text-[10px] font-mono px-2 py-0.5 rounded bg-cyan/15 text-cyan border border-cyan/30">
-                          <span>◉</span> Auto Rep Counting Siap
+                          <span>◉</span> {t.programs.autoRepCountingReady}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-muted border border-white/10">
-                          ⏱ Timer Terpandu
+                          ⏱ {t.programs.guidedTimer}
                         </span>
                       )}
                     </div>
@@ -166,20 +180,20 @@ export default function ProgramDetailPage() {
                     {/* Sets, Reps & Rest badges */}
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                       <span className="text-xs font-mono px-2.5 py-1 rounded bg-white/5 border border-white/10 text-white font-semibold">
-                        {ref.sets} Set
+                        {ref.sets} {t.common.sets}
                       </span>
                       {ref.reps ? (
                         <span className="text-xs font-mono px-2.5 py-1 rounded bg-white/5 border border-white/10 text-cyan font-semibold">
-                          {ref.reps} Repetisi / Set
+                          {ref.reps} {t.programs.repsPerSet}
                         </span>
                       ) : (
                         <span className="text-xs font-mono px-2.5 py-1 rounded bg-white/5 border border-white/10 text-cyan font-semibold">
-                          {ref.durationSeconds} Detik / Set
+                          {ref.durationSeconds} {t.programs.secondsPerSet}
                         </span>
                       )}
                       {ref.restSeconds > 0 && (
                         <span className="text-xs font-mono px-2.5 py-1 rounded bg-white/5 border border-white/10 text-muted">
-                          Istirahat {ref.restSeconds}s
+                          {t.programs.restSeconds} {ref.restSeconds}s
                         </span>
                       )}
                     </div>
@@ -202,16 +216,16 @@ export default function ProgramDetailPage() {
         {/* BOTTOM CTA */}
         <div className="glass-panel clip-corner border-cyan/40 bg-gradient-to-r from-cyan/15 to-magenta/15 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <h3 className="font-display text-lg font-bold text-white">Siap untuk memulai sesi ini?</h3>
+            <h3 className="font-display text-lg font-bold text-white">{t.programs.readyToStart}</h3>
             <p className="text-xs text-muted">
-              Siapkan air minum dan ruang bergerak selebar rentangan tanganmu.
+              {t.programs.readyToStartDesc}
             </p>
           </div>
           <Link
             href={`/workout?programId=${program.id}`}
             className="clip-corner bg-gradient-to-r from-cyan to-magenta px-8 py-3 font-body text-sm font-bold text-void hover:shadow-[var(--glow-cyan)] transition-shadow shrink-0"
           >
-            Mulai Sesi Latihan Sekarang ▸
+            {t.programs.startSessionNow}
           </Link>
         </div>
       </div>

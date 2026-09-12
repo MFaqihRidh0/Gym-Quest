@@ -13,10 +13,13 @@ import { RepCounter, type RepCounterState } from '@/modules/rep-counter/repCount
 import { drawBioScan } from '@/modules/cv-engine/drawBioScan';
 import { ExerciseVisual } from '@/components/ExerciseVisual';
 import { ShareAchievementModal } from '@/components/ShareAchievementModal';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useLanguage, getLocalizedExercise, getLocalizedProgram } from '@/modules/i18n';
 
 type WorkoutPhase = 'countdown' | 'work' | 'rest' | 'finished';
 
 function WorkoutRunner() {
+  const { t, language } = useLanguage();
   const searchParams = useSearchParams();
   const router = useRouter();
   const programId = searchParams.get('programId') || 'full-body-starter';
@@ -73,9 +76,14 @@ function WorkoutRunner() {
     }
   }, [programId]);
 
-  const currentExerciseRef: ProgramExerciseRef | undefined = program?.exercises[exerciseIndex];
-  const currentExerciseItem: ExerciseItem | undefined = currentExerciseRef
+  const rawProgram = program;
+  const currentProgram = rawProgram ? getLocalizedProgram(rawProgram, language) : null;
+  const currentExerciseRef: ProgramExerciseRef | undefined = rawProgram?.exercises[exerciseIndex];
+  const rawExerciseItem: ExerciseItem | undefined = currentExerciseRef
     ? EXERCISE_CATALOG[currentExerciseRef.exerciseId]
+    : undefined;
+  const currentExerciseItem: ExerciseItem | undefined = rawExerciseItem
+    ? getLocalizedExercise(rawExerciseItem, language)
     : undefined;
 
   // Inisialisasi AI Rep Counter saat gerakan berubah
@@ -352,39 +360,39 @@ function WorkoutRunner() {
 
           <div>
             <span className="text-xs font-mono tracking-widest text-cyan uppercase font-bold">
-              Workout Completed!
+              {t.workout.summaryTitle}
             </span>
             <h1 className="mt-1 font-display text-3xl sm:text-4xl font-bold text-white">
-              Latihan Selesai!
+              {t.workout.summaryTitle}
             </h1>
             <p className="mt-2 text-sm text-muted">
-              Kerja luar biasa! Kamu telah menuntaskan program <strong>{program.title}</strong>.
+              {t.workout.summarySubtitle}
             </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 border-y border-white/10">
             <div className="p-2">
-              <div className="text-[11px] font-mono text-muted">Total Waktu</div>
+              <div className="text-[11px] font-mono text-muted">{t.workout.totalTime}</div>
               <div className="text-lg font-bold text-cyan mt-0.5">
-                {Math.round(finishedResult.log.durationSeconds / 60)} Menit
+                {Math.round(finishedResult.log.durationSeconds / 60)} {t.common.minutes}
               </div>
             </div>
             <div className="p-2">
-              <div className="text-[11px] font-mono text-muted">Kalori</div>
+              <div className="text-[11px] font-mono text-muted">{t.common.calories}</div>
               <div className="text-lg font-bold text-magenta mt-0.5">
-                ~{finishedResult.log.caloriesBurned} kkal
+                ~{finishedResult.log.caloriesBurned} {t.common.calories}
               </div>
             </div>
             <div className="p-2">
-              <div className="text-[11px] font-mono text-muted">Total Repetisi</div>
+              <div className="text-[11px] font-mono text-muted">{t.workout.totalReps}</div>
               <div className="text-lg font-bold text-white mt-0.5">
                 {finishedResult.log.totalRepsCompleted}
               </div>
             </div>
             <div className="p-2">
-              <div className="text-[11px] font-mono text-muted">Streak Harian</div>
+              <div className="text-[11px] font-mono text-muted">{t.workout.currentStreak}</div>
               <div className="text-lg font-bold text-yellow-400 mt-0.5">
-                🔥 {finishedResult.newStreak} Hari
+                🔥 {finishedResult.newStreak} {t.progress.streakDays}
               </div>
             </div>
           </div>
@@ -394,14 +402,14 @@ function WorkoutRunner() {
               <div className="flex items-center gap-2">
                 <span className="text-xl">⚡</span>
                 <div className="text-left">
-                  <div className="text-[10px] font-mono uppercase text-cyan tracking-wider font-bold">EXP Diperoleh</div>
-                  <div className="text-xs text-muted">Liga Mingguan</div>
+                  <div className="text-[10px] font-mono uppercase text-cyan tracking-wider font-bold">{t.workout.earnedExp}</div>
+                  <div className="text-xs text-muted">{t.nav.leaderboard}</div>
                 </div>
               </div>
               <div className="text-right">
                 <span className="font-display font-bold text-base text-cyan">+{finishedResult.earnedExp} EXP</span>
                 {finishedResult.newRank && (
-                  <span className="block text-[10px] font-mono text-muted">Rank Liga #{finishedResult.newRank}</span>
+                  <span className="block text-[10px] font-mono text-muted">Rank #{finishedResult.newRank}</span>
                 )}
               </div>
             </div>
@@ -416,7 +424,7 @@ function WorkoutRunner() {
               className="w-full flex items-center justify-center gap-2 clip-corner bg-emerald-500 py-3 font-body text-xs font-bold text-void hover:bg-emerald-400 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]"
             >
               <span>📤</span>
-              <span>Bagikan Pencapaian (WhatsApp & IG)</span>
+              <span>{t.workout.shareResult}</span>
             </button>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -424,13 +432,13 @@ function WorkoutRunner() {
                 href="/leaderboard"
                 className="flex-1 clip-corner bg-gradient-to-r from-cyan to-magenta py-3 font-body text-xs font-bold text-void hover:opacity-90 transition-opacity text-center"
               >
-                Cek Posisi Leaderboard 🏆
+                {t.nav.leaderboard} 🏆
               </Link>
               <Link
                 href="/progress"
                 className="flex-1 clip-corner border border-white/20 bg-white/5 py-3 font-body text-xs font-semibold text-white hover:border-white/40 transition-colors text-center"
               >
-                Riwayat & Kalender ▸
+                {t.nav.progress} ▸
               </Link>
             </div>
           </div>
@@ -460,13 +468,14 @@ function WorkoutRunner() {
     const nextSet =
       currentSet < (currentExerciseRef?.sets || 1) ? currentSet + 1 : 1;
     const nextExerciseRef = program.exercises[nextExerciseIndex];
-    const nextExerciseItem = nextExerciseRef ? EXERCISE_CATALOG[nextExerciseRef.exerciseId] : null;
+    const rawNextItem = nextExerciseRef ? EXERCISE_CATALOG[nextExerciseRef.exerciseId] : null;
+    const nextExerciseItem = rawNextItem ? getLocalizedExercise(rawNextItem, language) : null;
 
     return (
       <main className="min-h-screen flex flex-col items-center justify-center bg-transparent text-primary p-5">
         <div className="glass-panel clip-corner w-full max-w-md border-magenta/40 p-8 text-center bg-void/95 space-y-6 shadow-[0_0_40px_rgba(255,61,154,0.15)]">
           <span className="text-xs font-mono uppercase tracking-widest text-magenta font-bold">
-            Jeda Istirahat (Rest Interval)
+            {language === 'en' ? 'Rest Interval' : 'Jeda Istirahat'}
           </span>
 
           <div className="relative flex items-center justify-center my-4">
@@ -478,17 +487,23 @@ function WorkoutRunner() {
             </div>
           </div>
 
-          <p className="text-xs text-muted">Tarik napas dalam, regangkan otot, dan minum air secukupnya.</p>
+          <p className="text-xs text-muted">
+            {language === 'en'
+              ? 'Take deep breaths, stretch your muscles, and hydrate.'
+              : 'Tarik napas dalam, regangkan otot, dan minum air secukupnya.'}
+          </p>
 
           {nextExerciseItem && (
             <div className="border-t border-white/10 pt-4 text-left">
               <span className="text-[10px] font-mono uppercase text-cyan block mb-1">
-                Gerakan Selanjutnya (Up Next):
+                {language === 'en' ? 'Up Next:' : 'Gerakan Selanjutnya:'}
               </span>
               <div className="flex items-center justify-between">
                 <span className="font-display text-base font-bold text-white">{nextExerciseItem.name}</span>
                 <span className="text-xs font-mono text-muted">
-                  Set {nextSet} dari {nextExerciseRef?.sets}
+                  {language === 'en'
+                    ? `Set ${nextSet} of ${nextExerciseRef?.sets}`
+                    : `Set ${nextSet} dari ${nextExerciseRef?.sets}`}
                 </span>
               </div>
             </div>
@@ -498,7 +513,7 @@ function WorkoutRunner() {
             onClick={handleSkipRest}
             className="w-full clip-corner bg-magenta py-3 font-body text-xs font-bold text-void hover:shadow-[var(--glow-magenta)] transition-all"
           >
-            Lewati Istirahat ⏭
+            {language === 'en' ? 'Skip Rest ⏭' : 'Lewati Istirahat ⏭'}
           </button>
         </div>
       </main>
@@ -518,38 +533,39 @@ function WorkoutRunner() {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-red-500/10 hover:border-red-400/40 hover:text-red-400 text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              Keluar
+              {t.common.close}
             </Link>
             <span className="text-xs text-white/20">|</span>
             <span className="font-display text-sm font-bold text-white truncate max-w-[180px] sm:max-w-none">
-              {program.title}
+              {currentProgram?.title || program.title}
             </span>
             <span className="hidden sm:inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cyan/15 text-cyan border border-cyan/30">
-              {program.badge}
+              {currentProgram?.badge || program.badge}
             </span>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-5 text-xs font-mono">
+          <div className="flex items-center gap-2 sm:gap-4 text-xs font-mono">
             <div className="flex items-center gap-1.5">
-              <span className="text-muted">⏱ Waktu:</span>
+              <span className="text-muted">⏱ {t.common.duration}:</span>
               <span className="text-white font-bold">
                 {Math.floor(sessionElapsedSeconds / 60)}:
                 {String(sessionElapsedSeconds % 60).padStart(2, '0')}
               </span>
             </div>
             <div className="hidden sm:flex items-center gap-1.5">
-              <span className="text-muted">🔥 Kalori:</span>
-              <span className="text-magenta font-bold">~{Math.round(estimatedCalories)} kkal</span>
+              <span className="text-muted">🔥 {t.common.calories}:</span>
+              <span className="text-magenta font-bold">~{Math.round(estimatedCalories)} {t.common.calories}</span>
             </div>
+            <LanguageSwitcher compact />
             <button
               onClick={() => setIsPaused(!isPaused)}
-              className={`clip-corner px-3.5 py-1 text-xs font-mono transition-all ${
+              className={`clip-corner px-3 py-1 text-xs font-mono transition-all ${
                 isPaused
                   ? 'bg-yellow-400 text-void font-bold shadow-[0_0_10px_rgba(255,214,0,0.5)]'
                   : 'border border-white/20 bg-white/5 text-white hover:border-cyan'
               }`}
             >
-              {isPaused ? '▶ Lanjutkan' : '❚❚ Jeda'}
+              {isPaused ? `▶ ${t.common.resume}` : `❚❚ ${t.common.pause}`}
             </button>
           </div>
         </div>
@@ -558,7 +574,8 @@ function WorkoutRunner() {
         <div className="w-full px-4 sm:px-6 py-2.5 overflow-x-auto scrollbar-none bg-[#08102a]/70">
           <div className="flex items-center gap-2 min-w-max">
             {program.exercises.map((exRef, idx) => {
-              const item = EXERCISE_CATALOG[exRef.exerciseId];
+              const rawItem = EXERCISE_CATALOG[exRef.exerciseId];
+              const localizedItem = rawItem ? getLocalizedExercise(rawItem, language) : null;
               const isCurrent = idx === exerciseIndex;
               const isPassed = idx < exerciseIndex;
               return (
@@ -575,7 +592,7 @@ function WorkoutRunner() {
                   <span className="text-[10px] w-4 h-4 rounded-full flex items-center justify-center bg-black/60">
                     {isPassed ? '✓' : idx + 1}
                   </span>
-                  <span className="truncate max-w-[130px]">{item?.name || 'Gerakan'}</span>
+                  <span className="truncate max-w-[130px]">{localizedItem?.name || (language === 'en' ? 'Exercise' : 'Gerakan')}</span>
                   {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />}
                 </div>
               );
@@ -584,7 +601,7 @@ function WorkoutRunner() {
         </div>
       </header>
 
-      {/* 3. MAIN STAGE WORKOUT COCKPIT (Menghilangkan Ruang Kosong!) */}
+      {/* 3. MAIN STAGE WORKOUT COCKPIT */}
       <div className="mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col justify-center">
         <div className="grid lg:grid-cols-12 gap-6 items-stretch my-auto">
           {/* SISI KIRI: DISPLAY VISUALISASI BERGERAK / KAMERA (7 Kolom) */}
@@ -612,7 +629,7 @@ function WorkoutRunner() {
                     </span>
                     {aiAngle !== null && (
                       <span className="px-2.5 py-1 rounded bg-black/80 border border-white/20 text-xs font-mono text-white">
-                        Sudut Sendi: <strong className="text-cyan">{Math.round(aiAngle)}°</strong>
+                        {language === 'en' ? 'Joint Angle:' : 'Sudut Sendi:'} <strong className="text-cyan">{Math.round(aiAngle)}°</strong>
                       </span>
                     )}
                   </div>
@@ -640,11 +657,15 @@ function WorkoutRunner() {
               {mode === 'ai_camera' && (
                 <div className="absolute bottom-3 left-3 z-10 hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/70 border border-white/15 backdrop-blur-sm text-xs font-mono">
                   <span className="text-cyan font-bold">
-                    Gerakan {exerciseIndex + 1}/{program.exercises.length}
+                    {language === 'en'
+                      ? `Exercise ${exerciseIndex + 1}/${program.exercises.length}`
+                      : `Gerakan ${exerciseIndex + 1}/${program.exercises.length}`}
                   </span>
                   <span className="text-white/30">·</span>
                   <span className="text-white">
-                    Set {currentSet} dari {currentExerciseRef?.sets}
+                    {language === 'en'
+                      ? `Set ${currentSet} of ${currentExerciseRef?.sets}`
+                      : `Set ${currentSet} dari ${currentExerciseRef?.sets}`}
                   </span>
                 </div>
               )}
@@ -653,13 +674,15 @@ function WorkoutRunner() {
               {phase === 'countdown' && (
                 <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md">
                   <span className="text-sm font-mono text-cyan uppercase tracking-widest mb-3">
-                    Bersiap Mulai!
+                    {language === 'en' ? 'Get Ready!' : 'Bersiap Mulai!'}
                   </span>
                   <div className="font-display text-8xl font-bold text-cyan animate-ping">
                     {countdownSeconds}
                   </div>
                   <span className="text-xs text-muted mt-6">
-                    Posisikan tubuhmu dan ikuti ritme animasi gerakan
+                    {language === 'en'
+                      ? 'Position your body and follow the motion rhythm'
+                      : 'Posisikan tubuhmu dan ikuti ritme animasi gerakan'}
                   </span>
                 </div>
               )}
@@ -672,7 +695,7 @@ function WorkoutRunner() {
               {/* Kategori & Toggle Mode AI */}
               <div className="flex items-center justify-between gap-2 mb-2">
                 <span className="text-xs font-mono uppercase tracking-wider text-cyan font-bold">
-                  {currentExerciseItem?.category} · Tanpa Alat
+                  {currentExerciseItem?.category} · {t.programs.noEquipment}
                 </span>
 
                 {currentExerciseItem?.supportedAiCode && (
@@ -681,7 +704,11 @@ function WorkoutRunner() {
                     className="text-xs font-mono px-3 py-1.5 rounded-lg border border-cyan/40 bg-cyan/10 text-cyan hover:bg-cyan/20 transition-all flex items-center gap-1.5"
                   >
                     <span>{mode === 'ai_camera' ? '📷' : '🏃'}</span>
-                    <span>{mode === 'ai_camera' ? 'Mode Sensor Kamera' : 'Mode Animasi'}</span>
+                    <span>
+                      {mode === 'ai_camera'
+                        ? (language === 'en' ? 'Camera Sensor Mode' : 'Mode Sensor Kamera')
+                        : (language === 'en' ? 'Animation Mode' : 'Mode Animasi')}
+                    </span>
                   </button>
                 )}
               </div>
@@ -711,7 +738,7 @@ function WorkoutRunner() {
                 // Mode Durasi Waktu
                 <div className="relative z-10 space-y-2">
                   <span className="text-xs font-mono uppercase text-muted tracking-wider">
-                    Sisa Waktu Set Ini
+                    {language === 'en' ? 'Time Remaining' : 'Sisa Waktu Set Ini'}
                   </span>
                   <div className="font-display text-6xl sm:text-7xl font-bold text-cyan tracking-tight drop-shadow-[0_0_20px_rgba(0,229,255,0.4)]">
                     {timerSeconds}s
@@ -725,14 +752,16 @@ function WorkoutRunner() {
                     />
                   </div>
                   <span className="text-[11px] font-mono text-muted mt-2 block">
-                    Pertahankan postur hingga timer berbunyi
+                    {language === 'en'
+                      ? 'Maintain posture until the timer sounds'
+                      : 'Pertahankan postur hingga timer berbunyi'}
                   </span>
                 </div>
               ) : (
                 // Mode Repetisi
                 <div className="relative z-10 space-y-2">
                   <span className="text-xs font-mono uppercase text-muted tracking-wider">
-                    Progres Repetisi
+                    {language === 'en' ? 'Rep Progress' : 'Progres Repetisi'}
                   </span>
                   <div className="font-display text-6xl sm:text-7xl font-bold text-magenta tracking-tight drop-shadow-[0_0_20px_rgba(255,61,154,0.4)]">
                     {repsDone}
@@ -751,8 +780,12 @@ function WorkoutRunner() {
                   </div>
                   <span className="text-[11px] font-mono text-cyan mt-2 block">
                     {mode === 'ai_camera'
-                      ? 'Dihitung otomatis lewat sensor kamera Computer Vision'
-                      : 'Tekan tombol di bawah setiap menyelesaikan 1 rep'}
+                      ? (language === 'en'
+                        ? 'Auto-counted via Computer Vision camera sensor'
+                        : 'Dihitung otomatis lewat sensor kamera Computer Vision')
+                      : (language === 'en'
+                        ? 'Press the button below after completing each rep'
+                        : 'Tekan tombol di bawah setiap menyelesaikan 1 rep')}
                   </span>
                 </div>
               )}
@@ -765,7 +798,7 @@ function WorkoutRunner() {
                   onClick={handleManualAddRep}
                   className="w-full clip-corner bg-gradient-to-r from-cyan to-magenta py-4 font-body text-sm font-bold text-void hover:shadow-[var(--glow-cyan)] transition-all flex items-center justify-center gap-2"
                 >
-                  <span className="text-lg">+</span> Hitung 1 Repetisi Selesai
+                  <span className="text-lg">+</span> {language === 'en' ? 'Count 1 Completed Rep' : 'Hitung 1 Repetisi Selesai'}
                 </button>
               )}
 
@@ -774,13 +807,13 @@ function WorkoutRunner() {
                   onClick={handleSetComplete}
                   className="clip-corner border border-cyan/50 bg-cyan/15 py-3 font-body text-xs font-bold text-cyan hover:bg-cyan/25 transition-all text-center"
                 >
-                  Selesaikan Set Ini ▸
+                  {language === 'en' ? 'Complete This Set ▸' : 'Selesaikan Set Ini ▸'}
                 </button>
                 <button
                   onClick={handleSkipExercise}
                   className="clip-corner border border-cyan/30 bg-[#0d163a] py-3 font-body text-xs font-semibold text-muted hover:text-white hover:border-cyan/50 transition-colors text-center"
                 >
-                  Lewati Gerakan ⏭
+                  {language === 'en' ? 'Skip Exercise ⏭' : 'Lewati Gerakan ⏭'}
                 </button>
               </div>
             </div>
@@ -789,7 +822,7 @@ function WorkoutRunner() {
             {currentExerciseItem && (
               <div className="rounded-xl border border-cyan/25 bg-[#0b1433]/85 p-4 space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs font-mono text-cyan font-bold">
-                  <span>💡</span> Tips Form Sempurna:
+                  <span>💡</span> {language === 'en' ? 'Perfect Form Tips:' : 'Tips Form Sempurna:'}
                 </div>
                 <p className="text-xs text-muted leading-relaxed">
                   {currentExerciseItem.instructions[0]}
