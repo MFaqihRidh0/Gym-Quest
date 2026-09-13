@@ -7,8 +7,9 @@ import type { PoseLandmarks } from '../cv-engine/types';
 
 import { VerticalControlTracker } from './verticalControl';
 
-export type OpponentMode = 'ai_bot' | 'local_pvp';
+export type OpponentMode = 'ai_bot' | 'local_pvp' | 'online_pvp';
 export type BotDifficulty = 'easy' | 'medium' | 'hard';
+export type BattlePlayerRole = 'p1' | 'p2';
 
 export function usePushUpBattle(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
@@ -17,6 +18,8 @@ export function usePushUpBattle(
   p2Name = 'Cyber Challenger',
   opponentMode: OpponentMode = 'ai_bot',
   botDifficulty: BotDifficulty = 'medium',
+  playerRole: BattlePlayerRole = 'p1',
+  onLocalAction?: (type: 'attack' | 'charge', player: 'p1' | 'p2') => void,
 ) {
   const gameRef = useRef<PushUpBattleGame | null>(null);
   const repCounterP1Ref = useRef<RepCounter | null>(null);
@@ -67,9 +70,6 @@ export function usePushUpBattle(
     }, 100);
 
     // AI Bot simulation loop if opponentMode === 'ai_bot'
-    // Easy: 10 reps/menit (6000ms)
-    // Medium: 15 reps/menit (4000ms)
-    // Hard: 20 reps/menit (3000ms)
     let aiInterval: NodeJS.Timeout | null = null;
     let aiChargeTimeout: NodeJS.Timeout | null = null;
 
@@ -79,7 +79,6 @@ export function usePushUpBattle(
       const scheduleNextAiRep = () => {
         if (game.isGameOver) return;
 
-        // Separuh durasi sebelum rep selesai, bot charge Ki
         const chargeDelay = repIntervalMs * 0.5;
         aiChargeTimeout = setTimeout(() => {
           if (!game.isGameOver && gameRef.current) {
@@ -95,7 +94,6 @@ export function usePushUpBattle(
         }, repIntervalMs);
       };
 
-      // Mulai siklus AI bot
       scheduleNextAiRep();
     }
 
@@ -107,49 +105,55 @@ export function usePushUpBattle(
     };
   }, [canvasRef, p1Name, p2Name, opponentMode, botDifficulty]);
 
-  // CV Landmark Loop: Menggunakan pelacakan vertikal atas-bawah (Nose/Upper Body) seperti Kuda Poni/Flappy Bird
+  // CV Landmark Loop: Menggunakan pelacakan vertikal atas-bawah
   useEffect(() => {
     let animId: number;
+    const localPlayer: 'p1' | 'p2' = opponentMode === 'online_pvp' && playerRole === 'p2' ? 'p2' : 'p1';
 
     const checkCv = () => {
       const landmarks = liveLandmarksRef.current;
       if (landmarks && gameRef.current && !isGameOver) {
-        // 1. Pelacakan Gerakan Vertikal (Sangat andal dari kamera depan/lantai/laptop seperti Flappy Bird)
+        // 1. Pelacakan Gerakan Vertikal
         const vertical = verticalTrackerRef.current.read(landmarks);
 
         if (vertical !== null) {
-          // vertical: 0.0 (bawah/lantai) s.d. 1.0 (atas/lengan lurus)
           const depth = Math.round((1 - vertical) * 100);
           setDepthPercent(Math.max(0, Math.min(100, depth)));
 
-          // Masuk posisi BAWAH push-up (dada mendekat ke lantai) -> CHARGE KI!
+          // Masuk posisi BAWAH push-up -> CHARGE KI!
           if (verticalPhaseRef.current === 'up' && vertical < 0.40) {
             verticalPhaseRef.current = 'down';
             setCurrentPhase('down');
-            gameRef.current.triggerKiCharge('p1');
+            gameRef.current.triggerKiCharge(localPlayer);
+            onLocalAction?.('charge', localPlayer);
           }
-          // Masih di bawah, terus tambahkan Ki secara berkala
+          // Masih di bawah, terus tambahkan Ki
           else if (verticalPhaseRef.current === 'down' && vertical < 0.48) {
             if (Math.random() < 0.3) {
-              gameRef.current.triggerKiCharge('p1');
+              gameRef.current.triggerKiCharge(localPlayer);
+              onLocalAction?.('charge', localPlayer);
             }
           }
-          // Dorong kembali ke ATAS (lengan lurus) -> REPETISI SELESAI -> TEMBAK KAMEHAMEHA!
+          // Dorong kembali ke ATAS -> REPETISI SELESAI -> TEMBAK KAMEHAMEHA!
           else if (verticalPhaseRef.current === 'down' && vertical > 0.68) {
             verticalPhaseRef.current = 'up';
             setCurrentPhase('up');
-            gameRef.current.triggerRepAttack('p1');
+            gameRef.current.triggerRepAttack(localPlayer);
+            onLocalAction?.('attack', localPlayer);
           }
         }
 
-        // 2. Evaluasi biomekanik sudut siku jika terlihat
+        // 2. Evaluasi biomekanik sudut siku
         if (repCounterP1Ref.current) {
           const state = repCounterP1Ref.current.update(landmarks, performance.now());
           setP1FormCorrect(state.formOk);
 
-          // Jika sudut siku mendeteksi rep baru yang belum terhitung oleh vertical tracker
-          if (state.reps > gameRef.current.player1.reps) {
-            gameRef.current.triggerRepAttack('p1');
+          const currentReps =
+            localPlayer === 'p2' ? gameRef.current.player2.reps : gameRef.current.player1.reps;
+
+          if (state.reps > currentReps) {
+            gameRef.current.triggerRepAttack(localPlayer);
+            onLocalAction?.('attack', localPlayer);
           }
         }
       }
@@ -159,19 +163,36 @@ export function usePushUpBattle(
 
     animId = requestAnimationFrame(checkCv);
     return () => cancelAnimationFrame(animId);
-  }, [liveLandmarksRef, isGameOver]);
+  }, [liveLandmarksRef, isGameOver, opponentMode, playerRole, onLocalAction]);
 
   // Manual trigger for attack (Kamehameha blast)
   const triggerAttack = useCallback((player: 'p1' | 'p2') => {
     if (gameRef.current && !isGameOver) {
       gameRef.current.triggerRepAttack(player);
+      if (opponentMode === 'online_pvp') {
+        onLocalAction?.('attack', player);
+      }
     }
-  }, [isGameOver]);
+  }, [isGameOver, opponentMode, onLocalAction]);
 
   // Manual trigger for charging Ki
   const triggerKiCharge = useCallback((player: 'p1' | 'p2') => {
     if (gameRef.current && !isGameOver) {
       gameRef.current.triggerKiCharge(player);
+      if (opponentMode === 'online_pvp') {
+        onLocalAction?.('charge', player);
+      }
+    }
+  }, [isGameOver, opponentMode, onLocalAction]);
+
+  // Handle remote attack/charge received from network opponent
+  const receiveRemoteAction = useCallback((type: 'attack' | 'charge', player: 'p1' | 'p2') => {
+    if (gameRef.current && !isGameOver) {
+      if (type === 'charge') {
+        gameRef.current.triggerKiCharge(player);
+      } else if (type === 'attack') {
+        gameRef.current.triggerRepAttack(player);
+      }
     }
   }, [isGameOver]);
 
@@ -209,6 +230,7 @@ export function usePushUpBattle(
     targetReps: botDifficulty === 'easy' ? 10 : botDifficulty === 'medium' ? 15 : 20,
     triggerAttack,
     triggerKiCharge,
+    receiveRemoteAction,
     restartGame,
   };
 }
