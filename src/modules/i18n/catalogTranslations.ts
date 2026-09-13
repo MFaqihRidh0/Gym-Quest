@@ -487,6 +487,7 @@ export function getLocalizedExercise(exercise: ExerciseItem, lang: SupportedLang
   return {
     ...exercise,
     name: trans.name,
+    category: (trans.categoryLabel as ExerciseItem['category']) || exercise.category,
     description: trans.description,
     instructions: trans.instructions,
     targetMuscles: trans.targetMuscles,

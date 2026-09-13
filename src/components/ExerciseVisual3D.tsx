@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { ExerciseItem } from '@/modules/program-engine/types';
+import { useLanguage, type SupportedLanguage } from '@/modules/i18n';
 
 interface ExerciseVisual3DProps {
   visualKey: ExerciseItem['visualKey'];
@@ -18,16 +19,137 @@ const WHITE_HEX = 0xffffff;
 
 type CameraPreset = 'front' | 'isometric' | 'side';
 
+interface GuidanceCue {
+  tip: string;
+  muscles: string;
+}
+
+const GUIDANCE_TRANSLATIONS: Record<ExerciseItem['visualKey'], Record<SupportedLanguage, GuidanceCue>> = {
+  squat: {
+    id: {
+      tip: 'Tampak samping: Jaga dada tegak & dorong panggul ke belakang. Jangan biarkan lutut tertekuk melebihi ujung jari kaki.',
+      muscles: 'Quadriceps & Gluteus (Paha & Bokong)',
+    },
+    en: {
+      tip: 'Side view: Keep chest upright & hinge hips backward. Do not allow knees to track excessively past toes.',
+      muscles: 'Quadriceps & Glutes',
+    },
+  },
+  push_up: {
+    id: {
+      tip: 'Tampak samping: Punggung, pinggang, dan tumit harus membentuk 1 garis lurus. Siku menekuk 45°-90°.',
+      muscles: 'Pectoralis & Triceps (Dada & Lengan Belakang)',
+    },
+    en: {
+      tip: 'Side view: Spine, hips, and heels form a rigid straight line. Bend elbows between 45°-90°.',
+      muscles: 'Pectorals & Triceps',
+    },
+  },
+  plank: {
+    id: {
+      tip: 'Tampak samping: Kencangkan otot perut (core) & hindari panggul melorot ke bawah.',
+      muscles: 'Core Abdominals (Otot Inti Perut)',
+    },
+    en: {
+      tip: 'Side view: Brace core abdominals tightly & prevent hips from sagging downward.',
+      muscles: 'Core Abdominals',
+    },
+  },
+  jumping_jacks: {
+    id: {
+      tip: 'Tampak depan: Mendaratlah dengan telapak kaki lentur untuk menyerap benturan pada lutut.',
+      muscles: 'Calves & Deltoids (Betis & Bahu)',
+    },
+    en: {
+      tip: 'Front view: Land softly on the balls of your feet to absorb impact on your knees.',
+      muscles: 'Calves & Deltoids',
+    },
+  },
+  lunges: {
+    id: {
+      tip: 'Tampak samping: Sudut kedua lutut 90° di titik terendah. Lutut depan sejajar di atas pergelangan kaki.',
+      muscles: 'Quads & Hamstrings (Paha Depan & Belakang)',
+    },
+    en: {
+      tip: 'Side view: Both knees at 90° at lowest depth. Front knee tracks directly over ankle.',
+      muscles: 'Quadriceps & Hamstrings',
+    },
+  },
+  arm_raise: {
+    id: {
+      tip: 'Tampak depan: Dorong beban lurus ke atas kepala tanpa melengkungkan punggung bagian bawah.',
+      muscles: 'Anterior Deltoids & Trapezius (Bahu Atas)',
+    },
+    en: {
+      tip: 'Front view: Press vertically overhead without arching the lower back.',
+      muscles: 'Anterior Deltoids & Trapezius',
+    },
+  },
+  sit_up: {
+    id: {
+      tip: 'Gunakan kekuatan kontraksi perut, bukan menarik leher dengan tangan.',
+      muscles: 'Rectus Abdominis (Perut Depan)',
+    },
+    en: {
+      tip: 'Initiate motion through abdominal contraction, never pull on your neck.',
+      muscles: 'Rectus Abdominis',
+    },
+  },
+  high_knees: {
+    id: {
+      tip: 'Angkat lutut setinggi pinggang secara ritmis dengan mendarat menggunakan bantalan kaki.',
+      muscles: 'Hip Flexors & Calves (Fleksor Pinggul & Betis)',
+    },
+    en: {
+      tip: 'Drive knees up to waist height rhythmically while springing on balls of feet.',
+      muscles: 'Hip Flexors & Calves',
+    },
+  },
+  mountain_climbers: {
+    id: {
+      tip: 'Pertahankan postur push-up yang stabil saat memompa lutut ke arah dada.',
+      muscles: 'Core, Shoulders & Hip Flexors',
+    },
+    en: {
+      tip: 'Maintain a rigid push-up plank posture while alternating knee drives toward chest.',
+      muscles: 'Core, Shoulders & Hip Flexors',
+    },
+  },
+  cobra_stretch: {
+    id: {
+      tip: 'Regangkan tulang belakang secara lembut tanpa memaksakan kompresi pinggang.',
+      muscles: 'Abdominal & Spine Extensors (Otot Perut & Tulang Belakang)',
+    },
+    en: {
+      tip: 'Gently elongate the anterior chain and spine without compressing lumbar vertebrae.',
+      muscles: 'Abdominal & Spine Extensors',
+    },
+  },
+  child_pose: {
+    id: {
+      tip: 'Panjangkan tulang belakang dan bernapaslah perlahan untuk merelaksasikan otot punggung.',
+      muscles: 'Latissimus & Lower Back Stretch (Punggung Bawah)',
+    },
+    en: {
+      tip: 'Elongate the entire spine and breathe deeply to relax lower back muscles.',
+      muscles: 'Latissimus & Lower Back',
+    },
+  },
+};
+
 export function ExerciseVisual3D({
   visualKey,
   className = 'w-full h-full',
   isAnimated = true,
   showControls = true,
 }: ExerciseVisual3DProps) {
+  const { language } = useLanguage();
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [activePreset, setActivePreset] = useState<CameraPreset>('isometric');
-  const [formGuidanceTip, setFormGuidanceTip] = useState<string>('');
-  const [activeMuscleGroup, setActiveMuscleGroup] = useState<string>('');
+
+  const guidance = GUIDANCE_TRANSLATIONS[visualKey]?.[language] || { tip: '', muscles: '' };
+  const formGuidanceTip = guidance.tip;
+  const activeMuscleGroup = guidance.muscles;
 
   // Target camera spherical angles for smooth interpolation
   const cameraTarget = useRef({
@@ -351,58 +473,7 @@ export function ExerciseVisual3D({
     postureLaser.visible = false;
     scene.add(postureLaser);
 
-    // 6. FORM & MUSCLE CUES MAPPING
-    const updateGuidanceInfo = () => {
-      switch (visualKey) {
-        case 'squat':
-          setFormGuidanceTip('Tampak samping: Jaga dada tegak & dorong panggul ke belakang. Jangan biarkan lutut tertekuk melebihi ujung jari kaki.');
-          setActiveMuscleGroup('Quadriceps & Gluteus (Paha & Bokong)');
-          break;
-        case 'push_up':
-          setFormGuidanceTip('Tampak samping: Punggung, pinggang, dan tumit harus membentuk 1 garis lurus. Siku menekuk 45°-90°.');
-          setActiveMuscleGroup('Pectoralis & Triceps (Dada & Lengan Belakang)');
-          break;
-        case 'plank':
-          setFormGuidanceTip('Tampak samping: Kencangkan otot perut (core) & hindari panggul melorot ke bawah.');
-          setActiveMuscleGroup('Core Abdominals (Otot Inti Perut)');
-          break;
-        case 'jumping_jacks':
-          setFormGuidanceTip('Tampak depan: Mendaratlah dengan telapak kaki lentur untuk menyerap benturan pada lutut.');
-          setActiveMuscleGroup('Calves & Deltoids (Betis & Bahu)');
-          break;
-        case 'lunges':
-          setFormGuidanceTip('Tampak samping: Sudut kedua lutut 90° di titik terendah. Lutut depan sejajar di atas pergelangan kaki.');
-          setActiveMuscleGroup('Quads & Hamstrings (Paha Depan & Belakang)');
-          break;
-        case 'arm_raise':
-          setFormGuidanceTip('Tampak depan: Dorong beban lurus ke atas kepala tanpa melengkungkan punggung bagian bawah.');
-          setActiveMuscleGroup('Anterior Deltoids & Trapezius (Bahu Atas)');
-          break;
-        case 'sit_up':
-          setFormGuidanceTip('Gunakan kekuatan kontraksi perut, bukan menarik leher dengan tangan.');
-          setActiveMuscleGroup('Rectus Abdominis (Perut Depan)');
-          break;
-        case 'high_knees':
-          setFormGuidanceTip('Angkat lutut setinggi pinggang secara ritmis dengan mendarat menggunakan bantalan kaki.');
-          setActiveMuscleGroup('Hip Flexors & Calves');
-          break;
-        case 'mountain_climbers':
-          setFormGuidanceTip('Pertahankan postur push-up yang stabil saat memompa lutut ke arah dada.');
-          setActiveMuscleGroup('Core, Shoulders & Hip Flexors');
-          break;
-        case 'cobra_stretch':
-          setFormGuidanceTip('Regangkan tulang belakang secara lembut tanpa memaksakan kompresi pinggang.');
-          setActiveMuscleGroup('Abdominal & Spine Extensors');
-          break;
-        case 'child_pose':
-          setFormGuidanceTip('Panjangkan tulang belakang dan bernapaslah perlahan untuk merelaksasikan otot punggung.');
-          setActiveMuscleGroup('Latissimus & Lower Back Stretch');
-          break;
-      }
-    };
-    updateGuidanceInfo();
-
-    // 7. DRAG TO ORBIT EVENT HANDLERS
+    // 6. DRAG TO ORBIT EVENT HANDLERS
     const onMouseDown = (e: MouseEvent) => {
       isDraggingRef.current = true;
       dragStartRef.current = {
@@ -983,7 +1054,9 @@ export function ExerciseVisual3D({
             <span className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
             <span className="font-bold">3D BIOMECHANIC</span>
             <span className="text-white/40">|</span>
-            <span className="hidden sm:inline text-muted">Geser untuk memutar 360°</span>
+            <span className="hidden sm:inline text-muted">
+              {language === 'en' ? 'Drag to rotate 360°' : 'Geser untuk memutar 360°'}
+            </span>
           </div>
 
           {/* Preset Angle Buttons */}
@@ -995,9 +1068,13 @@ export function ExerciseVisual3D({
                   ? 'bg-cyan text-void font-bold shadow-[var(--glow-cyan)]'
                   : 'text-muted hover:text-white'
               }`}
-              title="Tampak Depan (Cek simetri & bukaan kaki)"
+              title={
+                language === 'en'
+                  ? 'Front View (Check symmetry & stance)'
+                  : 'Tampak Depan (Cek simetri & bukaan kaki)'
+              }
             >
-              0° Depan
+              {language === 'en' ? '0° Front' : '0° Depan'}
             </button>
             <button
               onClick={() => setCameraPreset('isometric')}
@@ -1006,9 +1083,13 @@ export function ExerciseVisual3D({
                   ? 'bg-cyan text-void font-bold shadow-[var(--glow-cyan)]'
                   : 'text-muted hover:text-white'
               }`}
-              title="Tampak Serong Isometrik"
+              title={
+                language === 'en'
+                  ? 'Isometric Angled View'
+                  : 'Tampak Serong Isometrik'
+              }
             >
-              45° Serong
+              {language === 'en' ? '45° Angled' : '45° Serong'}
             </button>
             <button
               onClick={() => setCameraPreset('side')}
@@ -1017,9 +1098,13 @@ export function ExerciseVisual3D({
                   ? 'bg-cyan text-void font-bold shadow-[var(--glow-cyan)]'
                   : 'text-muted hover:text-white'
               }`}
-              title="Tampak Samping (Cek kelurusan punggung & kedalaman)"
+              title={
+                language === 'en'
+                  ? 'Side View (Check spinal alignment & depth)'
+                  : 'Tampak Samping (Cek kelurusan punggung & kedalaman)'
+              }
             >
-              90° Samping
+              {language === 'en' ? '90° Side' : '90° Samping'}
             </button>
           </div>
         </div>
@@ -1040,7 +1125,10 @@ export function ExerciseVisual3D({
           {activeMuscleGroup && (
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#1a1435]/90 border border-magenta/50 text-[10px] font-mono text-magenta backdrop-blur-md shrink-0">
               <span className="w-2 h-2 rounded-full bg-magenta animate-ping" />
-              <span>Otot Aktif: <strong>{activeMuscleGroup}</strong></span>
+              <span>
+                {language === 'en' ? 'Active Muscles:' : 'Otot Aktif:'}{' '}
+                <strong>{activeMuscleGroup}</strong>
+              </span>
             </div>
           )}
         </div>
