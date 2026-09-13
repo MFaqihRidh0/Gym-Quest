@@ -12,6 +12,7 @@ import {
 import { getUserProfile } from '@/modules/program-engine/storage';
 import { soundEngine } from '@/modules/game-engine/audio';
 import { IconLock } from '@/components/ui/CyberIcons';
+import { CyberAvatar } from '@/components/CyberAvatar';
 import { useLanguage } from '@/modules/i18n';
 import type { User } from '@supabase/supabase-js';
 
@@ -85,7 +86,7 @@ export function UserNavButton() {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-cyan/30 bg-cyan/10 hover:border-cyan hover:bg-cyan/15 transition-all text-xs font-mono"
           >
-            <span className="text-base">{profile.avatar || '⚔️'}</span>
+            <CyberAvatar avatar={profile.avatar || 'knight'} size="xs" className="w-5 h-5 rounded-md" />
             <span className="text-white font-bold max-w-[100px] truncate">
               {profile.username || user.email?.split('@')[0] || t.nav.guestUser}
             </span>

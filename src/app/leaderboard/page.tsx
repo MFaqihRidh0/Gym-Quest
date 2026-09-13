@@ -31,6 +31,7 @@ import {
   IconBolt,
   IconFlame,
 } from '@/components/ui/CyberIcons';
+import { CyberAvatar } from '@/components/CyberAvatar';
 
 export default function LeaderboardPage() {
   const { t, language } = useLanguage();
@@ -337,8 +338,8 @@ export default function LeaderboardPage() {
           <div className="glass-panel clip-corner border-cyan/50 p-5 sm:p-6 bg-gradient-to-r from-cyan/10 via-transparent to-magenta/10 shadow-[0_0_30px_rgba(0,229,255,0.1)] space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-cyan/20 border-2 border-cyan flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(0,229,255,0.4)]">
-                  {userCompetitor.avatar}
+                <div className="w-14 h-14 rounded-2xl bg-cyan/20 border-2 border-cyan p-1 flex items-center justify-center shadow-[0_0_20px_rgba(0,229,255,0.4)] overflow-hidden">
+                  <CyberAvatar avatar={userCompetitor.avatar} size="xl" className="w-full h-full rounded-xl" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -554,8 +555,8 @@ export default function LeaderboardPage() {
                         )}
                       </div>
 
-                      <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-lg shrink-0">
-                        {competitor.avatar}
+                      <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                        <CyberAvatar avatar={competitor.avatar} size="md" className="w-full h-full rounded-lg" />
                       </div>
 
                       <div className="overflow-hidden">

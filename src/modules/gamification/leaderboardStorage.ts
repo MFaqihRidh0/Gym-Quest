@@ -105,6 +105,25 @@ export function getWeeklySeasonState(): WeeklySeasonState {
       return evaluateAndStartNextSeason(state);
     }
 
+    // Perbarui profil rival jika masih menggunakan nama AI placeholder lama
+    const hasLegacyAiNames = state.competitors.some(
+      (c) => !c.isUser && (c.username === 'VortexValkyrie' || c.username === 'CyberSpartan' || c.avatar === '⚡')
+    );
+    if (hasLegacyAiNames) {
+      const freshRivals = generateCompetitorsForLeague(state.leagueId, 0, 1);
+      state.competitors = state.competitors.map((c, idx) => {
+        if (c.isUser) return c;
+        const fresh = freshRivals.find((r) => !r.isUser && r.id === c.id) || freshRivals[idx] || freshRivals[0];
+        return {
+          ...c,
+          username: fresh.username,
+          title: fresh.title,
+          avatar: fresh.avatar,
+        };
+      });
+      saveSeasonState(state);
+    }
+
     return state;
   } catch (e) {
     console.error('Failed to parse weekly season state:', e);

@@ -98,20 +98,20 @@ export function getPreviousLeague(current: LeagueTier): LeagueTier {
   return current; // Sudah di Iron, tidak bisa turun lagi
 }
 
-// Pool nama kontestan rival untuk membangun simulasi kompetisi 11 peserta
+// Pool profil kontestan rival buatan sendiri untuk simulasi leaderboard yang otentik dan kompetitif
 const RIVAL_NAMES_POOL = [
-  { name: 'VortexValkyrie', title: 'Ironcore Striker', avatar: '⚡' },
-  { name: 'CyberSpartan', title: 'Kettlebell Knight', avatar: '🛡️' },
-  { name: 'AeroPhoenix', title: 'Cardio Beast', avatar: '🔥' },
-  { name: 'ShadowRonin', title: 'Core Master', avatar: '🗡️' },
-  { name: 'NovaGladiator', title: 'Hypertrophy Ace', avatar: '💪' },
-  { name: 'TitanForge', title: 'Heavy Lifter', avatar: '⚙️' },
-  { name: 'QuantumPulse', title: 'HIIT Specialist', avatar: '🌀' },
-  { name: 'AstraViper', title: 'Agility Crusader', avatar: '🐍' },
-  { name: 'GigaChad_99', title: 'Calisthenics God', avatar: '🦁' },
-  { name: 'ZenMonk_ID', title: 'Plank Champion', avatar: '🧘' },
-  { name: 'BlazeStriker', title: 'Endurance Pioneer', avatar: '🦅' },
-  { name: 'KuroKyojin', title: 'Power Surge', avatar: '🐲' },
+  { name: 'Rian Pratama', title: 'Calisthenics Athlete', avatar: 'yogi' },
+  { name: 'Dimas Arya', title: 'Heavy Barbell Lifter', avatar: 'lifter' },
+  { name: 'Fitri Handayani', title: 'HIIT & Sprint Specialist', avatar: 'runner' },
+  { name: 'Kevin Sanjaya', title: 'Agility & Combat Boxer', avatar: 'striker' },
+  { name: 'Sarah Jenkins', title: 'Ironcore Athlete', avatar: 'valkyrie' },
+  { name: 'Budi Santoso', title: 'Endurance Pioneer', avatar: 'runner' },
+  { name: 'Alex Wijaya', title: 'Bodyweight Warrior', avatar: 'knight' },
+  { name: 'Nadia Safira', title: 'Core & Plank Master', avatar: 'guardian' },
+  { name: 'Farhan Putra', title: 'Hypertrophy Fighter', avatar: 'titan' },
+  { name: 'Maya Anggraini', title: 'Powerlifting Adept', avatar: 'lifter' },
+  { name: 'Dion Wicaksono', title: 'Kettlebell Crusader', avatar: 'knight' },
+  { name: 'Reza Fauzi', title: 'Functional Fitness Ace', avatar: 'striker' },
 ];
 
 /**
