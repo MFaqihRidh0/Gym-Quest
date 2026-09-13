@@ -364,6 +364,9 @@ export interface TranslationDictionary {
     opponentLeftNotice: string;
     roomConnecting: string;
     roomNotFoundOrFull: string;
+    changeOpponentMode: string;
+    duelLobbyTitle: string;
+    duelLobbySubtitle: string;
     battleBotLevel: string;
     battleTitle: string;
     battleInstructions: string;

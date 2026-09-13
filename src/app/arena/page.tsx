@@ -77,10 +77,9 @@ function SelectScreen({
         <h1 className="mt-2 font-display text-2xl font-bold">{t.arena.chooseOpponentTitle}</h1>
       </div>
 
-      {/* CARD KHUSUS 1v1 PUSH-UP BATTLE (MEMBUKA PILIHAN BOT VS PLAYER LAIN) */}
-      <button
-        type="button"
-        onClick={() => setShowDuelModal(true)}
+      {/* CARD KHUSUS 1v1 PUSH-UP BATTLE (MEMBUKA HALAMAN PILIHAN LAWAN DUEL) */}
+      <Link
+        href="/arena/battle"
         className="glass-panel clip-corner border-2 border-magenta/60 bg-gradient-to-r from-cyan/15 via-magenta/15 to-void p-5 text-left transition-all hover:scale-[1.01] hover:border-magenta relative overflow-hidden group shadow-[0_0_30px_rgba(255,0,122,0.25)] block w-full cursor-pointer"
       >
         <div className="flex items-center justify-between">
@@ -102,13 +101,7 @@ function SelectScreen({
           </div>
           <span className="text-magenta font-mono text-xl font-bold group-hover:translate-x-1 transition-transform">➔</span>
         </div>
-      </button>
-
-      {/* MODAL PILIHAN LAWAN DUEL: BOT VS PLAYER LAIN */}
-      <DuelModeSelectModal
-        isOpen={showDuelModal}
-        onClose={() => setShowDuelModal(false)}
-      />
+      </Link>
 
       <div className="flex items-center gap-2 text-xs font-mono text-muted uppercase tracking-wider">
         <span>{t.arena.otherSoloGames}</span>
