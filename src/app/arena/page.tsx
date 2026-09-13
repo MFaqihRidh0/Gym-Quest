@@ -13,6 +13,7 @@ import { usePoseDetection } from '@/modules/cv-engine/usePoseDetection';
 import { useArenaGame } from '@/modules/game-engine/useArenaGame';
 import { useKangarooGame } from '@/modules/game-engine/useKangarooGame';
 import type { ArenaControlMode } from '@/modules/game-engine/verticalControl';
+import { DuelModeSelectModal } from '@/components/DuelModeSelectModal';
 
 const SESSION_SECONDS = 60;
 
@@ -45,6 +46,7 @@ function SelectScreen({
   loading: boolean;
 }) {
   const { t } = useLanguage();
+  const [showDuelModal, setShowDuelModal] = useState(false);
 
   const gamesList: { code: ArenaGame; label: string; description: string }[] = [
     {
@@ -75,10 +77,11 @@ function SelectScreen({
         <h1 className="mt-2 font-display text-2xl font-bold">{t.arena.chooseOpponentTitle}</h1>
       </div>
 
-      {/* CARD KHUSUS 1v1 PUSH-UP BATTLE (2-PLAYER) */}
-      <Link
-        href="/arena/battle"
-        className="glass-panel clip-corner border-2 border-magenta/60 bg-gradient-to-r from-cyan/15 via-magenta/15 to-void p-5 text-left transition-all hover:scale-[1.01] hover:border-magenta relative overflow-hidden group shadow-[0_0_30px_rgba(255,0,122,0.25)] block"
+      {/* CARD KHUSUS 1v1 PUSH-UP BATTLE (MEMBUKA PILIHAN BOT VS PLAYER LAIN) */}
+      <button
+        type="button"
+        onClick={() => setShowDuelModal(true)}
+        className="glass-panel clip-corner border-2 border-magenta/60 bg-gradient-to-r from-cyan/15 via-magenta/15 to-void p-5 text-left transition-all hover:scale-[1.01] hover:border-magenta relative overflow-hidden group shadow-[0_0_30px_rgba(255,0,122,0.25)] block w-full cursor-pointer"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -97,9 +100,15 @@ function SelectScreen({
               </p>
             </div>
           </div>
-          <span className="text-magenta font-mono text-xl font-bold">➔</span>
+          <span className="text-magenta font-mono text-xl font-bold group-hover:translate-x-1 transition-transform">➔</span>
         </div>
-      </Link>
+      </button>
+
+      {/* MODAL PILIHAN LAWAN DUEL: BOT VS PLAYER LAIN */}
+      <DuelModeSelectModal
+        isOpen={showDuelModal}
+        onClose={() => setShowDuelModal(false)}
+      />
 
       <div className="flex items-center gap-2 text-xs font-mono text-muted uppercase tracking-wider">
         <span>{t.arena.otherSoloGames}</span>

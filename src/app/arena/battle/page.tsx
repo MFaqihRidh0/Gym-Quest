@@ -39,12 +39,17 @@ import {
 function PushUpBattleContent() {
   const { t, language } = useLanguage();
   const searchParams = useSearchParams();
+  const urlMode = searchParams.get('mode') as OpponentMode | null;
+  const urlDifficulty = searchParams.get('difficulty') as BotDifficulty | null;
+  const urlAction = searchParams.get('action') as 'create' | 'join' | null;
   const urlRoomCode = searchParams.get('room');
 
   const [opponentMode, setOpponentMode] = useState<OpponentMode>(
-    urlRoomCode ? 'online_pvp' : 'ai_bot'
+    urlMode || (urlRoomCode ? 'online_pvp' : 'ai_bot')
   );
-  const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>('medium');
+  const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>(
+    urlDifficulty || 'medium'
+  );
   const [showShareModal, setShowShareModal] = useState(false);
   const [cameraLarge, setCameraLarge] = useState(false);
   const profile = getUserProfile();
@@ -59,10 +64,10 @@ function PushUpBattleContent() {
   // Online Duel Room State
   const roomManagerRef = useRef<DuelRoomManager | null>(null);
   const [roomCode, setRoomCode] = useState<string>(urlRoomCode ? normalizeRoomCode(urlRoomCode) : '');
-  const [roomRole, setRoomRole] = useState<PlayerRole>(urlRoomCode ? 'guest' : 'host');
+  const [roomRole, setRoomRole] = useState<PlayerRole>(urlAction === 'create' ? 'host' : 'guest');
   const [roomStatus, setRoomStatus] = useState<'idle' | 'connecting' | 'waiting' | 'connected' | 'error'>('idle');
   const [roomOpponent, setRoomOpponent] = useState<RoomPlayer | null>(null);
-  const [activeRoomTab, setActiveRoomTab] = useState<'create' | 'join'>(urlRoomCode ? 'join' : 'create');
+  const [activeRoomTab, setActiveRoomTab] = useState<'create' | 'join'>(urlAction === 'create' ? 'create' : 'join');
   const [roomInputCode, setRoomInputCode] = useState(urlRoomCode ? normalizeRoomCode(urlRoomCode) : '');
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -185,11 +190,11 @@ function PushUpBattleContent() {
     });
   };
 
-  const handleCreateRoom = () => {
+  const handleCreateRoom = (customCode?: string) => {
     if (roomManagerRef.current) {
       roomManagerRef.current.disconnect();
     }
-    const newCode = generateRoomCode();
+    const newCode = customCode ? normalizeRoomCode(customCode) : generateRoomCode();
     setRoomCode(newCode);
     setRoomRole('host');
     setRoomStatus('waiting');
@@ -230,6 +235,17 @@ function PushUpBattleContent() {
     manager.connect();
     roomManagerRef.current = manager;
   };
+
+  // Auto-connect room if URL parameter room is provided
+  useEffect(() => {
+    if (urlRoomCode) {
+      if (urlAction === 'create') {
+        handleCreateRoom(urlRoomCode);
+      } else {
+        handleJoinRoom(urlRoomCode);
+      }
+    }
+  }, [urlRoomCode, urlAction]);
 
   const handleLeaveRoom = () => {
     if (roomManagerRef.current) {
