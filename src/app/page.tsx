@@ -527,9 +527,7 @@ export default function Home() {
             <p className="max-w-2xl text-[11px] leading-relaxed text-center md:text-left flex items-start gap-1.5">
               <IconShield size={14} className="text-yellow-400 shrink-0 mt-0.5" />
               <span>
-                <strong>Disclaimer Medis:</strong> GymQuest adalah alat bantu kebugaran dan pelacak
-                latihan, bukan pengganti nasihat dokter atau instruktur medis profesional. Segera
-                hentikan latihan jika kamu merasa pusing, nyeri dada, atau cedera sendi.
+                <strong className="text-white/90">{t.home.footerDisclaimerTitle}</strong> {t.home.footerDisclaimerText}
               </span>
             </p>
             <div className="font-mono text-[11px] text-muted whitespace-nowrap">

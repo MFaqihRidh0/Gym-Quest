@@ -110,6 +110,9 @@ export const enTranslations: TranslationDictionary = {
     footerMember: 'Team Member',
     footerCompetitionNotice: 'International Web Technology Competition',
     footerCopyrightNotice: '© 2026 GymQuest · Built for Web Technology Showcase',
+    footerDisclaimerTitle: 'Health & Safety Disclaimer:',
+    footerDisclaimerText:
+      'GymQuest serves as a digital fitness assistant to guide your movement technique and repetitions. However, this application is not a substitute for clinical medical diagnosis or a physician\'s advice. Always listen to your body and rest immediately if you experience sharp pain, dizziness, or shortness of breath.',
   },
 
   programs: {

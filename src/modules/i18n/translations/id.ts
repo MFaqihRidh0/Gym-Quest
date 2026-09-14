@@ -110,6 +110,9 @@ export const idTranslations: TranslationDictionary = {
     footerMember: 'Anggota Tim',
     footerCompetitionNotice: 'International Web Technology Competition',
     footerCopyrightNotice: '© 2026 GymQuest · untuk perlombaan gayatama',
+    footerDisclaimerTitle: 'Disclaimer Kesehatan & Keselamatan:',
+    footerDisclaimerText:
+      'GymQuest hadir sebagai asisten kebugaran digital untuk memandu teknik gerakan dan repetisimu. Namun, aplikasi ini bukan pengganti diagnosis medis klinis atau anjuran dokter. Selalu dengarkan sinyal tubuhmu dan segera istirahat jika mengalami nyeri tajam, pusing, atau sesak napas.',
   },
 
   programs: {

@@ -102,6 +102,8 @@ export interface TranslationDictionary {
     footerMember: string;
     footerCompetitionNotice: string;
     footerCopyrightNotice: string;
+    footerDisclaimerTitle: string;
+    footerDisclaimerText: string;
   };
 
   // Programs Page & Custom Workout
