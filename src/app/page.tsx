@@ -21,6 +21,7 @@ import {
   IconTarget,
   IconShield,
   IconDumbbell,
+  IconBarbell,
   IconBurst,
   IconChart,
   IconCamera,
@@ -112,7 +113,7 @@ export default function Home() {
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan via-blue-600 to-magenta p-0.5 shadow-[0_0_20px_rgba(0,229,255,0.4)] group-hover:scale-105 transition-transform">
             <div className="w-full h-full bg-void rounded-[10px] flex items-center justify-center">
-              <IconBolt size={22} className="text-cyan" glow />
+              <IconBarbell size={22} className="text-cyan" glow />
             </div>
           </div>
           <div>
@@ -323,8 +324,8 @@ export default function Home() {
             <div className="space-y-4 md:col-span-1">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan to-magenta p-0.5">
-                  <div className="w-full h-full bg-void rounded-[6px] flex items-center justify-center text-sm font-bold text-cyan">
-                    GQ
+                  <div className="w-full h-full bg-void rounded-[6px] flex items-center justify-center">
+                    <IconBarbell size={18} className="text-cyan" />
                   </div>
                 </div>
                 <span className="font-display font-bold text-lg text-white">GYMQUEST</span>

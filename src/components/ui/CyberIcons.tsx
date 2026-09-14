@@ -155,6 +155,29 @@ export const IconDumbbell: React.FC<IconProps> = ({ size = 20, className = 'text
   </svg>
 );
 
+// 9b. BARBEL OLYMPIC & LOGO RESMI GYMQUEST
+export const IconBarbell: React.FC<IconProps> = ({ size = 20, className = 'text-cyan', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={`inline-block transition-transform duration-200 ${glow ? 'drop-shadow-[0_0_8px_currentColor]' : ''} ${className}`}
+  >
+    {/* Central Bar Shaft */}
+    <rect x="2" y="10.5" width="20" height="3" rx="1" />
+    {/* Primary Heavy Bumper Plates */}
+    <rect x="5" y="4" width="2.5" height="16" rx="1" />
+    <rect x="16.5" y="4" width="2.5" height="16" rx="1" />
+    {/* Secondary Step Plates */}
+    <rect x="7.5" y="6" width="2" height="12" rx="0.75" />
+    <rect x="14.5" y="6" width="2" height="12" rx="0.75" />
+    {/* Outer Collar Fasteners */}
+    <rect x="3.5" y="8.5" width="1.5" height="7" rx="0.5" />
+    <rect x="19" y="8.5" width="1.5" height="7" rx="0.5" />
+  </svg>
+);
+
 // 10. LEDAKAN SUPERNOVA / KAMEHAMEHA BURST (Menggantikan 💥)
 export const IconBurst: React.FC<IconProps> = ({ size = 20, className = 'text-amber-400', glow = false }) => (
   <svg

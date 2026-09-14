@@ -14,6 +14,7 @@ import {
   IconLock,
   IconTrophy,
   IconDumbbell,
+  IconBarbell,
 } from '@/components/ui/CyberIcons';
 
 function AuthContent() {
@@ -157,7 +158,7 @@ function AuthContent() {
             <Link href="/" className="inline-flex items-center gap-3 group">
               <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan via-blue-600 to-magenta p-0.5 shadow-[0_0_20px_rgba(0,229,255,0.4)] group-hover:scale-105 transition-transform">
                 <div className="w-full h-full bg-void rounded-[10px] flex items-center justify-center">
-                  <IconBolt size={24} className="text-cyan" glow />
+                  <IconBarbell size={24} className="text-cyan" glow />
                 </div>
               </div>
               <div>
