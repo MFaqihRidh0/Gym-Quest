@@ -1,6 +1,6 @@
 import { POSE_LANDMARK as L } from '../cv-engine/landmarks';
 import type { PoseLandmarks } from '../cv-engine/types';
-import { angleFromHorizontal, averageJointAngle } from './angles';
+import { angleBetween, angleFromHorizontal, averageJointAngle } from './angles';
 
 export type ExerciseCode = 'push_up' | 'squat' | 'sit_up' | 'plank' | 'arm_raise';
 export type CountType = 'rep' | 'duration';
@@ -70,6 +70,57 @@ const bodyTilt = (landmarks: PoseLandmarks) => {
   return angleFromHorizontal(shoulder, hip);
 };
 
+/**
+ * Sudut elevasi angkat barbel overhead press (0–180°).
+ * Mengukur sudut antara pergelangan tangan (wrist) → bahu (shoulder) → anchor tubuh bawah (hip / virtual hip).
+ * Saat barbel di dada / bawah: tangan di dekat bahu/bawah -> sudut ~35° - 60°.
+ * Saat barbel diangkat ke atas kepala: tangan lurus tinggi di atas kepala -> sudut ~130° - 175°.
+ * Menggunakan fallback virtual hip bila pinggul terpotong oleh framing webcam laptop/HP.
+ */
+const overheadPressAngle = (landmarks: PoseLandmarks): number | null => {
+  const getSideElevation = (side: 'left' | 'right') => {
+    const shoulder = landmarks[side === 'left' ? L.LEFT_SHOULDER : L.RIGHT_SHOULDER];
+    const wrist = landmarks[side === 'left' ? L.LEFT_WRIST : L.RIGHT_WRIST];
+    const elbow = landmarks[side === 'left' ? L.LEFT_ELBOW : L.RIGHT_ELBOW];
+    const hip = landmarks[side === 'left' ? L.LEFT_HIP : L.RIGHT_HIP];
+
+    if (!shoulder || !wrist) return null;
+    const shoulderVis = shoulder.visibility ?? 1;
+    const wristVis = wrist.visibility ?? 1;
+    if (shoulderVis < 0.35 || wristVis < 0.35) return null;
+
+    // Anchor tubuh bagian bawah: jika hip terlihat jelas gunakan hip, jika di luar frame gunakan garis vertikal ke bawah
+    const hipVis = hip?.visibility ?? 0;
+    const anchor = (hip && hipVis >= 0.35)
+      ? hip
+      : { x: shoulder.x, y: shoulder.y + 0.45, z: shoulder.z ?? 0, visibility: shoulderVis };
+
+    // Sudut elevasi tangan (wrist - shoulder - anchor)
+    const armAngle = angleBetween(wrist, shoulder, anchor);
+
+    // Tambahan kontribusi ekstensi siku jika siku terdeteksi
+    let compositeAngle = armAngle;
+    const elbowVis = elbow?.visibility ?? 0;
+    if (elbow && elbowVis >= 0.35) {
+      const elbowExt = angleBetween(shoulder, elbow, wrist);
+      compositeAngle = armAngle * 0.75 + elbowExt * 0.25;
+    }
+
+    return {
+      angle: compositeAngle,
+      visibility: Math.min(shoulderVis, wristVis),
+    };
+  };
+
+  const left = getSideElevation('left');
+  const right = getSideElevation('right');
+
+  if (!left && !right) return null;
+  if (left && !right) return left.angle;
+  if (!left && right) return right.angle;
+  return (left!.angle + right!.angle) / 2;
+};
+
 export const EXERCISES: Record<ExerciseCode, ExerciseDefinition> = {
   push_up: {
     code: 'push_up',
@@ -134,20 +185,14 @@ export const EXERCISES: Record<ExerciseCode, ExerciseDefinition> = {
   },
   arm_raise: {
     code: 'arm_raise',
-    label: 'Angkat lengan',
+    label: 'Overhead Barbell / Arm Raise',
     muscleGroup: 'bahu',
     countType: 'rep',
-    primaryAngle: shoulderAngle,
-    downThreshold: 35,
-    upThreshold: 75,
-    cameraHint: 'Hadap kamera, pastikan kedua lengan tidak keluar frame saat diangkat ke samping.',
-    formRules: [
-      {
-        measure: elbowAngle,
-        min: 130,
-        message: 'Siku terlalu menekuk. Jaga lengan tetap lurus saat diangkat.',
-      },
-    ],
+    primaryAngle: overheadPressAngle,
+    downThreshold: 70,
+    upThreshold: 118,
+    cameraHint: 'Hadap kamera, angkat kedua tangan dari dada lurus ke atas kepala seperti mengangkat barbel.',
+    formRules: [],
   },
 };
 

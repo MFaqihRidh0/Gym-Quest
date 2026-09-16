@@ -61,6 +61,7 @@ export interface PoseDetectionResult {
   status: DetectionStatus;
   error: CvEngineError | null;
   fps: number;
+  stream: MediaStream | null;
   start: () => void;
   stop: () => void;
 }
@@ -80,6 +81,7 @@ export function usePoseDetection(): PoseDetectionResult {
   const [status, setStatus] = useState<DetectionStatus>('idle');
   const [error, setError] = useState<CvEngineError | null>(null);
   const [fps, setFps] = useState(0);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
   const stop = useCallback(() => {
     isCancelledRef.current = true;
@@ -97,6 +99,7 @@ export function usePoseDetection(): PoseDetectionResult {
     lastUiSyncRef.current = 0;
     setLandmarks(null);
     setFps(0);
+    setStream(null);
     setStatus('idle');
   }, []);
 
@@ -174,6 +177,7 @@ export function usePoseDetection(): PoseDetectionResult {
     }
 
     setStatus('running');
+    setStream(stream);
 
     const detect = () => {
       const video = videoRef.current;
@@ -214,7 +218,15 @@ export function usePoseDetection(): PoseDetectionResult {
     rafRef.current = requestAnimationFrame(detect);
   }, []);
 
+  // Pastikan elemen video selalu tersambung dengan stream aktif (misal saat berganti stage DOM)
+  useEffect(() => {
+    if (videoRef.current && stream && videoRef.current.srcObject !== stream) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(() => {});
+    }
+  });
+
   useEffect(() => stop, [stop]);
 
-  return { videoRef, liveLandmarksRef, landmarks, status, error, fps, start, stop };
+  return { videoRef, liveLandmarksRef, landmarks, status, error, fps, stream, start, stop };
 }

@@ -20,6 +20,7 @@ export function usePushUpBattle(
   botDifficulty: BotDifficulty = 'medium',
   playerRole: BattlePlayerRole = 'p1',
   onLocalAction?: (type: 'attack' | 'charge', player: 'p1' | 'p2') => void,
+  isGameActive = true,
 ) {
   const gameRef = useRef<PushUpBattleGame | null>(null);
   const repCounterP1Ref = useRef<RepCounter | null>(null);
@@ -56,7 +57,9 @@ export function usePushUpBattle(
       setP2Reps(r2);
     };
 
-    game.start();
+    if (isGameActive) {
+      game.start();
+    }
 
     // Loop interval to update React UI state from game engine
     const uiInterval = setInterval(() => {
@@ -103,7 +106,14 @@ export function usePushUpBattle(
       if (aiInterval) clearTimeout(aiInterval);
       if (aiChargeTimeout) clearTimeout(aiChargeTimeout);
     };
-  }, [canvasRef, p1Name, p2Name, opponentMode, botDifficulty]);
+  }, [canvasRef, p1Name, p2Name, opponentMode, botDifficulty, isGameActive]);
+
+  // Pantau perubahan status aktif duel
+  useEffect(() => {
+    if (isGameActive && gameRef.current && !gameRef.current.isGameOver) {
+      gameRef.current.start();
+    }
+  }, [isGameActive]);
 
   // CV Landmark Loop: Menggunakan pelacakan vertikal atas-bawah
   useEffect(() => {

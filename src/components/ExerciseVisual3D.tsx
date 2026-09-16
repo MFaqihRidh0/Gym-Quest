@@ -4,12 +4,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { ExerciseItem } from '@/modules/program-engine/types';
 import { useLanguage, type SupportedLanguage } from '@/modules/i18n';
+import { IconTarget } from '@/components/ui/CyberIcons';
 
 interface ExerciseVisual3DProps {
   visualKey: ExerciseItem['visualKey'];
   className?: string;
   isAnimated?: boolean;
   showControls?: boolean;
+  onAnimationRep?: () => void;
 }
 
 const CYAN_HEX = 0x00e5ff;
@@ -142,10 +144,17 @@ export function ExerciseVisual3D({
   className = 'w-full h-full',
   isAnimated = true,
   showControls = true,
+  onAnimationRep,
 }: ExerciseVisual3DProps) {
   const { language } = useLanguage();
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [activePreset, setActivePreset] = useState<CameraPreset>('isometric');
+
+  const onAnimationRepRef = useRef(onAnimationRep);
+  useEffect(() => {
+    onAnimationRepRef.current = onAnimationRep;
+  }, [onAnimationRep]);
+  const repPeakReachedRef = useRef(false);
 
   const guidance = GUIDANCE_TRANSLATIONS[visualKey]?.[language] || { tip: '', muscles: '' };
   const formGuidanceTip = guidance.tip;
@@ -430,29 +439,69 @@ export function ExerciseVisual3D({
     const rightFootMesh = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.065, 0.20), limbMat);
     rightFoot.add(rightFootMesh);
 
-    // Optional Barbell Accessory for arm_raise
+    // Professional Olympic Barbell for arm_raise (gagang panjang, piringan di sisi luar tangan)
     const barbell = new THREE.Group();
+    // 1. Batang baja / gagang utama (panjang 1.85, diameter 0.044)
     const barMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.02, 0.02, 1.3, 16),
-      new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.2 })
+      new THREE.CylinderGeometry(0.022, 0.022, 1.85, 24),
+      new THREE.MeshStandardMaterial({
+        color: 0xeeeeee,
+        metalness: 0.95,
+        roughness: 0.15,
+      })
     );
     barMesh.rotation.z = Math.PI / 2;
     barbell.add(barMesh);
 
+    // 2. Collar rings pembatas gagang dan piringan beban
+    const collarMat = new THREE.MeshStandardMaterial({
+      color: 0x999999,
+      metalness: 0.9,
+      roughness: 0.2,
+    });
+    const leftCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.025, 24), collarMat);
+    leftCollar.rotation.z = Math.PI / 2;
+    leftCollar.position.x = -0.70;
+    barbell.add(leftCollar);
+
+    const rightCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.025, 24), collarMat);
+    rightCollar.rotation.z = Math.PI / 2;
+    rightCollar.position.x = 0.70;
+    barbell.add(rightCollar);
+
+    // 3. Piringan beban magenta futuristik di luar batas pegangan tangan
     const plateMat = new THREE.MeshStandardMaterial({
       color: 0x221330,
       emissive: MAGENTA_HEX,
-      emissiveIntensity: 0.8,
+      emissiveIntensity: 0.85,
+      metalness: 0.4,
+      roughness: 0.3,
     });
-    const leftPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.06, 24), plateMat);
+    const leftPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.21, 0.07, 28), plateMat);
     leftPlate.rotation.z = Math.PI / 2;
-    leftPlate.position.x = -0.6;
+    leftPlate.position.x = -0.78;
     barbell.add(leftPlate);
 
-    const rightPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.06, 24), plateMat);
+    const rightPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.21, 0.07, 28), plateMat);
     rightPlate.rotation.z = Math.PI / 2;
-    rightPlate.position.x = 0.6;
+    rightPlate.position.x = 0.78;
     barbell.add(rightPlate);
+
+    // Cyan glowing rim rings on plates
+    const rimMat = new THREE.MeshStandardMaterial({
+      color: CYAN_HEX,
+      emissive: CYAN_HEX,
+      emissiveIntensity: 0.7,
+    });
+    const leftRim = new THREE.Mesh(new THREE.CylinderGeometry(0.215, 0.215, 0.015, 28), rimMat);
+    leftRim.rotation.z = Math.PI / 2;
+    leftRim.position.x = -0.78;
+    barbell.add(leftRim);
+
+    const rightRim = new THREE.Mesh(new THREE.CylinderGeometry(0.215, 0.215, 0.015, 28), rimMat);
+    rightRim.rotation.z = Math.PI / 2;
+    rightRim.position.x = 0.78;
+    barbell.add(rightRim);
 
     barbell.visible = visualKey === 'arm_raise';
     mannequin.add(barbell);
@@ -604,6 +653,8 @@ export function ExerciseVisual3D({
 
       leftThighMesh.material = limbMat;
       rightThighMesh.material = limbMat;
+      leftShinMesh.material = limbMat;
+      rightShinMesh.material = limbMat;
       torsoMesh.material = torsoMat;
       leftUpperArmMesh.material = limbMat;
       rightUpperArmMesh.material = limbMat;
@@ -832,24 +883,68 @@ export function ExerciseVisual3D({
 
         case 'arm_raise': {
           const speed = 2.4;
-          const lift = (Math.sin(t * speed) + 1) / 2; // 0 = chest, 1 = overhead
+          const phase = Math.sin(t * speed);
+          const lift = (phase + 1) / 2; // 0 = chest/clavicle rack position, 1 = full overhead lockout
 
           // Standing legs stable
           leftHip.rotation.z = -0.16;
           rightHip.rotation.z = 0.16;
 
-          // Arms pressing up overhead (elbows flared outward, clear of ears)
-          leftShoulder.rotation.z = -0.65 - lift * 0.45;
-          rightShoulder.rotation.z = 0.65 + lift * 0.45;
-          leftShoulder.rotation.x = -0.32 - lift * 0.58;
-          rightShoulder.rotation.x = -0.32 - lift * 0.58;
+          // Biomekanik presisi Overhead Barbell Press:
+          // Siku menekuk ke samping (lateral flare di bidang skapula):
+          // - Pada lift = 0 (posisi bawah/dada): Siku membuka ke samping (~85°), siku ditekuk ~90° ke atas
+          //   membentuk pose W-rack sehingga lengan bawah tegak lurus menopang barbel di depan dada/klavikula.
+          // - Pada lift = 1 (posisi atas/overhead lockout): Lengan mendorong lurus ke atas kepala, siku melurus penuh.
+          const shoulderZ = -1.48 - lift * 1.25; // -1.48 (siku ke samping) -> -2.73 (lurus ke atas kepala)
+          leftShoulder.rotation.z = shoulderZ;
+          rightShoulder.rotation.z = -shoulderZ;
 
-          leftElbow.rotation.x = 1.15 - lift * 1.05;
-          rightElbow.rotation.x = 1.15 - lift * 1.05;
+          // Condong ke depan di bidang skapula sehingga barbel turun tepat di depan dada (z ~0.26)
+          // bebas dari tabrakan/penetrasi torso/leher, dan naik lurus tepat di atas kepala (overhead lockout)
+          leftShoulder.rotation.x = -0.56 * (1 - lift) - 0.03 * lift;
+          rightShoulder.rotation.x = -0.56 * (1 - lift) - 0.03 * lift;
 
-          // Barbell in front of body and overhead
+          leftShoulder.rotation.y = 0.22 * (1 - lift);
+          rightShoulder.rotation.y = -0.22 * (1 - lift);
+
+          // Siku menekuk ke samping-atas (W-rack) pada posisi bawah, dan melurus (0) saat di atas kepala
+          leftElbow.rotation.z = -1.42 * (1 - lift);
+          rightElbow.rotation.z = 1.42 * (1 - lift);
+
+          leftElbow.rotation.x = 0.36 * (1 - lift);
+          rightElbow.rotation.x = 0.36 * (1 - lift);
+          leftElbow.rotation.y = 0;
+          rightElbow.rotation.y = 0;
+
+          // Update matriks dunia manekin agar koordinat tangan sinkron secara instan
+          mannequin.updateMatrixWorld(true);
+
+          // Kunci posisi barbel tepat pada titik telapak tangan, dengan proteksi clearance agar selalu di depan badan
+          const lHandPos = new THREE.Vector3();
+          const rHandPos = new THREE.Vector3();
+          leftHand.getWorldPosition(lHandPos);
+          rightHand.getWorldPosition(rHandPos);
+          mannequin.worldToLocal(lHandPos);
+          mannequin.worldToLocal(rHandPos);
+
+          const midHandZ = (lHandPos.z + rHandPos.z) * 0.5;
+          // Clearance aman di depan dada: pada lift = 0 (bawah) z >= 0.26 (di depan dada z=0.16), pada lift = 1 (atas) z ~0.04
+          const safeForwardZ = Math.max(midHandZ, 0.26 * (1 - lift) + 0.04 * lift);
+
           barbell.visible = true;
-          barbell.position.set(0, 0.48 + lift * 0.65, 0.16);
+          barbell.position.set(
+            (lHandPos.x + rHandPos.x) * 0.5,
+            (lHandPos.y + rHandPos.y) * 0.5,
+            safeForwardZ
+          );
+
+          // Deteksi siklus repetisi animasi untuk Auto-Pacing (Atas -> Kembali ke Dada = 1 Repetisi)
+          if (lift > 0.88) {
+            repPeakReachedRef.current = true;
+          } else if (lift < 0.14 && repPeakReachedRef.current) {
+            repPeakReachedRef.current = false;
+            onAnimationRepRef.current?.();
+          }
 
           if (lift > 0.5) {
             leftUpperArmMesh.material = activeMuscleMat;
@@ -898,37 +993,60 @@ export function ExerciseVisual3D({
         }
 
         case 'high_knees': {
-          const speed = 6.8;
+          const speed = 7.2;
           const cycle = Math.sin(t * speed);
-          const bounce = Math.abs(cycle) * 0.12;
+          const bounce = Math.abs(cycle) * 0.10;
 
           mannequin.position.y = bounce;
-          spine.rotation.x = 0.12; // Slight forward athletic lean
+          spine.rotation.x = 0.08; // Athletic forward posture
 
-          // Legs separated in sagittal lanes
-          leftHip.rotation.z = -0.15;
-          rightHip.rotation.z = 0.15;
+          // Legs track straight in parallel sagittal lanes (no unnatural wide splay)
+          leftHip.rotation.z = -0.04;
+          rightHip.rotation.z = 0.04;
 
-          // Alternating knee pump
+          // Alternating high knee drive with vertical shin and ball-of-foot spring
           if (cycle > 0) {
-            leftHip.rotation.x = -cycle * 1.45;
+            // Left leg drives high to waist
+            leftHip.rotation.x = -cycle * 1.55;
             leftKnee.rotation.x = cycle * 1.55;
-            rightHip.rotation.x = 0.1;
-            rightKnee.rotation.x = 0.1;
+            leftFoot.rotation.x = -cycle * 0.25;
+
+            // Right leg extends to support & spring
+            rightHip.rotation.x = 0.05;
+            rightKnee.rotation.x = 0.05;
+            rightFoot.rotation.x = cycle * 0.25;
+
+            // Reciprocal runner arm swing: Left knee UP -> Left arm BACK, Right arm FORWARD
+            leftShoulder.rotation.x = cycle * 0.65;
+            rightShoulder.rotation.x = -cycle * 0.75;
           } else {
-            rightHip.rotation.x = cycle * 1.45;
-            rightKnee.rotation.x = -cycle * 1.55;
-            leftHip.rotation.x = 0.1;
-            leftKnee.rotation.x = 0.1;
+            // Right leg drives high to waist
+            const negCycle = -cycle;
+            rightHip.rotation.x = -negCycle * 1.55;
+            rightKnee.rotation.x = negCycle * 1.55;
+            rightFoot.rotation.x = -negCycle * 0.25;
+
+            // Left leg extends to support & spring
+            leftHip.rotation.x = 0.05;
+            leftKnee.rotation.x = 0.05;
+            leftFoot.rotation.x = negCycle * 0.25;
+
+            // Reciprocal runner arm swing: Right knee UP -> Right arm BACK, Left arm FORWARD
+            leftShoulder.rotation.x = -negCycle * 0.75;
+            rightShoulder.rotation.x = negCycle * 0.65;
           }
 
-          // Arms pumping in running cadence outside the knee track
-          leftShoulder.rotation.z = -0.32;
-          rightShoulder.rotation.z = 0.32;
-          leftShoulder.rotation.x = cycle * 0.82;
-          rightShoulder.rotation.x = -cycle * 0.82;
-          leftElbow.rotation.x = 1.15;
-          rightElbow.rotation.x = 1.15;
+          // Arms: Athletic 90° forward runner's bend (NEGATIVE X brings forearm forward!), held slightly clear of torso
+          leftShoulder.rotation.z = -0.22;
+          rightShoulder.rotation.z = 0.22;
+          leftElbow.rotation.x = -1.52;
+          rightElbow.rotation.x = -1.52;
+
+          // Active target muscles: Hip flexors, quadriceps & calves
+          leftThighMesh.material = activeMuscleMat;
+          rightThighMesh.material = activeMuscleMat;
+          leftShinMesh.material = activeMuscleMat;
+          rightShinMesh.material = activeMuscleMat;
           break;
         }
 
@@ -1116,7 +1234,7 @@ export function ExerciseVisual3D({
           {/* Form Guidance Pill */}
           {formGuidanceTip && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0b1433]/90 border border-cyan/35 text-[11px] text-white/95 backdrop-blur-md max-w-xl">
-              <span className="text-cyan text-xs">🎯</span>
+              <IconTarget size={14} className="text-cyan shrink-0" />
               <span className="leading-snug">{formGuidanceTip}</span>
             </div>
           )}

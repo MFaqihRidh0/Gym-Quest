@@ -369,6 +369,11 @@ export interface TranslationDictionary {
     changeOpponentMode: string;
     duelLobbyTitle: string;
     duelLobbySubtitle: string;
+    waitingRoomTitle: string;
+    waitingRoomSubtitle: string;
+    waitingForOpponent: string;
+    waitingForHost: string;
+    opponentCameraLive: string;
     battleBotLevel: string;
     battleTitle: string;
     battleInstructions: string;

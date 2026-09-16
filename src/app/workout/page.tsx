@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DEFAULT_PROGRAMS } from '@/modules/program-engine/defaultPrograms';
@@ -15,6 +15,19 @@ import { ExerciseVisual } from '@/components/ExerciseVisual';
 import { ShareAchievementModal } from '@/components/ShareAchievementModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useLanguage, getLocalizedExercise, getLocalizedProgram } from '@/modules/i18n';
+import {
+  IconBolt,
+  IconFlame,
+  IconTrophy,
+  IconTimer,
+  IconWarning,
+  IconPlay,
+  IconPause,
+  IconSkip,
+  IconCheckmark,
+  IconLightbulb,
+  IconTarget,
+} from '@/components/ui/CyberIcons';
 
 type WorkoutPhase = 'countdown' | 'work' | 'rest' | 'finished';
 
@@ -86,15 +99,19 @@ function WorkoutRunner() {
     ? getLocalizedExercise(rawExerciseItem, language)
     : undefined;
 
-  // Inisialisasi AI Rep Counter saat gerakan berubah
+  // Inisialisasi AI Rep Counter saat gerakan berubah & auto-fallback ke Animasi 3D jika tidak ada kamera AI
   useEffect(() => {
     if (currentExerciseItem?.supportedAiCode) {
       repCounterRef.current = new RepCounter(currentExerciseItem.supportedAiCode);
     } else {
       repCounterRef.current = null;
+      // Gerakan tidak mendukung kamera AI -> otomatis alihkan ke mode animasi 3D
+      if (mode === 'ai_camera') {
+        setMode('manual');
+      }
     }
     setRepsDone(0);
-  }, [exerciseIndex, currentExerciseItem]);
+  }, [exerciseIndex, currentExerciseItem, mode]);
 
   // Handle kamera start/stop sesuai mode
   useEffect(() => {
@@ -255,6 +272,12 @@ function WorkoutRunner() {
     if (!program || !currentExerciseRef) return;
     soundEngine.playRestTransition();
 
+    // Catat repetisi set ini ke total akumulasi
+    const completedRepsThisSet = repsDone > 0 ? repsDone : (currentExerciseRef.reps || 0);
+    if (repsDone === 0 && completedRepsThisSet > 0) {
+      setTotalRepsCompleted((prev) => prev + completedRepsThisSet);
+    }
+
     const isLastSetOfExercise = currentSet >= currentExerciseRef.sets;
     const isLastExercise = exerciseIndex >= program.exercises.length - 1;
 
@@ -293,7 +316,7 @@ function WorkoutRunner() {
   };
 
   // Manual rep increment
-  const handleManualAddRep = () => {
+  const handleManualAddRep = useCallback(() => {
     setRepsDone((r) => {
       const next = r + 1;
       setTotalRepsCompleted((tr) => tr + 1);
@@ -304,7 +327,14 @@ function WorkoutRunner() {
       }
       return next;
     });
-  };
+  }, [currentExerciseRef]);
+
+  // Auto-Pacing: repetisi bertambah otomatis mengikuti ritme animasi 3D
+  const handleAnimationRep = useCallback(() => {
+    if (mode === 'manual' && phase === 'work' && !isPaused && !currentExerciseRef?.durationSeconds) {
+      handleManualAddRep();
+    }
+  }, [mode, phase, isPaused, currentExerciseRef, handleManualAddRep]);
 
   // Skip ke gerakan berikutnya
   const handleSkipExercise = () => {
@@ -354,8 +384,8 @@ function WorkoutRunner() {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center bg-transparent text-primary p-5">
         <div className="glass-panel clip-corner w-full max-w-lg border-cyan/50 p-8 text-center bg-void/95 space-y-6 shadow-[0_0_50px_rgba(0,229,255,0.2)]">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cyan/20 border border-cyan/50 text-3xl">
-            🏆
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cyan/20 border border-cyan/50 text-cyan">
+            <IconTrophy size={36} className="text-amber-400" glow />
           </div>
 
           <div>
@@ -391,8 +421,9 @@ function WorkoutRunner() {
             </div>
             <div className="p-2">
               <div className="text-[11px] font-mono text-muted">{t.workout.currentStreak}</div>
-              <div className="text-lg font-bold text-yellow-400 mt-0.5">
-                🔥 {finishedResult.newStreak} {t.progress.streakDays}
+              <div className="text-lg font-bold text-yellow-400 mt-0.5 flex items-center justify-center gap-1">
+                <IconFlame size={16} className="text-amber-400 inline" />
+                <span>{finishedResult.newStreak} {t.progress.streakDays}</span>
               </div>
             </div>
           </div>
@@ -400,7 +431,7 @@ function WorkoutRunner() {
           {finishedResult.earnedExp && (
             <div className="flex items-center justify-between bg-cyan/10 border border-cyan/30 rounded-lg px-4 py-2.5">
               <div className="flex items-center gap-2">
-                <span className="text-xl">⚡</span>
+                <IconBolt size={22} className="text-cyan" glow />
                 <div className="text-left">
                   <div className="text-[10px] font-mono uppercase text-cyan tracking-wider font-bold">{t.workout.earnedExp}</div>
                   <div className="text-xs text-muted">{t.nav.leaderboard}</div>
@@ -423,16 +454,17 @@ function WorkoutRunner() {
               }}
               className="w-full flex items-center justify-center gap-2 clip-corner bg-emerald-500 py-3 font-body text-xs font-bold text-void hover:bg-emerald-400 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]"
             >
-              <span>📤</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
               <span>{t.workout.shareResult}</span>
             </button>
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href="/leaderboard"
-                className="flex-1 clip-corner bg-gradient-to-r from-cyan to-magenta py-3 font-body text-xs font-bold text-void hover:opacity-90 transition-opacity text-center"
+                className="flex-1 clip-corner bg-gradient-to-r from-cyan to-magenta py-3 font-body text-xs font-bold text-void hover:opacity-90 transition-opacity text-center flex items-center justify-center gap-1.5"
               >
-                {t.nav.leaderboard} 🏆
+                <span>{t.nav.leaderboard}</span>
+                <IconTrophy size={14} className="text-void" />
               </Link>
               <Link
                 href="/progress"
@@ -511,9 +543,10 @@ function WorkoutRunner() {
 
           <button
             onClick={handleSkipRest}
-            className="w-full clip-corner bg-magenta py-3 font-body text-xs font-bold text-void hover:shadow-[var(--glow-magenta)] transition-all"
+            className="w-full clip-corner bg-magenta py-3 font-body text-xs font-bold text-void hover:shadow-[var(--glow-magenta)] transition-all flex items-center justify-center gap-1.5"
           >
-            {language === 'en' ? 'Skip Rest ⏭' : 'Lewati Istirahat ⏭'}
+            <span>{language === 'en' ? 'Skip Rest' : 'Lewati Istirahat'}</span>
+            <IconSkip size={12} className="inline fill-current" />
           </button>
         </div>
       </main>
@@ -546,26 +579,42 @@ function WorkoutRunner() {
 
           <div className="flex items-center gap-2 sm:gap-4 text-xs font-mono">
             <div className="flex items-center gap-1.5">
-              <span className="text-muted">⏱ {t.common.duration}:</span>
+              <span className="text-muted flex items-center gap-1">
+                <IconTimer size={13} className="text-muted" />
+                {t.common.duration}:
+              </span>
               <span className="text-white font-bold">
                 {Math.floor(sessionElapsedSeconds / 60)}:
                 {String(sessionElapsedSeconds % 60).padStart(2, '0')}
               </span>
             </div>
             <div className="hidden sm:flex items-center gap-1.5">
-              <span className="text-muted">🔥 {t.common.calories}:</span>
+              <span className="text-muted flex items-center gap-1">
+                <IconFlame size={13} className="text-magenta" />
+                {t.common.calories}:
+              </span>
               <span className="text-magenta font-bold">~{Math.round(estimatedCalories)} {t.common.calories}</span>
             </div>
             <LanguageSwitcher compact />
             <button
               onClick={() => setIsPaused(!isPaused)}
-              className={`clip-corner px-3 py-1 text-xs font-mono transition-all ${
+              className={`clip-corner px-3 py-1 text-xs font-mono transition-all flex items-center gap-1.5 ${
                 isPaused
                   ? 'bg-yellow-400 text-void font-bold shadow-[0_0_10px_rgba(255,214,0,0.5)]'
                   : 'border border-white/20 bg-white/5 text-white hover:border-cyan'
               }`}
             >
-              {isPaused ? `▶ ${t.common.resume}` : `❚❚ ${t.common.pause}`}
+              {isPaused ? (
+                <>
+                  <IconPlay size={11} className="fill-current" />
+                  <span>{t.common.resume}</span>
+                </>
+              ) : (
+                <>
+                  <IconPause size={11} className="fill-current" />
+                  <span>{t.common.pause}</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -590,7 +639,7 @@ function WorkoutRunner() {
                   }`}
                 >
                   <span className="text-[10px] w-4 h-4 rounded-full flex items-center justify-center bg-black/60">
-                    {isPassed ? '✓' : idx + 1}
+                    {isPassed ? <IconCheckmark size={10} className="text-cyan" /> : idx + 1}
                   </span>
                   <span className="truncate max-w-[130px]">{localizedItem?.name || (language === 'en' ? 'Exercise' : 'Gerakan')}</span>
                   {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />}
@@ -636,8 +685,9 @@ function WorkoutRunner() {
 
                   {/* Form Warning Alert */}
                   {aiFormFeedback && (
-                    <div className="absolute bottom-4 inset-x-4 rounded-lg bg-red-950/95 border border-red-500/80 p-3 text-center text-xs font-semibold text-red-100 shadow-xl animate-bounce">
-                      ⚠ {aiFormFeedback}
+                    <div className="absolute bottom-4 inset-x-4 rounded-lg bg-red-950/95 border border-red-500/80 p-3 text-center text-xs font-semibold text-red-100 shadow-xl animate-bounce flex items-center justify-center gap-1.5">
+                      <IconWarning size={14} className="text-red-400 shrink-0" />
+                      <span>{aiFormFeedback}</span>
                     </div>
                   )}
                 </div>
@@ -648,6 +698,7 @@ function WorkoutRunner() {
                       visualKey={currentExerciseItem.visualKey}
                       className="w-full h-full"
                       isAnimated={phase === 'work' && !isPaused}
+                      onAnimationRep={handleAnimationRep}
                     />
                   )}
                 </div>
@@ -669,6 +720,40 @@ function WorkoutRunner() {
                   </span>
                 </div>
               )}
+
+              {/* Floating Quick Mode Switcher on Stage */}
+              <div className="absolute top-3 right-3 z-20 flex items-center gap-1 bg-black/80 backdrop-blur-md p-1 rounded-xl border border-white/15 shadow-xl">
+                <button
+                  type="button"
+                  onClick={() => setMode('manual')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1 cursor-pointer ${
+                    mode === 'manual'
+                      ? 'bg-cyan text-void font-bold shadow-[0_0_10px_rgba(0,229,255,0.4)]'
+                      : 'text-muted hover:text-white'
+                  }`}
+                >
+                  <span>🏃</span>
+                  <span className="hidden sm:inline">{language === 'en' ? 'Animation' : 'Animasi'}</span>
+                </button>
+                {currentExerciseItem?.supportedAiCode ? (
+                  <button
+                    type="button"
+                    onClick={() => setMode('ai_camera')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1 cursor-pointer ${
+                      mode === 'ai_camera'
+                        ? 'bg-cyan text-void font-bold shadow-[0_0_10px_rgba(0,229,255,0.4)]'
+                        : 'text-muted hover:text-white'
+                    }`}
+                  >
+                    <span>📷</span>
+                    <span className="hidden sm:inline">{language === 'en' ? 'Camera' : 'Kamera'}</span>
+                  </button>
+                ) : (
+                  <span className="text-[10px] font-mono text-muted/60 px-2 py-0.5">
+                    {language === 'en' ? '3D Only' : 'Hanya 3D'}
+                  </span>
+                )}
+              </div>
 
               {/* COUNTDOWN OVERLAY DI AWAL */}
               {phase === 'countdown' && (
@@ -693,24 +778,58 @@ function WorkoutRunner() {
           <div className="lg:col-span-5 flex flex-col justify-between glass-panel clip-corner border-cyan/25 p-6 sm:p-8 rounded-2xl space-y-6 bg-[#0c1638]/90 shadow-[0_0_40px_rgba(8,16,45,0.6)]">
             <div>
               {/* Kategori & Toggle Mode AI */}
-              <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                 <span className="text-xs font-mono uppercase tracking-wider text-cyan font-bold">
                   {currentExerciseItem?.category} · {t.programs.noEquipment}
                 </span>
 
-                {currentExerciseItem?.supportedAiCode && (
+                {/* Permanent Segmented Mode Switcher */}
+                <div className="flex items-center p-1 rounded-xl bg-black/40 border border-white/10 text-xs font-mono">
                   <button
-                    onClick={() => setMode(mode === 'ai_camera' ? 'manual' : 'ai_camera')}
-                    className="text-xs font-mono px-3 py-1.5 rounded-lg border border-cyan/40 bg-cyan/10 text-cyan hover:bg-cyan/20 transition-all flex items-center gap-1.5"
+                    type="button"
+                    onClick={() => setMode('manual')}
+                    className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                      mode === 'manual'
+                        ? 'bg-cyan text-void font-bold shadow-[0_0_12px_rgba(0,229,255,0.4)]'
+                        : 'text-muted hover:text-white'
+                    }`}
                   >
-                    <span>{mode === 'ai_camera' ? '📷' : '🏃'}</span>
-                    <span>
-                      {mode === 'ai_camera'
-                        ? (language === 'en' ? 'Camera Sensor Mode' : 'Mode Sensor Kamera')
-                        : (language === 'en' ? 'Animation Mode' : 'Mode Animasi')}
-                    </span>
+                    <span>🏃</span>
+                    <span>{language === 'en' ? '3D Animation' : 'Animasi 3D'}</span>
                   </button>
-                )}
+
+                  <button
+                    type="button"
+                    disabled={!currentExerciseItem?.supportedAiCode}
+                    onClick={() => {
+                      if (currentExerciseItem?.supportedAiCode) {
+                        setMode('ai_camera');
+                      }
+                    }}
+                    title={
+                      !currentExerciseItem?.supportedAiCode
+                        ? (language === 'en'
+                            ? 'AI Camera tracking is not available for this exercise'
+                            : 'Sensor kamera belum mendukung gerakan ini (khusus Animasi 3D)')
+                        : ''
+                    }
+                    className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                      mode === 'ai_camera'
+                        ? 'bg-cyan text-void font-bold shadow-[0_0_12px_rgba(0,229,255,0.4)] cursor-pointer'
+                        : !currentExerciseItem?.supportedAiCode
+                          ? 'opacity-40 cursor-not-allowed text-muted'
+                          : 'text-muted hover:text-white cursor-pointer'
+                    }`}
+                  >
+                    <span>📷</span>
+                    <span>{language === 'en' ? 'AI Camera' : 'Kamera AI'}</span>
+                    {!currentExerciseItem?.supportedAiCode && (
+                      <span className="text-[9px] px-1 py-0.5 rounded bg-white/10 text-white/50 ml-0.5">
+                        {language === 'en' ? 'N/A' : 'T/A'}
+                      </span>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">
@@ -778,51 +897,64 @@ function WorkoutRunner() {
                       }}
                     />
                   </div>
-                  <span className="text-[11px] font-mono text-cyan mt-2 block">
+                  <span className="text-[11px] font-mono text-cyan mt-2 flex items-center justify-center gap-1">
                     {mode === 'ai_camera'
                       ? (language === 'en'
                         ? 'Auto-counted via Computer Vision camera sensor'
                         : 'Dihitung otomatis lewat sensor kamera Computer Vision')
-                      : (language === 'en'
-                        ? 'Press the button below after completing each rep'
-                        : 'Tekan tombol di bawah setiap menyelesaikan 1 rep')}
+                      : (
+                        <>
+                          <IconBolt size={12} className="text-cyan shrink-0 inline" />
+                          <span>
+                            {language === 'en'
+                              ? 'Auto-Pacing: Reps count automatically with 3D animation rhythm'
+                              : 'Auto-Pacing: Repetisi dihitung otomatis mengikuti ritme animasi 3D'}
+                          </span>
+                        </>
+                      )}
                   </span>
                 </div>
               )}
             </div>
 
             {/* TOMBOL KONTROL & AKSI */}
-            <div className="space-y-3">
-              {!currentExerciseRef?.durationSeconds && mode === 'manual' && (
-                <button
-                  onClick={handleManualAddRep}
-                  className="w-full clip-corner bg-gradient-to-r from-cyan to-magenta py-4 font-body text-sm font-bold text-void hover:shadow-[var(--glow-cyan)] transition-all flex items-center justify-center gap-2"
-                >
-                  <span className="text-lg">+</span> {language === 'en' ? 'Count 1 Completed Rep' : 'Hitung 1 Repetisi Selesai'}
-                </button>
-              )}
+            <div className="space-y-2.5">
+              <button
+                onClick={handleSetComplete}
+                className="w-full clip-corner bg-gradient-to-r from-cyan to-magenta py-3.5 px-4 font-body text-sm font-bold text-void hover:shadow-[var(--glow-cyan)] hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-lg"
+              >
+                <IconCheckmark size={15} className="text-void" />
+                <span>
+                  {language === 'en'
+                    ? (currentExerciseRef?.durationSeconds
+                        ? 'Finish This Set'
+                        : repsDone > 0
+                          ? `Finish at Rep ${repsDone}`
+                          : 'Finish at Current Reps')
+                    : (currentExerciseRef?.durationSeconds
+                        ? 'Selesai pada Set Ini'
+                        : repsDone > 0
+                          ? `Selesai pada Repetisi ${repsDone}`
+                          : 'Selesai pada Repetisi Ini')}
+                </span>
+                <IconPlay size={11} className="text-void fill-current ml-0.5" />
+              </button>
 
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={handleSetComplete}
-                  className="clip-corner border border-cyan/50 bg-cyan/15 py-3 font-body text-xs font-bold text-cyan hover:bg-cyan/25 transition-all text-center"
-                >
-                  {language === 'en' ? 'Complete This Set ▸' : 'Selesaikan Set Ini ▸'}
-                </button>
-                <button
-                  onClick={handleSkipExercise}
-                  className="clip-corner border border-cyan/30 bg-[#0d163a] py-3 font-body text-xs font-semibold text-muted hover:text-white hover:border-cyan/50 transition-colors text-center"
-                >
-                  {language === 'en' ? 'Skip Exercise ⏭' : 'Lewati Gerakan ⏭'}
-                </button>
-              </div>
+              <button
+                onClick={handleSkipExercise}
+                className="w-full clip-corner border border-cyan/30 bg-[#0d163a]/70 py-2.5 px-4 font-body text-xs font-semibold text-muted hover:text-white hover:border-cyan/50 hover:bg-[#111e4d] transition-all text-center flex items-center justify-center gap-1.5"
+              >
+                <span>{language === 'en' ? 'Skip Exercise' : 'Lewati Gerakan'}</span>
+                <IconSkip size={11} className="text-muted fill-current" />
+              </button>
             </div>
 
             {/* KARTU PANDUAN FORM TIPS */}
             {currentExerciseItem && (
               <div className="rounded-xl border border-cyan/25 bg-[#0b1433]/85 p-4 space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs font-mono text-cyan font-bold">
-                  <span>💡</span> {language === 'en' ? 'Perfect Form Tips:' : 'Tips Form Sempurna:'}
+                  <IconLightbulb size={14} className="text-cyan shrink-0" />
+                  <span>{language === 'en' ? 'Perfect Form Tips:' : 'Tips Form Sempurna:'}</span>
                 </div>
                 <p className="text-xs text-muted leading-relaxed">
                   {currentExerciseItem.instructions[0]}

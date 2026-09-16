@@ -384,3 +384,169 @@ export const IconLeagueBadge: React.FC<LeagueBadgeProps> = ({ tier, size = 28 })
       );
   }
 };
+
+// 17. TIMER / STOPWATCH CYBER (Menggantikan ⏱️)
+export const IconTimer: React.FC<IconProps> = ({ size = 20, className = 'text-cyan', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block transition-transform duration-200 ${glow ? 'drop-shadow-[0_0_8px_currentColor]' : ''} ${className}`}
+  >
+    <circle cx="12" cy="13" r="8" />
+    <path d="M12 9V13L15 15" />
+    <path d="M10 2H14" />
+    <path d="M12 2V5" />
+  </svg>
+);
+
+// 18. MOBILITAS & PEREGANGAN / YOGA CYBER (Menggantikan 🧘)
+export const IconStretching: React.FC<IconProps> = ({ size = 20, className = 'text-emerald-400', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block transition-transform duration-200 ${glow ? 'drop-shadow-[0_0_8px_currentColor]' : ''} ${className}`}
+  >
+    <circle cx="12" cy="4" r="2.5" fill="currentColor" fillOpacity="0.2" />
+    <path d="M12 7V13" />
+    <path d="M6 10L12 8L18 10" />
+    <path d="M8 20L12 13L16 20" />
+    <path d="M5 15L8 20" />
+    <path d="M19 15L16 20" />
+  </svg>
+);
+
+// 19. GEAR / PENGATURAN CYBER (Menggantikan ⚙️)
+export const IconGear: React.FC<IconProps> = ({ size = 20, className = 'text-cyan', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block transition-transform duration-200 ${glow ? 'drop-shadow-[0_0_8px_currentColor]' : ''} ${className}`}
+  >
+    <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.2" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </svg>
+);
+
+// 20. BOHLAM TIPS FORM (Menggantikan 💡)
+export const IconLightbulb: React.FC<IconProps> = ({ size = 20, className = 'text-amber-400', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={`inline-block transition-transform duration-200 ${glow ? 'drop-shadow-[0_0_8px_currentColor]' : ''} ${className}`}
+  >
+    <path d="M12 2C8.13 2 5 5.13 5 9C5 11.38 6.19 13.47 8 14.74V17C8 17.55 8.45 18 9 18H15C15.55 18 16 17.55 16 17V14.74C17.81 13.47 19 11.38 19 9C19 5.13 15.87 2 12 2ZM9 21C9 21.55 9.45 22 10 22H14C14.55 22 15 21.55 15 21V20H9V21ZM12 4C14.76 4 17 6.24 17 9C17 10.74 16.08 12.26 14.71 13.12L14 13.57V16H10V13.57L9.29 13.12C7.92 12.26 7 10.74 7 9C7 6.24 9.24 4 12 4Z" />
+  </svg>
+);
+
+// 21. DNA / BIO-SCAN TELEMETRY (Menggantikan 🧬)
+export const IconDna: React.FC<IconProps> = ({ size = 20, className = 'text-cyan', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block transition-transform duration-200 ${glow ? 'drop-shadow-[0_0_8px_currentColor]' : ''} ${className}`}
+  >
+    <path d="M2 15C5 15 7 12 10 12C13 12 15 15 18 15C20 15 21 14 22 13" />
+    <path d="M2 9C5 9 7 12 10 12C13 12 15 9 18 9C20 9 21 10 22 11" />
+    <line x1="5" y1="10" x2="5" y2="14" />
+    <line x1="10" y1="10" x2="10" y2="14" />
+    <line x1="15" y1="10" x2="15" y2="14" />
+    <line x1="19" y1="10" x2="19" y2="14" />
+  </svg>
+);
+
+// 22. PERINGATAN / WARNING ALERT (Menggantikan ⚠️ / ⚠)
+export const IconWarning: React.FC<IconProps> = ({ size = 20, className = 'text-amber-400', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={`inline-block transition-transform duration-200 ${glow ? 'drop-shadow-[0_0_8px_currentColor]' : ''} ${className}`}
+  >
+    <path d="M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z" />
+  </svg>
+);
+
+// 23. PLAY BUTTON (Menggantikan ▶)
+export const IconPlay: React.FC<IconProps> = ({ size = 16, className = 'text-current', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={`inline-block ${glow ? 'drop-shadow-[0_0_6px_currentColor]' : ''} ${className}`}
+  >
+    <polygon points="5 3 19 12 5 21 5 3" />
+  </svg>
+);
+
+// 24. PAUSE BUTTON (Menggantikan ❚❚)
+export const IconPause: React.FC<IconProps> = ({ size = 16, className = 'text-current', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={`inline-block ${glow ? 'drop-shadow-[0_0_6px_currentColor]' : ''} ${className}`}
+  >
+    <rect x="6" y="4" width="4" height="16" rx="1" />
+    <rect x="14" y="4" width="4" height="16" rx="1" />
+  </svg>
+);
+
+// 25. SKIP BUTTON (Menggantikan ⏭)
+export const IconSkip: React.FC<IconProps> = ({ size = 16, className = 'text-current', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={`inline-block ${glow ? 'drop-shadow-[0_0_6px_currentColor]' : ''} ${className}`}
+  >
+    <polygon points="5 4 15 12 5 20 5 4" />
+    <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);
+
+// 26. CENTANG CYBER (Menggantikan ✓)
+export const IconCheckmark: React.FC<IconProps> = ({ size = 16, className = 'text-cyan', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block ${glow ? 'drop-shadow-[0_0_6px_currentColor]' : ''} ${className}`}
+  >
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);

@@ -16,6 +16,7 @@ import {
   getLocalizedLevel,
   getLocalizedGoal,
 } from '@/modules/i18n';
+import { IconTimer, IconPlay } from '@/components/ui/CyberIcons';
 
 export default function ProgramDetailPage() {
   const params = useParams();
@@ -80,9 +81,10 @@ export default function ProgramDetailPage() {
           <UserNavButton />
           <Link
             href={`/workout?programId=${program.id}`}
-            className="clip-corner bg-cyan px-4 py-1.5 font-body text-xs font-bold text-void hover:shadow-[var(--glow-cyan)] transition-shadow"
+            className="clip-corner bg-cyan px-4 py-1.5 font-body text-xs font-bold text-void hover:shadow-[var(--glow-cyan)] transition-shadow flex items-center gap-1.5"
           >
-            {t.common.start} ▸
+            <span>{t.common.start}</span>
+            <IconPlay size={10} className="fill-current" />
           </Link>
         </div>
       </header>
@@ -169,8 +171,9 @@ export default function ProgramDetailPage() {
                           <span>◉</span> {t.programs.autoRepCountingReady}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-muted border border-white/10">
-                          ⏱ {t.programs.guidedTimer}
+                        <span className="inline-flex items-center gap-1.5 text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-muted border border-white/10">
+                          <IconTimer size={11} className="text-cyan" />
+                          <span>{t.programs.guidedTimer}</span>
                         </span>
                       )}
                     </div>

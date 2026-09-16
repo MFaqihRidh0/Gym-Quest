@@ -202,11 +202,14 @@ export class PushUpBattleGame {
     }
     active.lastRepTime = now;
 
-    // Hitung damage proporsional: tepat targetReps repetisi menghabisi 100 HP lawan!
-    // Easy (10 push-up) = 10 damage/rep. Medium (15) = ~7 damage/rep. Hard (20) = 5 damage/rep.
-    const baseDamage = Math.round(100 / this.targetReps);
-    const comboBonus = Math.min(active.combo * 2, 8);
+    // Hitung damage dan lifesteal/penambahan darah sendiri saat menyerang
+    const baseDamage = 8;
+    const comboBonus = Math.min(Math.round(active.combo * 1.5), 6);
     const totalDamage = baseDamage + comboBonus;
+
+    // Tambah darah sendiri (+4 s.d. +8 HP) agar duel lebih tahan lama dan seru saling tarik-ulur
+    const healAmount = Math.min(Math.round(4 + active.combo * 1.2), 8);
+    active.hp = Math.min(active.maxHp, active.hp + healAmount);
 
     // Set animation states
     active.action = 'kamehameha';
@@ -243,7 +246,7 @@ export class PushUpBattleGame {
       maxLife: 30, // frames
     });
 
-    // Spawn floating damage text & Anime shout
+    // Spawn floating damage text, anime shout & floating HEAL text
     let shoutWord = '';
     if (isP1) {
       if (active.combo >= 4) shoutWord = '>>> x10 KAIO-KEN KAMEHAMEHA! <<<';
@@ -256,10 +259,11 @@ export class PushUpBattleGame {
     }
 
     this.spawnFloatingText(shoutWord, active.x, active.y - 85, '#ffffff', 22);
+    this.spawnFloatingText(`+${healAmount} HP`, active.x, active.y - 110, '#34d399', 24);
     this.spawnFloatingText(`-${totalDamage} HP`, target.x, target.y - 65, target.color, 26);
 
     if (active.combo > 1) {
-      this.spawnFloatingText(`COMBO x${active.combo}!`, active.x, active.y - 110, active.color, 20);
+      this.spawnFloatingText(`COMBO x${active.combo}!`, active.x, active.y - 135, active.color, 20);
     }
 
     // Spawn massive burst particles & shockwave
@@ -278,8 +282,8 @@ export class PushUpBattleGame {
       });
     }
 
-    // Check Knockout (KO): jika HP habis atau repetisi mencapai target (10 Easy / 15 Medium / 20 Hard)
-    if (target.hp <= 0 || active.reps >= this.targetReps) {
+    // Check Knockout (KO): Hanya terjadi jika HP salah satu pemain habis total (0)
+    if (target.hp <= 0) {
       target.hp = 0;
       this.endGame(isP1 ? 'p1' : 'p2');
     }
@@ -771,7 +775,7 @@ export class PushUpBattleGame {
     ctx.font = 'bold 11px monospace';
     ctx.textAlign = 'left';
     ctx.fillText(`${this.player1.name} (HP: ${Math.round(this.player1.hp)})`, 27, 16);
-    ctx.fillText(`PUSH-UP: ${this.player1.reps} / ${this.targetReps}`, 27, 68);
+    ctx.fillText(`PUSH-UP: ${this.player1.reps} REPS`, 27, 68);
 
     // 2. P2 HP & Ki Bar (Top Right)
     ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
@@ -793,9 +797,9 @@ export class PushUpBattleGame {
     ctx.font = 'bold 11px monospace';
     ctx.textAlign = 'right';
     ctx.fillText(`${this.player2.name} (HP: ${Math.round(this.player2.hp)})`, w - 27, 16);
-    ctx.fillText(`PUSH-UP: ${this.player2.reps} / ${this.targetReps}`, w - 27, 68);
+    ctx.fillText(`PUSH-UP: ${this.player2.reps} REPS`, w - 27, 68);
 
-    // 3. Center Match Timer & Target Reps
+    // 3. Center Match Timer & Endurance Mode
     ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
     ctx.lineWidth = 2;
@@ -811,6 +815,6 @@ export class PushUpBattleGame {
 
     ctx.fillStyle = '#00e5ff';
     ctx.font = 'bold 10px monospace';
-    ctx.fillText(`TARGET: ${this.targetReps} REPS`, w / 2, 68);
+    ctx.fillText(`SURVIVAL DUEL (60S)`, w / 2, 68);
   }
 }

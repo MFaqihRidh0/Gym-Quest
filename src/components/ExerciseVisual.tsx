@@ -10,6 +10,7 @@ interface ExerciseVisualProps {
   isAnimated?: boolean;
   use3D?: boolean;
   showControls?: boolean;
+  onAnimationRep?: () => void;
 }
 
 const CYAN = '#00e5ff';
@@ -23,6 +24,7 @@ export function ExerciseVisual({
   isAnimated = true,
   use3D = true,
   showControls = true,
+  onAnimationRep,
 }: ExerciseVisualProps) {
   if (use3D) {
     return (
@@ -31,6 +33,7 @@ export function ExerciseVisual({
         className={className}
         isAnimated={isAnimated}
         showControls={showControls}
+        onAnimationRep={onAnimationRep}
       />
     );
   }

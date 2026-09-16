@@ -23,11 +23,18 @@ export interface GameControlEvent {
   timestamp: number;
 }
 
+export interface WebRtcSignalData {
+  type: 'offer' | 'answer' | 'ice-candidate';
+  sdp?: any;
+  candidate?: any;
+}
+
 export interface RoomStateListener {
   onOpponentJoined?: (opponent: RoomPlayer) => void;
   onOpponentLeft?: () => void;
   onRemoteAction?: (action: PlayerActionEvent) => void;
   onGameControl?: (ctrl: GameControlEvent) => void;
+  onWebRtcSignal?: (signal: WebRtcSignalData) => void;
   onStatusChange?: (status: 'connecting' | 'connected' | 'error' | 'disconnected') => void;
 }
 
@@ -74,7 +81,30 @@ export class DuelRoomManager {
   }
 
   public setListener(listeners: RoomStateListener) {
-    this.listeners = listeners;
+    this.listeners = { ...this.listeners, ...listeners };
+  }
+
+  public setWebRtcSignalListener(fn: ((signal: WebRtcSignalData) => void) | undefined) {
+    this.listeners.onWebRtcSignal = fn;
+  }
+
+  public updateUsername(newUsername: string) {
+    this.localUser.username = newUsername;
+    if (this.supabaseChannel) {
+      try {
+        this.supabaseChannel.track({
+          userId: this.localUser.userId,
+          username: newUsername,
+          role: this.role,
+          joinedAt: this.localUser.joinedAt,
+        });
+      } catch (e) {
+        console.warn('Failed to update presence username in Supabase:', e);
+      }
+    }
+    this.broadcastMessage('presence_announce', {
+      user: this.localUser,
+    });
   }
 
   public connect() {
@@ -216,6 +246,9 @@ export class DuelRoomManager {
     } else if (eventType === 'game_control') {
       const ctrl = data as GameControlEvent;
       this.listeners.onGameControl?.(ctrl);
+    } else if (eventType === 'webrtc_signal') {
+      const signal = data as WebRtcSignalData;
+      this.listeners.onWebRtcSignal?.(signal);
     } else if (eventType === 'presence_leave') {
       this.opponent = null;
       this.listeners.onOpponentLeft?.();
@@ -270,6 +303,13 @@ export class DuelRoomManager {
       event,
       timestamp: Date.now(),
     });
+  }
+
+  /**
+   * Kirim sinyal WebRTC P2P (Offer, Answer, ICE candidate)
+   */
+  public sendWebRtcSignal(signal: WebRtcSignalData) {
+    this.broadcastMessage('webrtc_signal', signal);
   }
 
   public disconnect() {

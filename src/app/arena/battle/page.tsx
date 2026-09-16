@@ -23,6 +23,7 @@ import { UserNavButton } from '@/components/UserNavButton';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useLanguage } from '@/modules/i18n';
 import { getUserProfile } from '@/modules/program-engine/storage';
+import { getOrCreatePlayerUsername } from '@/modules/gamification/gladiatorNames';
 import { soundEngine } from '@/modules/game-engine/audio';
 import {
   IconBolt,
@@ -36,6 +37,48 @@ import {
   DifficultyBadge,
 } from '@/components/ui/CyberIcons';
 
+import { useWebRtcDuel } from '@/modules/multiplayer/useWebRtcDuel';
+import { CyberAvatar } from '@/components/CyberAvatar';
+
+function RemoteVideoPlayer({
+  stream,
+  className,
+  fallbackLabel = 'Menghubungkan video lawan...',
+}: {
+  stream: MediaStream | null;
+  className?: string;
+  fallbackLabel?: string;
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
+  if (!stream) {
+    return (
+      <div className={`flex flex-col items-center justify-center bg-black/80 border border-white/10 p-4 text-center ${className || ''}`}>
+        <div className="w-12 h-12 rounded-full bg-magenta/15 border border-magenta/40 flex items-center justify-center text-xl text-magenta animate-pulse mb-2 shadow-[0_0_15px_rgba(255,0,122,0.3)]">
+          📹
+        </div>
+        <p className="text-xs font-mono text-muted">{fallbackLabel}</p>
+      </div>
+    );
+  }
+
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      playsInline
+      muted
+      className={`object-cover ${className || ''}`}
+    />
+  );
+}
+
 function PushUpBattleContent() {
   const { t, language } = useLanguage();
   const searchParams = useSearchParams();
@@ -44,9 +87,9 @@ function PushUpBattleContent() {
   const urlAction = searchParams.get('action') as 'create' | 'join' | null;
   const urlRoomCode = searchParams.get('room');
 
-  // Stage: 'selection' (Halaman Pilih Lawan) vs 'battle' (Masuk Permainan Game)
-  const [battleStage, setBattleStage] = useState<'selection' | 'battle'>(
-    urlMode || urlRoomCode ? 'battle' : 'selection'
+  // Stage: 'selection' (Pilih Lawan) | 'waiting_room' (Lobby Tunggu Online 1v1) | 'battle' (Masuk Permainan Game)
+  const [battleStage, setBattleStage] = useState<'selection' | 'waiting_room' | 'battle'>(
+    urlRoomCode || urlMode === 'online_pvp' ? 'waiting_room' : urlMode ? 'battle' : 'selection'
   );
 
   // Selection view states (untuk halaman pemilihan lawan)
@@ -73,11 +116,46 @@ function PushUpBattleContent() {
   const [cameraLarge, setCameraLarge] = useState(false);
   const profile = getUserProfile();
 
+  // Unique persistent gladiator username per device/browser
+  const [localPlayerName, setLocalPlayerName] = useState<string>('Gladiator');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempNameInput, setTempNameInput] = useState('');
+
+  useEffect(() => {
+    const initialName = getOrCreatePlayerUsername();
+    setLocalPlayerName(initialName);
+    setTempNameInput(initialName);
+  }, []);
+
+  const handleSavePlayerName = (newName: string) => {
+    const trimmed = newName.trim();
+    if (!trimmed) {
+      setIsEditingName(false);
+      return;
+    }
+    setLocalPlayerName(trimmed);
+    setIsEditingName(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gymquest_gladiator_tag', trimmed);
+      try {
+        const raw = localStorage.getItem('gymquest_user_profile');
+        const p = raw ? JSON.parse(raw) : {};
+        p.username = trimmed;
+        localStorage.setItem('gymquest_user_profile', JSON.stringify(p));
+      } catch (e) {
+        // ignore
+      }
+    }
+    if (roomManagerRef.current) {
+      roomManagerRef.current.updateUsername(trimmed);
+    }
+  };
+
   // Canvas ref for battle stage
   const battleCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Live webcam for local player
-  const { videoRef, liveLandmarksRef, status, error, start, stop } = usePoseDetection();
+  const { videoRef, liveLandmarksRef, status, error, stream: localStream, start, stop } = usePoseDetection();
   const p1OverlayCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Online Duel Room State
@@ -94,13 +172,21 @@ function PushUpBattleContent() {
   const [duelCountdown, setDuelCountdown] = useState<number | null>(null);
   const [opponentLeftAlert, setOpponentLeftAlert] = useState(false);
 
-  // Dynamic Bot Name based on difficulty & target reps
+  // WebRTC P2P Video Connection for Live Opponent Camera
+  const { remoteStream, rtcStatus } = useWebRtcDuel(
+    localStream,
+    roomManagerRef,
+    Boolean(roomOpponent),
+    roomRole
+  );
+
+  // Dynamic Bot Name based on difficulty
   const botName =
     botDifficulty === 'easy'
-      ? `${t.arena.botNovice} (10 Push-Up)`
+      ? `${t.arena.botNovice} (Novice)`
       : botDifficulty === 'hard'
-        ? `${t.arena.botMaster} (20 Push-Up)`
-        : `${t.arena.botKnight} (15 Push-Up)`;
+        ? `${t.arena.botMaster} (Master)`
+        : `${t.arena.botKnight} (Knight)`;
 
   // Player Names & Roles
   const localPlayerRole: BattlePlayerRole =
@@ -109,9 +195,9 @@ function PushUpBattleContent() {
   const p1DisplayName =
     opponentMode === 'online_pvp'
       ? roomRole === 'host'
-        ? profile.username || (language === 'en' ? 'You (P1)' : 'Kamu (P1)')
+        ? localPlayerName || (language === 'en' ? 'You (P1)' : 'Kamu (P1)')
         : roomOpponent?.username || 'Host (P1)'
-      : profile.username || (language === 'en' ? 'You (P1)' : 'Kamu (P1)');
+      : localPlayerName || (language === 'en' ? 'You (P1)' : 'Kamu (P1)');
 
   const p2DisplayName =
     opponentMode === 'ai_bot'
@@ -119,7 +205,7 @@ function PushUpBattleContent() {
       : opponentMode === 'local_pvp'
         ? language === 'en' ? 'Player 2 (P2)' : 'Pemain 2 (P2)'
         : roomRole === 'guest'
-          ? profile.username || (language === 'en' ? 'You (P2)' : 'Kamu (P2)')
+          ? localPlayerName || (language === 'en' ? 'You (P2)' : 'Kamu (P2)')
           : roomOpponent?.username || (language === 'en' ? 'Challenger (P2)' : 'Penantang (P2)');
 
   // Hook for battle logic
@@ -151,12 +237,13 @@ function PushUpBattleContent() {
       if (opponentMode === 'online_pvp') {
         roomManagerRef.current?.sendAction(actionType, player);
       }
-    }
+    },
+    battleStage === 'battle' && (opponentMode !== 'online_pvp' || isDuelActive)
   );
 
-  // Start webcam only when entering active battle stage
+  // Start webcam when entering waiting room or active battle stage
   useEffect(() => {
-    if (battleStage === 'battle') {
+    if (battleStage === 'waiting_room' || battleStage === 'battle') {
       start();
     } else {
       stop();
@@ -196,6 +283,7 @@ function PushUpBattleContent() {
       },
       onGameControl: (ctrl) => {
         if (ctrl.event === 'start_countdown') {
+          setBattleStage('battle');
           startCountdownSequence();
         } else if (ctrl.event === 'restart_game') {
           restartGame();
@@ -226,7 +314,7 @@ function PushUpBattleContent() {
     const manager = new DuelRoomManager(
       newCode,
       'host',
-      profile.username || 'Host Knight'
+      localPlayerName || 'Host Knight'
     );
     setupRoomListeners(manager);
     manager.connect();
@@ -251,7 +339,7 @@ function PushUpBattleContent() {
     const manager = new DuelRoomManager(
       cleanCode,
       'guest',
-      profile.username || 'Challenger'
+      localPlayerName || 'Challenger'
     );
     setupRoomListeners(manager);
     manager.connect();
@@ -261,7 +349,8 @@ function PushUpBattleContent() {
   // Auto-connect room if URL parameter room is provided
   useEffect(() => {
     if (urlRoomCode) {
-      setBattleStage('battle');
+      setOpponentMode('online_pvp');
+      setBattleStage('waiting_room');
       if (urlAction === 'create') {
         handleCreateRoom(urlRoomCode);
       } else {
@@ -312,6 +401,7 @@ function PushUpBattleContent() {
   const handleStartDuelAsHost = () => {
     if (!roomOpponent || !roomManagerRef.current) return;
     roomManagerRef.current.sendGameControl('start_countdown');
+    setBattleStage('battle');
     startCountdownSequence();
   };
 
@@ -358,7 +448,7 @@ function PushUpBattleContent() {
 
   const launchCreateRoomFromSelection = () => {
     setOpponentMode('online_pvp');
-    setBattleStage('battle');
+    setBattleStage('waiting_room');
     handleCreateRoom(lobbyGeneratedCode);
   };
 
@@ -366,7 +456,7 @@ function PushUpBattleContent() {
     const clean = normalizeRoomCode(lobbyInputCode);
     if (!clean) return;
     setOpponentMode('online_pvp');
-    setBattleStage('battle');
+    setBattleStage('waiting_room');
     handleJoinRoom(clean);
   };
 
@@ -638,6 +728,47 @@ function PushUpBattleContent() {
           {/* 2. DETAIL PILIHAN LAWAN PLAYER LAIN */}
           {selectedLobbyTarget === 'online' && (
             <div className="glass-panel clip-corner border border-magenta/40 p-6 bg-magenta/5 rounded-2xl space-y-6 animate-fade-in shadow-[0_0_30px_rgba(255,0,122,0.15)]">
+              {/* Gladiator Identity Badge */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-black/60 border border-white/10 text-xs font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted">{language === 'en' ? 'Gladiator Tag:' : 'Nama Gladiator:'}</span>
+                  {isEditingName ? (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={tempNameInput}
+                        maxLength={20}
+                        onChange={(e) => setTempNameInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSavePlayerName(tempNameInput)}
+                        className="px-2 py-0.5 rounded bg-black/90 border border-cyan text-xs font-mono text-cyan focus:outline-none"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSavePlayerName(tempNameInput)}
+                        className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan text-void font-bold cursor-pointer"
+                      >
+                        OK
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="font-bold text-cyan">{localPlayerName}</span>
+                  )}
+                </div>
+                {!isEditingName && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTempNameInput(localPlayerName);
+                      setIsEditingName(true);
+                    }}
+                    className="text-[11px] text-muted hover:text-cyan underline cursor-pointer"
+                  >
+                    {language === 'en' ? 'Edit' : 'Ganti'}
+                  </button>
+                )}
+              </div>
+
               {/* Tab: Generate Kode (Host) vs Masukkan Kode (Guest) */}
               <div className="grid grid-cols-2 gap-2 bg-black/50 p-1.5 rounded-xl border border-magenta/20 text-xs font-mono">
                 <button
@@ -762,7 +893,356 @@ function PushUpBattleContent() {
   }
 
   // =========================================================================
-  // TAMPILAN 2: ARENA PERTANDINGAN (SAAT GAME DIMULAI)
+  // TAMPILAN 2: RUANG TUNGGU (WAITING ROOM LOBBY) ONLINE PVP
+  // =========================================================================
+  if (battleStage === 'waiting_room') {
+    return (
+      <main className="min-h-screen flex flex-col bg-transparent text-primary pb-16 animate-fade-in">
+        {/* Header Ruang Tunggu */}
+        <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
+          <button
+            type="button"
+            onClick={returnToSelection}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-magenta/10 hover:border-magenta/40 hover:text-magenta text-muted transition-all duration-200 text-xs font-mono tracking-wide cursor-pointer"
+          >
+            <span>←</span>
+            <span>{t.arena.leaveRoom}</span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-black/60 border border-cyan/40 shadow-[0_0_15px_rgba(0,229,255,0.15)]">
+              <span className="text-[10px] font-mono text-cyan uppercase font-bold tracking-wider">ROOM:</span>
+              <span className="font-display font-black text-white text-base tracking-widest">{roomCode || 'GQ-....'}</span>
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  roomStatus === 'connected' ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400 animate-pulse'
+                }`}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher compact />
+            <UserNavButton />
+          </div>
+        </header>
+
+        <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-4 py-8 space-y-6 animate-fade-in">
+          {/* Judul & Status Lobby */}
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-magenta/15 border border-magenta/40 text-magenta text-xs font-mono font-bold tracking-widest uppercase mb-1">
+              <span>⚔️</span>
+              <span>{t.arena.waitingRoomTitle}</span>
+            </div>
+            <h1 className="font-display text-2xl sm:text-4xl font-black text-white tracking-wide">
+              {roomStatus === 'connected'
+                ? (language === 'en' ? 'Gladiators Connected & Ready!' : 'Kedua Gladiator Telah Terhubung!')
+                : (language === 'en' ? 'Waiting for Challenger to Join...' : 'Menunggu Lawan Masuk ke Room...')}
+            </h1>
+            <p className="font-body text-xs sm:text-sm text-muted max-w-xl mx-auto leading-relaxed">
+              {t.arena.waitingRoomSubtitle}
+            </p>
+          </div>
+
+          {/* Quick Share Code & Link Banner */}
+          <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-white/10 bg-black/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_0_30px_rgba(0,0,0,0.4)]">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-xl bg-cyan/15 border border-cyan/40 flex items-center justify-center text-cyan text-2xl shadow-[0_0_15px_rgba(0,229,255,0.2)]">
+                🔑
+              </div>
+              <div>
+                <span className="text-[10px] font-mono text-cyan uppercase tracking-widest font-bold">
+                  {t.arena.roomCodeLabel}
+                </span>
+                <div className="font-display text-2xl sm:text-3xl font-black text-white tracking-widest">
+                  {roomCode}
+                </div>
+                <p className="text-[11px] font-mono text-muted">
+                  {roomRole === 'host' ? t.arena.connectedAsHost : t.arena.connectedAsGuest}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-center">
+              <button
+                type="button"
+                onClick={() => copyToClipboard(roomCode, 'code')}
+                className="px-4 py-2 rounded-xl bg-cyan/15 border border-cyan/40 hover:bg-cyan/25 text-cyan text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(0,229,255,0.15)]"
+              >
+                <span>📋</span>
+                <span>{copiedCode ? t.arena.codeCopied : t.arena.copyRoomCode}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(duelShareLink, 'link')}
+                className="px-4 py-2 rounded-xl bg-magenta/15 border border-magenta/40 hover:bg-magenta/25 text-magenta text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(255,0,122,0.15)]"
+              >
+                <span>🔗</span>
+                <span>{copiedLink ? t.arena.linkCopied : t.arena.copyRoomLink}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 2-PODIUM GLADIATOR ARENA PREVIEW (HOST VS CHALLENGER) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* PODIUM 1: TUAN RUMAH (HOST - CYAN) */}
+            <div className="glass-panel clip-corner border-2 border-cyan/50 p-4 bg-cyan/5 space-y-3 rounded-2xl relative overflow-hidden shadow-[0_0_30px_rgba(0,229,255,0.15)]">
+              <div className="flex items-center justify-between border-b border-cyan/20 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">⚡</span>
+                  {roomRole === 'host' ? (
+                    isEditingName ? (
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          value={tempNameInput}
+                          maxLength={20}
+                          onChange={(e) => setTempNameInput(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSavePlayerName(tempNameInput)}
+                          className="px-2 py-0.5 rounded bg-black/80 border border-cyan text-xs font-mono text-cyan focus:outline-none"
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSavePlayerName(tempNameInput)}
+                          className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan text-void font-bold cursor-pointer"
+                        >
+                          OK
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="font-display font-bold text-base text-cyan">
+                          {localPlayerName} (Kamu)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTempNameInput(localPlayerName);
+                            setIsEditingName(true);
+                          }}
+                          className="text-white/50 hover:text-cyan text-xs cursor-pointer px-1 py-0.5 rounded hover:bg-cyan/10 transition-all"
+                          title="Ganti Nama"
+                        >
+                          ✏️
+                        </button>
+                      </div>
+                    )
+                  ) : (
+                    <span className="font-display font-bold text-base text-cyan">
+                      {roomOpponent?.username || 'Host (Tuan Rumah)'}
+                    </span>
+                  )}
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan text-void uppercase tracking-wider">
+                  HOST (P1)
+                </span>
+              </div>
+
+              {/* Kamera Host: jika user adalah host -> videoRef lokal, jika guest -> remoteStream */}
+              <div className="relative aspect-video w-full rounded-xl bg-black/80 overflow-hidden border border-cyan/30 flex items-center justify-center">
+                {roomRole === 'host' ? (
+                  <>
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="absolute inset-0 w-full h-full object-cover -scale-x-100"
+                    />
+                    {status === 'loading' && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-void/90 p-4 text-center space-y-2 z-20">
+                        <span className="text-2xl animate-spin">🌀</span>
+                        <p className="font-mono text-xs text-cyan font-bold">{t.arena.battleCameraSensorConnecting}</p>
+                      </div>
+                    )}
+                    {status === 'running' && (
+                      <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded bg-void/80 border border-cyan/40 text-[10px] font-mono text-cyan flex items-center gap-1.5 z-10">
+                        <span className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
+                        <span>KAMU (HOST) • KAMERA AKTIF</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <RemoteVideoPlayer
+                    stream={remoteStream}
+                    className="w-full h-full"
+                    fallbackLabel="Menghubungkan kamera Host..."
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center justify-between text-xs font-mono text-muted pt-1">
+                <span>Status:</span>
+                <span className="text-cyan font-bold flex items-center gap-1">
+                  <span>●</span> {language === 'en' ? 'Ready on Stage' : 'Siap di Panggung'}
+                </span>
+              </div>
+            </div>
+
+            {/* PODIUM 2: PENANTANG (CHALLENGER - MAGENTA) */}
+            <div className="glass-panel clip-corner border-2 border-magenta/50 p-4 bg-magenta/5 space-y-3 rounded-2xl relative overflow-hidden shadow-[0_0_30px_rgba(255,0,122,0.15)]">
+              <div className="flex items-center justify-between border-b border-magenta/20 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">⚔️</span>
+                  {roomRole === 'guest' ? (
+                    isEditingName ? (
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          value={tempNameInput}
+                          maxLength={20}
+                          onChange={(e) => setTempNameInput(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSavePlayerName(tempNameInput)}
+                          className="px-2 py-0.5 rounded bg-black/80 border border-magenta text-xs font-mono text-magenta focus:outline-none"
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSavePlayerName(tempNameInput)}
+                          className="text-[10px] font-mono px-2 py-0.5 rounded bg-magenta text-white font-bold cursor-pointer"
+                        >
+                          OK
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="font-display font-bold text-base text-magenta">
+                          {localPlayerName} (Kamu)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTempNameInput(localPlayerName);
+                            setIsEditingName(true);
+                          }}
+                          className="text-white/50 hover:text-magenta text-xs cursor-pointer px-1 py-0.5 rounded hover:bg-magenta/10 transition-all"
+                          title="Ganti Nama"
+                        >
+                          ✏️
+                        </button>
+                      </div>
+                    )
+                  ) : (
+                    <span className="font-display font-bold text-base text-magenta">
+                      {roomOpponent
+                        ? roomOpponent.username
+                        : (language === 'en' ? 'Waiting for Challenger...' : 'Menunggu Penantang...')}
+                    </span>
+                  )}
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-magenta text-white uppercase tracking-wider">
+                  CHALLENGER (P2)
+                </span>
+              </div>
+
+              {/* Kamera Penantang: jika belum ada lawan -> animasi radar scanning! */}
+              <div className="relative aspect-video w-full rounded-xl bg-black/80 overflow-hidden border border-magenta/30 flex items-center justify-center">
+                {!roomOpponent ? (
+                  <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-black/70">
+                    <div className="absolute w-44 h-44 rounded-full border border-magenta/20 animate-ping" />
+                    <div className="absolute w-32 h-32 rounded-full border border-magenta/30" />
+                    <div className="absolute w-20 h-20 rounded-full border border-magenta/40" />
+                    <div className="relative z-10 flex flex-col items-center text-center p-4">
+                      <div className="w-12 h-12 rounded-full bg-magenta/20 border border-magenta/50 flex items-center justify-center text-2xl animate-pulse mb-2 shadow-[0_0_20px_rgba(255,0,122,0.4)]">
+                        📡
+                      </div>
+                      <p className="font-display font-bold text-sm text-white">{t.arena.waitingOpponent}</p>
+                      <p className="text-[11px] font-mono text-muted mt-1 max-w-xs">
+                        {t.arena.waitingOpponentDesc}
+                      </p>
+                    </div>
+                  </div>
+                ) : roomRole === 'guest' ? (
+                  <>
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="absolute inset-0 w-full h-full object-cover -scale-x-100"
+                    />
+                    {status === 'loading' && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-void/90 p-4 text-center space-y-2 z-20">
+                        <span className="text-2xl animate-spin">🌀</span>
+                        <p className="font-mono text-xs text-magenta font-bold">{t.arena.battleCameraSensorConnecting}</p>
+                      </div>
+                    )}
+                    {status === 'running' && (
+                      <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded bg-void/80 border border-magenta/40 text-[10px] font-mono text-magenta flex items-center gap-1.5 z-10">
+                        <span className="w-2 h-2 rounded-full bg-magenta animate-pulse" />
+                        <span>KAMU (PENANTANG) • KAMERA AKTIF</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <RemoteVideoPlayer
+                    stream={remoteStream}
+                    className="w-full h-full"
+                    fallbackLabel="Menghubungkan kamera Penantang..."
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center justify-between text-xs font-mono text-muted pt-1">
+                <span>Status:</span>
+                {roomOpponent ? (
+                  <span className="text-magenta font-bold flex items-center gap-1">
+                    <span>●</span> {language === 'en' ? 'Challenger Connected' : 'Penantang Terhubung'}
+                  </span>
+                ) : (
+                  <span className="text-amber-400 font-bold flex items-center gap-1">
+                    <span className="animate-ping">●</span> {language === 'en' ? 'Waiting for opponent...' : 'Menunggu lawan masuk...'}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ACTION BAR: MULAI DUEL / STATUS TUNGGU */}
+          <div className="pt-2">
+            {roomRole === 'host' ? (
+              roomOpponent ? (
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={handleStartDuelAsHost}
+                    className="w-full py-4 sm:py-5 rounded-2xl bg-gradient-to-r from-cyan via-emerald-400 to-magenta text-void font-display font-black text-lg sm:text-xl tracking-wider hover:opacity-95 transition-all shadow-[0_0_35px_rgba(0,229,255,0.4)] animate-pulse flex items-center justify-center gap-3 cursor-pointer"
+                  >
+                    <span>⚡</span>
+                    <span>{language === 'en' ? 'START BATTLE (3-2-1 COUNTDOWN)' : 'MULAI PERTANDINGAN (HITUNG MUNDUR 3-2-1)'}</span>
+                    <span>⚔️</span>
+                  </button>
+                  <p className="text-center text-xs font-mono text-muted">
+                    {language === 'en'
+                      ? 'Clicking start will launch a 3-second countdown on both screens simultaneously.'
+                      : 'Menekan tombol mulai akan memicu hitungan mundur 3 detik secara bersamaan di kedua layar.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="w-full py-4 sm:py-5 rounded-2xl bg-white/5 border border-white/10 text-center font-mono text-sm text-muted flex items-center justify-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+                  <span>{t.arena.waitingForOpponent}</span>
+                </div>
+              )
+            ) : (
+              <div className="w-full p-4 sm:p-5 rounded-2xl bg-magenta/10 border border-magenta/40 text-center font-display text-sm sm:text-base font-bold text-white flex flex-col sm:flex-row items-center justify-center gap-3 shadow-[0_0_20px_rgba(255,0,122,0.15)]">
+                <span className="text-2xl animate-spin">🌀</span>
+                <span>
+                  {roomOpponent
+                    ? t.arena.waitingForHost
+                    : (language === 'en' ? 'Connecting to Host room...' : 'Menghubungkan ke room Host...')}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // =========================================================================
+  // TAMPILAN 3: ARENA PERTANDINGAN (SAAT GAME DIMULAI)
   // =========================================================================
   return (
     <main className="min-h-screen flex flex-col bg-transparent text-primary pb-12 animate-fade-in">
@@ -795,117 +1275,6 @@ function PushUpBattleContent() {
       </header>
 
       <div className="mx-auto w-full max-w-6xl px-4 py-6 space-y-6 flex-1 flex flex-col justify-center">
-        {/* ONLINE ROOM LOBBY CONSOLE (Tampil saat mode online dan duel belum dimulai) */}
-        {opponentMode === 'online_pvp' && !isDuelActive && (
-          <div className="glass-panel clip-corner border-2 border-cyan/50 p-6 sm:p-8 bg-[#091330]/95 space-y-6 rounded-2xl shadow-[0_0_50px_rgba(0,229,255,0.25)] animate-fade-in max-w-2xl mx-auto w-full">
-            <div className="flex items-center justify-between border-b border-cyan/20 pb-4">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">⚔️</span>
-                <div>
-                  <h2 className="font-display text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-                    <span>{t.arena.battleOnlinePvP}</span>
-                  </h2>
-                  <p className="text-xs text-muted font-mono">
-                    {language === 'en'
-                      ? 'Real-time 1v1 webcam push-up clash via live room code'
-                      : 'Duel push-up 1v1 real-time via kode room'}
-                  </p>
-                </div>
-              </div>
-
-              {roomCode && (
-                <button
-                  type="button"
-                  onClick={returnToSelection}
-                  className="text-xs font-mono px-3 py-1.5 rounded-lg border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all cursor-pointer"
-                >
-                  {t.arena.leaveRoom}
-                </button>
-              )}
-            </div>
-
-            {/* Status Lawan di Lobby Room */}
-            <div className="space-y-4 text-center">
-              <div className="p-5 rounded-xl bg-black/60 border border-cyan/30 space-y-2">
-                <span className="text-xs font-mono uppercase tracking-widest text-cyan font-bold">
-                  {t.arena.roomCodeLabel}
-                </span>
-                <div className="font-display text-4xl sm:text-5xl font-black tracking-widest text-white drop-shadow-[0_0_25px_rgba(0,229,255,0.6)]">
-                  {roomCode || 'GQ-....'}
-                </div>
-                <p className="text-xs font-mono text-muted">
-                  {roomRole === 'host' ? t.arena.connectedAsHost : t.arena.connectedAsGuest}
-                </p>
-
-                <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(roomCode, 'code')}
-                    className="px-4 py-2 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan text-xs font-mono font-bold hover:bg-cyan/25 transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>📋</span>
-                    <span>{copiedCode ? t.arena.codeCopied : t.arena.copyRoomCode}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(duelShareLink, 'link')}
-                    className="px-4 py-2 rounded-lg bg-magenta/15 border border-magenta/40 text-magenta text-xs font-mono font-bold hover:bg-magenta/25 transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>🔗</span>
-                    <span>{copiedLink ? t.arena.linkCopied : t.arena.copyRoomLink}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Status Lawan */}
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <span className="w-4 h-4 rounded-full bg-cyan block animate-ping absolute inset-0 opacity-75" />
-                    <span className="w-4 h-4 rounded-full bg-cyan block relative" />
-                  </div>
-                  <div>
-                    <div className="font-display text-sm font-bold text-white">
-                      {roomOpponent
-                        ? `${t.arena.opponentConnected}: ${roomOpponent.username}`
-                        : t.arena.waitingOpponent}
-                    </div>
-                    <p className="text-xs text-muted leading-tight">
-                      {roomOpponent
-                        ? language === 'en'
-                          ? 'Opponent is in the lobby and ready to clash!'
-                          : 'Lawan sudah berada di lobby dan siap adu push-up!'
-                        : t.arena.waitingOpponentDesc}
-                    </p>
-                  </div>
-                </div>
-
-                {roomRole === 'host' ? (
-                  roomOpponent ? (
-                    <button
-                      type="button"
-                      onClick={handleStartDuelAsHost}
-                      className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-cyan to-magenta text-void font-bold text-sm font-display hover:shadow-[var(--glow-cyan)] transition-all animate-pulse cursor-pointer"
-                    >
-                      {t.arena.startDuelNow}
-                    </button>
-                  ) : (
-                    <div className="text-xs font-mono text-muted bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-                      Radar Aktif 📡
-                    </div>
-                  )
-                ) : (
-                  <div className="text-xs font-mono text-cyan bg-cyan/10 px-3 py-2 rounded-lg border border-cyan/30">
-                    {language === 'en'
-                      ? 'Waiting for Host to start…'
-                      : 'Menunggu Host memulai duel…'}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* NOTIFIKASI LAWAN TERPUTUS */}
         {opponentLeftAlert && (
           <div className="rounded-xl border border-red-500/50 bg-red-500/15 p-4 text-center space-y-2 animate-fade-in">
@@ -957,8 +1326,8 @@ function PushUpBattleContent() {
 
             <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-cyan/30 bg-cyan/10 text-cyan text-xs font-mono font-bold shadow-[0_0_10px_rgba(0,229,255,0.15)]">
               <IconTarget size={14} className="text-cyan" />
-              <span>{t.arena.battleTargetKo}</span>
-              <span className="text-white">{targetReps} Push-Up</span>
+              <span>{language === 'en' ? 'Survival Duel:' : 'Duel Ketahanan:'}</span>
+              <span className="text-white">60s</span>
             </div>
 
             <button
@@ -1096,17 +1465,34 @@ function PushUpBattleContent() {
                   </div>
                 )}
               </div>
+            ) : opponentMode === 'online_pvp' ? (
+              <div className="relative aspect-video w-full rounded-xl bg-black/80 overflow-hidden border border-cyan/40">
+                <RemoteVideoPlayer
+                  stream={remoteStream}
+                  className="w-full h-full"
+                  fallbackLabel="Menghubungkan kamera Host (P1)..."
+                />
+                <div className="absolute top-2 left-2 px-2.5 py-1 rounded bg-black/75 border border-cyan/30 text-[10px] font-mono text-cyan flex items-center gap-1.5 z-10">
+                  <span className={`w-2 h-2 rounded-full ${remoteStream ? 'bg-cyan animate-pulse' : 'bg-amber-400'}`} />
+                  <span>LIVE FEED: {p1DisplayName}</span>
+                </div>
+                <div className="absolute bottom-2 inset-x-2 bg-void/80 border border-cyan/30 rounded px-2.5 py-1 flex items-center justify-between text-[11px] font-mono z-10">
+                  <span className="text-cyan font-bold">{p1DisplayName}</span>
+                  <span className="text-white font-bold">{p1Reps} Reps</span>
+                </div>
+              </div>
             ) : (
               <div className="aspect-video w-full rounded-xl bg-black/60 border border-cyan/30 flex flex-col items-center justify-center p-4 text-center space-y-2">
                 <span className="text-4xl">⚡</span>
                 <p className="font-display text-sm font-bold text-white">{p1DisplayName}</p>
-                <p className="text-xs font-mono text-cyan">Online Host (P1)</p>
+                <p className="text-xs font-mono text-cyan">Player 1 (P1)</p>
                 <div className="w-full max-w-xs bg-white/10 h-2 rounded-full overflow-hidden mt-2">
                   <div
                     className="h-full bg-cyan transition-all duration-300"
-                    style={{ width: `${(p1Reps / targetReps) * 100}%` }}
+                    style={{ width: `${Math.min((p1Reps / 20) * 100, 100)}%` }}
                   />
                 </div>
+                <span className="text-[11px] font-mono text-cyan font-bold">{p1Reps} Reps</span>
               </div>
             )}
 
@@ -1198,30 +1584,46 @@ function PushUpBattleContent() {
                     {botDifficulty === 'easy'
                       ? 'Kecepatan santai: 10 Push-Up per menit'
                       : botDifficulty === 'hard'
-                        ? 'Master Gladiator: 20 Push-Up agresif!'
-                        : 'Standar gladiator: 15 Push-Up terukur'}
+                        ? 'Master Gladiator: Ritme push-up agresif!'
+                        : 'Standar gladiator: Ritme push-up terukur'}
                   </p>
                 </div>
                 <div className="w-full max-w-xs bg-white/10 h-2 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-magenta transition-all duration-300"
-                    style={{ width: `${(p2Reps / targetReps) * 100}%` }}
+                    style={{ width: `${Math.min((p2Reps / 20) * 100, 100)}%` }}
                   />
+                </div>
+                <span className="text-[11px] font-mono text-magenta font-bold">{p2Reps} Reps</span>
+              </div>
+            ) : opponentMode === 'online_pvp' ? (
+              <div className="relative aspect-video w-full rounded-xl bg-black/80 overflow-hidden border border-magenta/40">
+                <RemoteVideoPlayer
+                  stream={remoteStream}
+                  className="w-full h-full"
+                  fallbackLabel="Menghubungkan kamera Penantang (P2)..."
+                />
+                <div className="absolute top-2 left-2 px-2.5 py-1 rounded bg-black/75 border border-magenta/30 text-[10px] font-mono text-magenta flex items-center gap-1.5 z-10">
+                  <span className={`w-2 h-2 rounded-full ${remoteStream ? 'bg-magenta animate-pulse' : 'bg-amber-400'}`} />
+                  <span>LIVE FEED: {p2DisplayName}</span>
+                </div>
+                <div className="absolute bottom-2 inset-x-2 bg-void/80 border border-magenta/30 rounded px-2.5 py-1 flex items-center justify-between text-[11px] font-mono z-10">
+                  <span className="text-magenta font-bold">{p2DisplayName}</span>
+                  <span className="text-white font-bold">{p2Reps} Reps</span>
                 </div>
               </div>
             ) : (
               <div className="aspect-video w-full rounded-xl bg-black/60 border border-magenta/30 flex flex-col items-center justify-center p-4 text-center space-y-2">
                 <span className="text-4xl">⚔️</span>
                 <p className="font-display text-sm font-bold text-white">{p2DisplayName}</p>
-                <p className="text-xs font-mono text-magenta">
-                  {opponentMode === 'online_pvp' ? 'Online Challenger (P2)' : t.arena.battleLocalChallenger}
-                </p>
+                <p className="text-xs font-mono text-magenta">{t.arena.battleLocalChallenger}</p>
                 <div className="w-full max-w-xs bg-white/10 h-2 rounded-full overflow-hidden mt-2">
                   <div
                     className="h-full bg-magenta transition-all duration-300"
-                    style={{ width: `${(p2Reps / targetReps) * 100}%` }}
+                    style={{ width: `${Math.min((p2Reps / 20) * 100, 100)}%` }}
                   />
                 </div>
+                <span className="text-[11px] font-mono text-magenta font-bold">{p2Reps} Reps</span>
               </div>
             )}
 
