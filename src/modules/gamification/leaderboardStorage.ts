@@ -11,6 +11,7 @@ import type {
   WeeklySeasonState,
 } from './types';
 import { getUserProfile } from '../program-engine/storage';
+import { getSupabaseClient } from '@/lib/supabase/client';
 
 const STORAGE_KEYS = {
   SEASON: 'gymquest_leaderboard_season_v1',
@@ -105,22 +106,13 @@ export function getWeeklySeasonState(): WeeklySeasonState {
       return evaluateAndStartNextSeason(state);
     }
 
-    // Perbarui profil rival jika masih menggunakan nama AI placeholder lama
-    const hasLegacyAiNames = state.competitors.some(
-      (c) => !c.isUser && (c.username === 'VortexValkyrie' || c.username === 'CyberSpartan' || c.avatar === '⚡')
-    );
-    if (hasLegacyAiNames) {
-      const freshRivals = generateCompetitorsForLeague(state.leagueId, 0, 1);
-      state.competitors = state.competitors.map((c, idx) => {
-        if (c.isUser) return c;
-        const fresh = freshRivals.find((r) => !r.isUser && r.id === c.id) || freshRivals[idx] || freshRivals[0];
-        return {
-          ...c,
-          username: fresh.username,
-          title: fresh.title,
-          avatar: fresh.avatar,
-        };
-      });
+    // Bersihkan semua kompetitor fiktif / fake bot dari state lokal
+    const hasFakeCompetitors = state.competitors.some((c) => !c.isUser || c.id.startsWith('rival-'));
+    if (hasFakeCompetitors) {
+      state.competitors = state.competitors.filter((c) => c.isUser && !c.id.startsWith('rival-'));
+      if (state.competitors.length === 0) {
+        state.competitors = generateCompetitorsForLeague(state.leagueId, getUserTotalExp());
+      }
       saveSeasonState(state);
     }
 
@@ -213,12 +205,7 @@ export function addUserExp(
   user.totalExp = updatedTotal;
   user.streakDays = profile.streakDays || 1;
 
-  // Sedikit berikan fluktuasi acak pada 1-2 rival agar leaderboard terasa hidup
-  state.competitors.forEach((c) => {
-    if (!c.isUser && Math.random() < 0.3) {
-      c.weeklyExp += Math.floor(Math.random() * 20) + 10;
-    }
-  });
+
 
   // Urutkan kembali berdasarkan weeklyExp terbesar
   state.competitors.sort((a, b) => b.weeklyExp - a.weeklyExp);
@@ -260,4 +247,96 @@ export function calculateWorkoutExp(
   const streakBonus = Math.min(streakDays, 7) * 15;
 
   return baseExp + repsExp + timeExp + streakBonus;
+}
+
+/**
+ * Mengambil daftar pemain nyata dari Supabase profiles dan menggabungkan dengan profil user saat ini.
+ * Menghilangkan seluruh bot / profil fiktif dari leaderboard.
+ */
+export async function fetchRealLeaderboardCompetitors(
+  currentLeague: LeagueTier = 'iron',
+): Promise<LeaderboardCompetitor[]> {
+  const client = getSupabaseClient();
+  const localProfile = getUserProfile();
+  const localTotalExp = getUserTotalExp();
+
+  const fallbackUser: LeaderboardCompetitor = {
+    id: 'user-current',
+    username: `${localProfile.username || 'Kamu'}`,
+    title: localProfile.goal ? `Target: ${localProfile.goal}` : LEAGUES_CONFIG[currentLeague]?.title || 'Gladiator',
+    avatar: localProfile.avatar || '⚔️',
+    level: Math.max(1, Math.floor(localTotalExp / 300) + 1),
+    weeklyExp: localTotalExp,
+    totalExp: localTotalExp,
+    isUser: true,
+    streakDays: localProfile.streakDays || 1,
+  };
+
+  if (!client) {
+    return [fallbackUser];
+  }
+
+  try {
+    let activeUserId: string | null = null;
+    try {
+      const { data: authData } = await client.auth.getUser();
+      if (authData?.user) {
+        activeUserId = authData.user.id;
+      }
+    } catch {
+      // Offline / guest
+    }
+
+    const { data: profiles, error } = await client
+      .from('profiles')
+      .select('id, username, avatar, fitness_level, streak_days, total_exp, current_league')
+      .order('total_exp', { ascending: false });
+
+    if (error || !profiles || profiles.length === 0) {
+      return [fallbackUser];
+    }
+
+    // Ubah data profil Supabase menjadi format LeaderboardCompetitor nyata
+    const realCompetitors: LeaderboardCompetitor[] = profiles.map((p) => {
+      const isThisUser = Boolean(
+        (activeUserId && p.id === activeUserId) ||
+        (!activeUserId && p.username === localProfile.username)
+      );
+
+      const exp = isThisUser ? Math.max(p.total_exp || 0, localTotalExp) : (p.total_exp || 0);
+      const level = Math.max(1, Math.floor(exp / 300) + 1);
+      const title = p.fitness_level
+        ? p.fitness_level.charAt(0).toUpperCase() + p.fitness_level.slice(1)
+        : 'Gladiator';
+
+      return {
+        id: p.id,
+        username: isThisUser ? `${p.username || localProfile.username || 'Kamu'} (Kamu)` : (p.username || 'Gladiator'),
+        title,
+        avatar: p.avatar || '⚔️',
+        level,
+        weeklyExp: exp,
+        totalExp: exp,
+        isUser: isThisUser,
+        streakDays: p.streak_days || 0,
+      };
+    });
+
+    // Jika user lokal belum terdaftar di Supabase, masukkan user lokal ke daftar
+    const hasUser = realCompetitors.some((c) => c.isUser);
+    if (!hasUser) {
+      realCompetitors.push({
+        ...fallbackUser,
+        username: `${localProfile.username || 'Kamu'} (Kamu)`,
+      });
+    }
+
+    // Urutkan berdasarkan total exp terbesar
+    realCompetitors.sort((a, b) => b.weeklyExp - a.weeklyExp);
+
+    return realCompetitors;
+  } catch (err) {
+    console.error('Failed to fetch real leaderboard competitors:', err);
+    return [fallbackUser];
+  }
 }

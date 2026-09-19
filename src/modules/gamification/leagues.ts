@@ -98,24 +98,8 @@ export function getPreviousLeague(current: LeagueTier): LeagueTier {
   return current; // Sudah di Iron, tidak bisa turun lagi
 }
 
-// Pool profil kontestan rival buatan sendiri untuk simulasi leaderboard yang otentik dan kompetitif
-const RIVAL_NAMES_POOL = [
-  { name: 'Rian Pratama', title: 'Calisthenics Athlete', avatar: 'yogi' },
-  { name: 'Dimas Arya', title: 'Heavy Barbell Lifter', avatar: 'lifter' },
-  { name: 'Fitri Handayani', title: 'HIIT & Sprint Specialist', avatar: 'runner' },
-  { name: 'Kevin Sanjaya', title: 'Agility & Combat Boxer', avatar: 'striker' },
-  { name: 'Sarah Jenkins', title: 'Ironcore Athlete', avatar: 'valkyrie' },
-  { name: 'Budi Santoso', title: 'Endurance Pioneer', avatar: 'runner' },
-  { name: 'Alex Wijaya', title: 'Bodyweight Warrior', avatar: 'knight' },
-  { name: 'Nadia Safira', title: 'Core & Plank Master', avatar: 'guardian' },
-  { name: 'Farhan Putra', title: 'Hypertrophy Fighter', avatar: 'titan' },
-  { name: 'Maya Anggraini', title: 'Powerlifting Adept', avatar: 'lifter' },
-  { name: 'Dion Wicaksono', title: 'Kettlebell Crusader', avatar: 'knight' },
-  { name: 'Reza Fauzi', title: 'Functional Fitness Ace', avatar: 'striker' },
-];
-
 /**
- * Generate 10 rival kompetitor di sekitar EXP benchmark liga agar persaingan ketat dan seru.
+ * Menyiapkan kontestan awal untuk kasta liga (hanya user asli tanpa fake bot).
  */
 export function generateCompetitorsForLeague(
   leagueId: LeagueTier,
@@ -124,35 +108,8 @@ export function generateCompetitorsForLeague(
   username: string = 'Kamu (Knight-01)',
 ): LeaderboardCompetitor[] {
   const config = LEAGUES_CONFIG[leagueId];
-  const baseBenchmark = config.minExpBenchmark;
 
-  // Pilih 10 rival acak dari pool
-  const shuffled = [...RIVAL_NAMES_POOL].sort(() => 0.5 - Math.random()).slice(0, 10);
-
-  // Variasi multiplier EXP untuk rival di rank 1-10
-  const expMultipliers = [1.6, 1.45, 1.3, 1.15, 1.0, 0.9, 0.8, 0.7, 0.55, 0.4];
-
-  const rivalCompetitors: LeaderboardCompetitor[] = shuffled.map((rival, index) => {
-    const mult = expMultipliers[index];
-    const jitter = Math.floor(Math.random() * 80) - 40;
-    const weeklyExp = Math.max(80, Math.round(baseBenchmark * mult + jitter));
-    const level = Math.max(1, Math.round(config.order * 3 + index));
-    const totalExp = weeklyExp * 4 + Math.floor(Math.random() * 500);
-
-    return {
-      id: `rival-${rival.name.toLowerCase()}-${index}`,
-      username: rival.name,
-      title: rival.title,
-      avatar: rival.avatar,
-      level,
-      weeklyExp,
-      totalExp,
-      isUser: false,
-      streakDays: Math.floor(Math.random() * 8) + 1,
-    };
-  });
-
-  // User competitor
+  // User competitor asli
   const userCompetitor: LeaderboardCompetitor = {
     id: 'user-current',
     username,
@@ -165,9 +122,5 @@ export function generateCompetitorsForLeague(
     streakDays: userStreak,
   };
 
-  // Gabungkan dan urutkan berdasarkan weeklyExp tertinggi
-  const all = [...rivalCompetitors, userCompetitor];
-  all.sort((a, b) => b.weeklyExp - a.weeklyExp);
-
-  return all;
+  return [userCompetitor];
 }

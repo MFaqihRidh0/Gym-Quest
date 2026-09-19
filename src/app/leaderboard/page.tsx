@@ -3,9 +3,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  addUserExp,
   dismissEvaluationResult,
   getWeeklySeasonState,
+  fetchRealLeaderboardCompetitors,
+  saveSeasonState,
 } from '@/modules/gamification/leaderboardStorage';
 import {
   LEAGUES_CONFIG,
@@ -48,14 +49,31 @@ export default function LeaderboardPage() {
   const [activeEvaluation, setActiveEvaluation] = useState<SeasonEvaluationResult | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Load state on mount
+  // Load state on mount and sync real competitors from Supabase
   useEffect(() => {
     const state = getWeeklySeasonState();
+    // Filter bot / fake competitors
+    state.competitors = (state.competitors || []).filter((c) => !c.id.startsWith('rival-'));
     setSeasonState(state);
     setSelectedLeagueTab(state.leagueId);
     if (state.lastEvaluation) {
       setActiveEvaluation(state.lastEvaluation);
     }
+
+    // Ambil pemain nyata dari Supabase profiles
+    fetchRealLeaderboardCompetitors(state.leagueId).then((realPlayers) => {
+      if (realPlayers && realPlayers.length > 0) {
+        setSeasonState((prev) => {
+          if (!prev) return prev;
+          const updated: WeeklySeasonState = {
+            ...prev,
+            competitors: realPlayers,
+          };
+          saveSeasonState(updated);
+          return updated;
+        });
+      }
+    });
   }, []);
 
   // Real-time 7-Day Countdown Timer
@@ -104,14 +122,7 @@ export default function LeaderboardPage() {
   const userRank = userRankIndex >= 0 ? userRankIndex + 1 : 11;
   const userZone = getRankZone(userRank);
 
-  // Simulasi tambah EXP untuk uji coba langsung interaksi ranking
-  const handleAddDemoExp = (amount: number) => {
-    soundEngine.playPoint();
-    const result = addUserExp(amount, 'demo_boost');
-    setSeasonState(result.state);
-    setToastMessage(`+${amount} EXP Berhasil ditambahkan! Posisi kamu kini Rank #${result.newRank}`);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
+
 
   const handleCloseEvaluationModal = () => {
     soundEngine.playLevelUp();
@@ -396,14 +407,6 @@ export default function LeaderboardPage() {
                 >
                   {t.leaderboard.trainForExp}
                 </Link>
-                {/* Tombol simulasi EXP untuk kemudahan verifikasi langsung */}
-                <button
-                  onClick={() => handleAddDemoExp(150)}
-                  title="Test EXP Boost"
-                  className="px-3 py-2 rounded border border-white/20 bg-white/5 hover:border-cyan text-white text-[11px] font-mono transition-colors"
-                >
-                  +150 EXP (Test)
-                </button>
               </div>
             </div>
           </div>
@@ -459,14 +462,28 @@ export default function LeaderboardPage() {
                 {t.leaderboard.weeklyBracketDesc.replace('{league}', currentLeagueConfig.name)}
               </p>
             </div>
-            <span className="text-xs font-mono text-cyan">{t.leaderboard.contestantsCount}</span>
+            <span className="text-xs font-mono text-cyan">
+              {seasonState.competitors.length} {language === 'en' ? 'Players' : 'Pemain Nyata'}
+            </span>
           </div>
 
           <div className="space-y-2">
+            {seasonState.competitors.length === 0 && (
+              <div className="glass-panel p-8 text-center border-white/10 rounded-xl space-y-2">
+                <span className="text-3xl">⚔️</span>
+                <p className="font-display text-white font-bold text-sm">
+                  {language === 'en' ? 'No registered players in this league yet.' : 'Belum ada pemain nyata yang terdaftar di liga ini.'}
+                </p>
+                <p className="text-xs font-mono text-muted">
+                  {language === 'en' ? 'Start working out to claim the #1 spot!' : 'Mulai latihan untuk mengumpulkan EXP dan raih peringkat #1!'}
+                </p>
+              </div>
+            )}
             {seasonState.competitors.map((competitor, idx) => {
               const rank = idx + 1;
+              const totalCount = seasonState.competitors.length;
               const zone = getRankZone(rank);
-              const isFirstOfZone = rank === 1 || rank === 4 || rank === 9;
+              const isFirstOfZone = rank === 1 || (rank === 4 && totalCount >= 4) || (rank === 9 && totalCount >= 9);
 
               // Medali & Indikator
               let medal = null;
