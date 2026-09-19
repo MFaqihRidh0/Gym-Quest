@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { usePoseDetection } from '@/modules/cv-engine/usePoseDetection';
@@ -51,10 +51,53 @@ function RemoteVideoPlayer({
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  const attachAndPlay = useCallback(
+    (el: HTMLVideoElement | null) => {
+      videoRef.current = el;
+      if (!el || !stream) return;
+
+      if (el.srcObject !== stream) {
+        el.srcObject = stream;
+      }
+      el.muted = true;
+      el.playsInline = true;
+      el.play().catch(() => {});
+    },
+    [stream]
+  );
+
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
+    const video = videoRef.current;
+    if (!video || !stream) return;
+
+    if (video.srcObject !== stream) {
+      video.srcObject = stream;
     }
+    video.muted = true;
+    video.playsInline = true;
+
+    const playVideo = () => {
+      if (video.paused) {
+        video.play().catch(() => {});
+      }
+    };
+
+    video.addEventListener('loadedmetadata', playVideo);
+    video.addEventListener('canplay', playVideo);
+    playVideo();
+
+    const tracks = stream.getVideoTracks();
+    tracks.forEach((track) => {
+      track.addEventListener('unmute', playVideo);
+    });
+
+    return () => {
+      video.removeEventListener('loadedmetadata', playVideo);
+      video.removeEventListener('canplay', playVideo);
+      tracks.forEach((track) => {
+        track.removeEventListener('unmute', playVideo);
+      });
+    };
   }, [stream]);
 
   if (!stream) {
@@ -70,7 +113,7 @@ function RemoteVideoPlayer({
 
   return (
     <video
-      ref={videoRef}
+      ref={attachAndPlay}
       autoPlay
       playsInline
       muted
@@ -241,9 +284,10 @@ function PushUpBattleContent() {
     battleStage === 'battle' && (opponentMode !== 'online_pvp' || isDuelActive)
   );
 
-  // Start webcam when entering waiting room or active battle stage
+  // Start webcam when entering waiting room or active battle stage (tetap aktif saat countdown/stage transisi)
+  const shouldCameraBeActive = battleStage === 'waiting_room' || battleStage === 'battle';
   useEffect(() => {
-    if (battleStage === 'waiting_room' || battleStage === 'battle') {
+    if (shouldCameraBeActive) {
       start();
     } else {
       stop();
@@ -251,7 +295,7 @@ function PushUpBattleContent() {
     return () => {
       stop();
     };
-  }, [battleStage, start, stop]);
+  }, [shouldCameraBeActive, start, stop]);
 
   // Clean up online room on unmount
   useEffect(() => {
@@ -472,31 +516,7 @@ function PushUpBattleContent() {
     setBattleStage('selection');
   };
 
-  // Keyboard shortcut listener for active battle controls
-  useEffect(() => {
-    if (battleStage !== 'battle') return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
-
-      if (e.code === 'Space' || e.code === 'KeyA') {
-        e.preventDefault();
-        triggerAttack('p1');
-      } else if (e.code === 'KeyS') {
-        e.preventDefault();
-        triggerKiCharge('p1');
-      } else if (e.code === 'Enter' || e.code === 'KeyL') {
-        e.preventDefault();
-        triggerAttack('p2');
-      } else if (e.code === 'KeyK') {
-        e.preventDefault();
-        triggerKiCharge('p2');
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [battleStage, triggerAttack, triggerKiCharge]);
 
   // Draw Player Skeleton overlay
   useEffect(() => {
@@ -558,18 +578,19 @@ function PushUpBattleContent() {
   // =========================================================================
   if (battleStage === 'selection') {
     return (
-      <main className="min-h-screen flex flex-col bg-transparent text-primary pb-16">
+      <main className="min-h-screen flex flex-col bg-transparent text-primary pb-16 overflow-x-hidden">
         {/* Header Bersih */}
-        <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
+        <header className="glass-panel sticky top-2 sm:top-3 z-20 mx-2 sm:mx-3 rounded-2xl flex items-center justify-between px-3.5 sm:px-5 py-2.5 sm:py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
           <Link
             href="/arena"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide"
           >
             <span>←</span>
-            <span>{t.arena.battleLeaveArena}</span>
+            <span className="hidden xs:inline">{t.arena.battleLeaveArena}</span>
+            <span className="xs:hidden">Kembali</span>
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher compact />
             <UserNavButton />
           </div>
@@ -897,31 +918,31 @@ function PushUpBattleContent() {
   // =========================================================================
   if (battleStage === 'waiting_room') {
     return (
-      <main className="min-h-screen flex flex-col bg-transparent text-primary pb-16 animate-fade-in">
+      <main className="min-h-screen flex flex-col bg-transparent text-primary pb-16 animate-fade-in overflow-x-hidden">
         {/* Header Ruang Tunggu */}
-        <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
+        <header className="glass-panel sticky top-2 sm:top-3 z-20 mx-2 sm:mx-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
           <button
             type="button"
             onClick={returnToSelection}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-magenta/10 hover:border-magenta/40 hover:text-magenta text-muted transition-all duration-200 text-xs font-mono tracking-wide cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-magenta/10 hover:border-magenta/40 hover:text-magenta text-muted transition-all duration-200 text-xs font-mono tracking-wide cursor-pointer"
           >
             <span>←</span>
             <span>{t.arena.leaveRoom}</span>
           </button>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-black/60 border border-cyan/40 shadow-[0_0_15px_rgba(0,229,255,0.15)]">
+            <div className="flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl bg-black/60 border border-cyan/40 shadow-[0_0_15px_rgba(0,229,255,0.15)] text-xs">
               <span className="text-[10px] font-mono text-cyan uppercase font-bold tracking-wider">ROOM:</span>
-              <span className="font-display font-black text-white text-base tracking-widest">{roomCode || 'GQ-....'}</span>
+              <span className="font-display font-black text-white text-sm sm:text-base tracking-widest">{roomCode || 'GQ-....'}</span>
               <span
-                className={`w-2.5 h-2.5 rounded-full ${
+                className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${
                   roomStatus === 'connected' ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400 animate-pulse'
                 }`}
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher compact />
             <UserNavButton />
           </div>
@@ -1245,26 +1266,26 @@ function PushUpBattleContent() {
   // TAMPILAN 3: ARENA PERTANDINGAN (SAAT GAME DIMULAI)
   // =========================================================================
   return (
-    <main className="min-h-screen flex flex-col bg-transparent text-primary pb-12 animate-fade-in">
+    <main className="min-h-screen flex flex-col bg-transparent text-primary pb-12 animate-fade-in overflow-x-hidden">
       {/* HEADER ARENA */}
-      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-        <div className="flex items-center gap-3">
+      <header className="glass-panel sticky top-2 sm:top-3 z-20 mx-2 sm:mx-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             type="button"
             onClick={returnToSelection}
-            className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="font-display text-xs sm:text-sm tracking-wide text-white hover:text-cyan transition-colors flex items-center gap-1.5 cursor-pointer truncate"
           >
             <span>GYMQUEST</span>
-            <span className="text-muted">· {t.arena.pageTitle}</span>
+            <span className="text-muted truncate">· {t.arena.pageTitle}</span>
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Tombol Kembali ke Halaman Pilihan Mode */}
           <button
             type="button"
             onClick={returnToSelection}
-            className="px-3 py-1 rounded-lg bg-white/5 border border-white/15 text-xs font-mono text-white hover:border-cyan hover:bg-cyan/10 transition-colors flex items-center gap-1 cursor-pointer"
+            className="px-2.5 sm:px-3 py-1 rounded-lg bg-white/5 border border-white/15 text-[11px] sm:text-xs font-mono text-white hover:border-cyan hover:bg-cyan/10 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <span>{t.arena.changeOpponentMode}</span>
           </button>
@@ -1496,25 +1517,15 @@ function PushUpBattleContent() {
               </div>
             )}
 
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => triggerKiCharge('p1')}
-                title="Charge Ki Push-Up [Tombol S]"
-                className="flex-1 px-3 py-2 rounded bg-cyan/10 border border-cyan/40 hover:bg-cyan/20 text-cyan text-xs font-mono transition-colors flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <IconFlame size={14} className="text-cyan" />
-                <span>{t.arena.battleKiCharge}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => triggerAttack('p1')}
-                title="Tembakkan Kamehameha! [Tombol Spasi / A]"
-                className="flex-2 px-3 py-2 rounded bg-cyan/20 border border-cyan/50 hover:bg-cyan/30 text-cyan text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-[0_0_12px_rgba(0,229,255,0.25)] cursor-pointer"
-              >
-                <IconBurst size={15} className="text-cyan" glow />
+            {/* Indikator Serangan Push-Up Otomatis (Tanpa Tombol Manual) */}
+            <div className="px-3 py-2 rounded-lg bg-cyan/5 border border-cyan/20 flex items-center justify-between text-[11px] font-mono">
+              <span className="text-cyan flex items-center gap-1.5 font-bold">
+                <span className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
                 <span>{t.arena.battleKamehameha}</span>
-              </button>
+              </span>
+              <span className="text-muted text-[10px]">
+                {language === 'en' ? 'Triggers via physical Push-Up' : 'Otomatis dari repetisi Push-Up'}
+              </span>
             </div>
           </div>
 
@@ -1627,25 +1638,17 @@ function PushUpBattleContent() {
               </div>
             )}
 
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => triggerKiCharge('p2')}
-                title="Charge Ki P2 [Tombol K]"
-                className="flex-1 px-3 py-2 rounded bg-magenta/10 border border-magenta/40 hover:bg-magenta/20 text-magenta text-xs font-mono transition-colors flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <IconFlame size={14} className="text-magenta" />
-                <span>{t.arena.battleKiChargeP2}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => triggerAttack('p2')}
-                title="Tembakkan Final Flash! [Tombol Enter / L]"
-                className="flex-2 px-3 py-2 rounded bg-magenta/20 border border-magenta/50 hover:bg-magenta/30 text-magenta text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-[0_0_12px_rgba(255,0,122,0.25)] cursor-pointer"
-              >
-                <IconBurst size={15} className="text-magenta" glow />
+            {/* Indikator Serangan Push-Up Otomatis (Tanpa Tombol Manual) */}
+            <div className="px-3 py-2 rounded-lg bg-magenta/5 border border-magenta/20 flex items-center justify-between text-[11px] font-mono">
+              <span className="text-magenta flex items-center gap-1.5 font-bold">
+                <span className="w-2 h-2 rounded-full bg-magenta animate-pulse" />
                 <span>{t.arena.battleFinalFlash}</span>
-              </button>
+              </span>
+              <span className="text-muted text-[10px]">
+                {opponentMode === 'ai_bot'
+                  ? (language === 'en' ? 'AI Bot Workout Rhythm' : 'Ritme Push-Up AI Bot')
+                  : (language === 'en' ? 'Triggers via physical Push-Up' : 'Otomatis dari repetisi Push-Up')}
+              </span>
             </div>
           </div>
         </div>

@@ -1,17 +1,25 @@
-# 🏋️ GymQuest — AI Computer Vision Personal Trainer & Gamified Fitness Platform
+<p align="center">
+  <img src="public/logo-full.png" alt="GymQuest Logo" width="380" />
+</p>
 
-> **Sustainable, Free & Privacy-First Digital Fitness**  
-> Mengubah latihan fisik rumahan menjadi petualangan game interaktif (_Arena Mode_) dan program bimbingan terstruktur berbasis sains olahraga (_Quest Mode_) dengan Computer Vision real-time langsung di browser Anda.
+<h1 align="center">🏋️ GymQuest — AI Computer Vision Personal Trainer & Gamified Fitness Platform</h1>
 
-[![Next.js 16](https://img.shields.io/badge/Next.js-16.3-black?style=flat&logo=next.js)](https://nextjs.org/)
-[![React 19](https://img.shields.io/badge/React-19.2-61dafb?style=flat&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178c6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-Database%20%26%20Auth-3ecf8e?style=flat&logo=supabase)](https://supabase.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=flat&logo=vercel)](https://vercel.com/)
-[![MediaPipe Tasks Vision](https://img.shields.io/badge/MediaPipe-Tasks--Vision-007fff?style=flat&logo=google)](https://developers.google.com/mediapipe)
-[![Three.js](https://img.shields.io/badge/Three.js-3D%20Biomechanics-000000?style=flat&logo=three.js)](https://threejs.org/)
-[![SDGs 3 & 10](https://img.shields.io/badge/SDGs-3%20%26%2010%20Aligned-4c8c2b?style=flat)](https://sdgs.un.org/goals)
-[![Client--Side Privacy](https://img.shields.io/badge/Privacy-100%25%20Client--Side%20WASM-success?style=flat)](https://github.com)
+<p align="center">
+  <strong>Sustainable, Free & Privacy-First Digital Fitness</strong><br>
+  <em>Mengubah latihan fisik rumahan menjadi petualangan game interaktif (Arena Mode) dan program bimbingan terstruktur berbasis sains olahraga (Quest Mode) dengan Computer Vision real-time langsung di browser Anda.</em>
+</p>
+
+<p align="center">
+  <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-16.3-black?style=flat&logo=next.js" alt="Next.js 16" /></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19.2-61dafb?style=flat&logo=react" alt="React 19" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.0-3178c6?style=flat&logo=typescript" alt="TypeScript" /></a>
+  <a href="https://supabase.com/"><img src="https://img.shields.io/badge/Supabase-Database%20%26%20Auth-3ecf8e?style=flat&logo=supabase" alt="Supabase" /></a>
+  <a href="https://vercel.com/"><img src="https://img.shields.io/badge/Vercel-Deployed-000000?style=flat&logo=vercel" alt="Vercel" /></a>
+  <a href="https://developers.google.com/mediapipe"><img src="https://img.shields.io/badge/MediaPipe-Tasks--Vision-007fff?style=flat&logo=google" alt="MediaPipe" /></a>
+  <a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-3D%20Biomechanics-000000?style=flat&logo=three.js" alt="Three.js" /></a>
+  <a href="https://sdgs.un.org/goals"><img src="https://img.shields.io/badge/SDGs-3%20%26%2010%20Aligned-4c8c2b?style=flat" alt="SDGs" /></a>
+  <img src="https://img.shields.io/badge/Privacy-100%25%20Client--Side%20WASM-success?style=flat" alt="Privacy" />
+</p>
 
 ---
 
@@ -59,6 +67,8 @@ Kebugaran jasmani adalah pilar kesehatan universal. Namun, masyarakat modern men
 ### Solusi GymQuest
 
 **GymQuest** hadir sebagai **Personal Trainer AI & Platform Kebugaran Tergamifikasi** yang dapat diakses secara cuma-cuma melalui browser web standar. Cukup dengan webcam laptop atau smartphone, GymQuest mendeteksi titik sendi tubuh secara real-time, mengoreksi sudut biomekanik, menghitung repetisi valid, memvisualisasikan anatomi otot dalam 3D, dan membungkus seluruh latihan ke dalam sistem kompetisi 5 Kasta Liga Mingguan yang adiktif.
+
+> 📖 **Pelajari Konsep Lengkap:** Untuk pemaparan mendalam mengenai visi, analisis masalah, psikologi gamifikasi, dan arsitektur produk, silakan baca dokumentasi terpisah kami di [**TENTANG_GYMQUEST.md**](./TENTANG_GYMQUEST.md).
 
 ---
 
@@ -259,7 +269,10 @@ npm run setup:mediapipe  # Mengunduh ulang aset biner MediaPipe jika diperlukan
 gymquest/
 ├── public/
 │   ├── cursors/                 # Kursor barbel kustom (Cyberpunk HUD style)
-│   └── mediapipe/               # Model AI & biner WebAssembly lokal (offline-capable)
+│   ├── mediapipe/               # Model AI & biner WebAssembly lokal (offline-capable)
+│   ├── logo-emblem.png          # Logo emblem GQ + Dumbbell kosmik (Glow 3x)
+│   ├── logo-full.png            # Full lockup logo GymQuest resmi
+│   └── icon-192.png / 512.png   # Ikon PWA & mobile app launcher
 ├── scripts/
 │   └── setup-mediapipe.mjs      # Skrip otomatis pengunduh model MediaPipe
 ├── src/
@@ -279,6 +292,7 @@ gymquest/
 │   │   ├── layout.tsx           # Layout dasar & styling global
 │   │   └── globals.css          # Desain sistem Tailwind v4 & tema dark cyberpunk
 │   ├── components/              # Komponen UI modular
+│   │   ├── GymQuestLogo.tsx     # Komponen sentral logo GymQuest (Glow 3x & responsive)
 │   │   ├── AuthModal.tsx        # Modal login/registrasi alternatif
 │   │   ├── CameraStage.tsx      # Kontainer video & kanvas Bio-Scan HUD
 │   │   ├── ConfidenceBar.tsx    # Visualizer confidence deteksi landmark
@@ -307,6 +321,7 @@ gymquest/
 ├── supabase_schema.sql          # Skema database PostgreSQL, RLS policies, & triggers
 ├── vercel.json                  # Konfigurasi deployment & CDN edge caching Vercel
 ├── package.json                 # Dependensi & skrip proyek
+├── TENTANG_GYMQUEST.md          # Dokumen konsep utuh, visi, & analisis produk
 ├── GymQuest_AI_Coding_Briefing.md # Briefing teknis lengkap & arsitektur proyek
 └── GymQuest_UIUX_Briefing.md      # Panduan desain antarmuka Modern Cyberpunk
 ```
@@ -374,6 +389,7 @@ Mengacu pada dokumen rencana kerja komprehensif [`GymQuest_AI_Coding_Briefing.md
 | **Fase 8** | Dragon Ball Kamehameha Push-Up Battle 1v1 vs AI Bot Leveling | ✅ Selesai & Terverifikasi |
 | **Fase 9** | Halaman Autentikasi Mandiri (/auth), Validasi Sandi Kuat, & Privasi Data | ✅ Selesai & Terverifikasi |
 | **Fase 10**| Deployment Vercel Edge CDN, vercel.json, & GitHub Branch Protection | ✅ Selesai & Terverifikasi |
+| **Fase 11**| Branding Identitas Resmi: Logo GymQuest Glow 3x & Integrasi Favicon | ✅ Selesai & Terverifikasi |
 
 ---
 

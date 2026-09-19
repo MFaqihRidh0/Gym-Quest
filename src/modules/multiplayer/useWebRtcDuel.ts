@@ -21,6 +21,8 @@ export function useWebRtcDuel(
   const [rtcStatus, setRtcStatus] = useState<'idle' | 'connecting' | 'connected' | 'failed'>('idle');
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  const localStreamRef = useRef<MediaStream | null>(localStream);
+  localStreamRef.current = localStream;
 
   // Bersihkan PeerConnection
   const cleanupPeerConnection = useCallback(() => {
@@ -46,14 +48,35 @@ export function useWebRtcDuel(
       pcRef.current = pc;
       setRtcStatus('connecting');
 
-      // 1. Tambahkan track kamera lokal jika ada
-      if (localStream) {
-        localStream.getTracks().forEach((track) => {
-          pc.addTrack(track, localStream);
-        });
+      // 1. Siapkan transceiver video agar SDP selalu memiliki section media video
+      try {
+        const transceivers = pc.getTransceivers();
+        const hasVideo = transceivers.some((t) => t.receiver.track.kind === 'video');
+        if (!hasVideo) {
+          pc.addTransceiver('video', { direction: 'sendrecv' });
+        }
+      } catch (e) {
+        console.warn('WebRTC transceiver init warning:', e);
       }
 
-      // 2. Kirim ICE candidate ke lawan via roomManager
+      // 2. Tambahkan track kamera lokal jika sudah ada
+      const currentStream = localStreamRef.current;
+      if (currentStream) {
+        const videoTrack = currentStream.getVideoTracks()[0];
+        if (videoTrack) {
+          const senders = pc.getSenders();
+          const videoSender = senders.find(
+            (s) => s.track?.kind === 'video' || (!s.track && (s as any).kind === 'video')
+          );
+          if (videoSender) {
+            videoSender.replaceTrack(videoTrack).catch(() => {});
+          } else {
+            pc.addTrack(videoTrack, currentStream);
+          }
+        }
+      }
+
+      // 3. Kirim ICE candidate ke lawan via roomManager
       pc.onicecandidate = (event) => {
         if (event.candidate && roomManagerRef.current) {
           roomManagerRef.current.sendWebRtcSignal({
@@ -63,12 +86,20 @@ export function useWebRtcDuel(
         }
       };
 
-      // 3. Terima stream video lawan
+      // 4. Terima stream video lawan secara reaktif
       pc.ontrack = (event) => {
-        if (event.streams && event.streams[0]) {
-          setRemoteStream(event.streams[0]);
+        const stream =
+          event.streams && event.streams[0]
+            ? event.streams[0]
+            : new MediaStream([event.track]);
+        setRemoteStream(stream);
+        setRtcStatus('connected');
+
+        // Jika track lawan sempat mute saat pertama negosiasi dan aktif kembali
+        event.track.onunmute = () => {
+          setRemoteStream(new MediaStream([event.track]));
           setRtcStatus('connected');
-        }
+        };
       };
 
       pc.onconnectionstatechange = () => {
@@ -87,59 +118,104 @@ export function useWebRtcDuel(
       setRtcStatus('failed');
       return null;
     }
-  }, [localStream, roomManagerRef]);
+  }, [roomManagerRef]);
+
+  // Pasang atau ganti track video lokal ketika localStream tersedia/berubah
+  useEffect(() => {
+    const pc = pcRef.current;
+    if (!pc || !localStream) return;
+
+    const videoTrack = localStream.getVideoTracks()[0];
+    if (!videoTrack) return;
+
+    const senders = pc.getSenders();
+    const videoSender =
+      senders.find(
+        (s) => s.track?.kind === 'video' || (!s.track && (s as any).kind === 'video')
+      ) || senders[0];
+
+    if (videoSender) {
+      videoSender.replaceTrack(videoTrack).catch((err) => {
+        console.warn('Failed to replace video track in RTCPeerConnection:', err);
+      });
+    } else {
+      try {
+        pc.addTrack(videoTrack, localStream);
+      } catch (err) {
+        console.warn('Failed to add track to RTCPeerConnection:', err);
+      }
+    }
+  }, [localStream]);
 
   // Handler sinyal WebRTC masuk dari lawan
-  const handleIncomingSignal = useCallback(async (signal: WebRtcSignalData) => {
-    try {
-      if (signal.type === 'offer') {
-        // Lawan mengirim offer (biasanya Host)
-        let pc = pcRef.current;
-        if (!pc) {
-          pc = setupPeerConnection();
-        }
-        if (!pc) return;
+  const handleIncomingSignal = useCallback(
+    async (signal: WebRtcSignalData) => {
+      try {
+        if (signal.type === 'offer') {
+          let pc = pcRef.current;
+          if (!pc) {
+            pc = setupPeerConnection();
+          }
+          if (!pc) return;
 
-        await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-
-        // Tambahkan kandidat yang tertunda
-        while (pendingCandidatesRef.current.length > 0) {
-          const c = pendingCandidatesRef.current.shift();
-          if (c) await pc.addIceCandidate(new RTCIceCandidate(c));
-        }
-
-        // Buat dan kirim answer
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-
-        if (roomManagerRef.current) {
-          roomManagerRef.current.sendWebRtcSignal({
-            type: 'answer',
-            sdp: pc.localDescription,
-          });
-        }
-      } else if (signal.type === 'answer') {
-        const pc = pcRef.current;
-        if (pc && pc.signalingState !== 'stable') {
           await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
 
+          // Tambahkan kandidat yang tertunda
           while (pendingCandidatesRef.current.length > 0) {
             const c = pendingCandidatesRef.current.shift();
-            if (c) await pc.addIceCandidate(new RTCIceCandidate(c));
+            if (c) {
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(c));
+              } catch (e) {
+                console.warn('Error adding pending ice candidate:', e);
+              }
+            }
+          }
+
+          // Buat dan kirim answer
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+
+          if (roomManagerRef.current) {
+            roomManagerRef.current.sendWebRtcSignal({
+              type: 'answer',
+              sdp: pc.localDescription,
+            });
+          }
+        } else if (signal.type === 'answer') {
+          const pc = pcRef.current;
+          if (pc && pc.signalingState !== 'stable') {
+            await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+
+            while (pendingCandidatesRef.current.length > 0) {
+              const c = pendingCandidatesRef.current.shift();
+              if (c) {
+                try {
+                  await pc.addIceCandidate(new RTCIceCandidate(c));
+                } catch (e) {
+                  console.warn('Error adding pending ice candidate:', e);
+                }
+              }
+            }
+          }
+        } else if (signal.type === 'ice-candidate') {
+          const pc = pcRef.current;
+          if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+            } catch (e) {
+              console.warn('Error adding ice candidate:', e);
+            }
+          } else {
+            pendingCandidatesRef.current.push(signal.candidate);
           }
         }
-      } else if (signal.type === 'ice-candidate') {
-        const pc = pcRef.current;
-        if (pc && pc.remoteDescription && pc.remoteDescription.type) {
-          await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
-        } else {
-          pendingCandidatesRef.current.push(signal.candidate);
-        }
+      } catch (err) {
+        console.warn('Error handling WebRTC signal:', err);
       }
-    } catch (err) {
-      console.warn('Error handling WebRTC signal:', err);
-    }
-  }, [setupPeerConnection, roomManagerRef]);
+    },
+    [setupPeerConnection, roomManagerRef]
+  );
 
   // Pasang listener sinyal ke roomManager
   useEffect(() => {
@@ -164,14 +240,20 @@ export function useWebRtcDuel(
       const pc = setupPeerConnection();
       if (!pc) return;
 
-      // Tunggu sejenak agar stream lokal terpasang stabil sebelum membuat offer
       const timer = setTimeout(async () => {
         try {
           if (!pcRef.current) return;
+          if (
+            pcRef.current.signalingState !== 'stable' &&
+            pcRef.current.signalingState !== 'have-local-offer'
+          ) {
+            return;
+          }
           const offer = await pcRef.current.createOffer({
             offerToReceiveVideo: true,
             offerToReceiveAudio: false,
           });
+          if (pcRef.current.signalingState !== 'stable') return;
           await pcRef.current.setLocalDescription(offer);
 
           if (roomManagerRef.current) {

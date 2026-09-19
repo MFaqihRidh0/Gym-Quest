@@ -556,43 +556,45 @@ function WorkoutRunner() {
 
   // LAYAR AKTIF WORKOUT
   return (
-    <main className="min-h-screen flex flex-col bg-transparent text-primary">
+    <main className="min-h-screen flex flex-col bg-transparent text-primary overflow-x-hidden">
       {/* 1. HEADER TOP HUD & TIMELINE COCKPIT */}
-      <header className="glass-panel sticky top-3 z-20 mx-3 sm:mx-6 rounded-2xl border border-cyan/30 shadow-[0_8px_40px_rgba(0,0,0,0.55)] overflow-hidden bg-void/90 backdrop-blur-xl">
+      <header className="glass-panel sticky top-2 sm:top-3 z-20 mx-2 sm:mx-6 rounded-2xl border border-cyan/30 shadow-[0_8px_40px_rgba(0,0,0,0.55)] overflow-hidden bg-void/90 backdrop-blur-xl">
         {/* ROW 1: TOP HUD STATUS */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-b border-white/10">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-2.5 border-b border-white/10 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Link
               href={`/programs/${program.id}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-red-500/10 hover:border-red-400/40 hover:text-red-400 text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-red-500/10 hover:border-red-400/40 hover:text-red-400 text-muted transition-all duration-200 text-xs font-mono tracking-wide backdrop-blur-sm shadow-sm shrink-0"
+              title={t.common.close}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              {t.common.close}
+              <span className="hidden xs:inline">{t.common.close}</span>
             </Link>
-            <span className="text-xs text-white/20">|</span>
-            <div className="flex items-center gap-2">
+            <span className="text-xs text-white/20 hidden xs:inline">|</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
               <GymQuestLogo size="xs" variant="emblem" />
-              <span className="font-display text-sm font-bold text-white truncate max-w-[180px] sm:max-w-none">
+              <span className="font-display text-xs sm:text-sm font-bold text-white truncate max-w-[100px] xs:max-w-[160px] sm:max-w-none">
                 {currentProgram?.title || program.title}
               </span>
             </div>
-            <span className="hidden sm:inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cyan/15 text-cyan border border-cyan/30">
+            <span className="hidden md:inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cyan/15 text-cyan border border-cyan/30">
               {currentProgram?.badge || program.badge}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4 text-xs font-mono">
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted flex items-center gap-1">
+          <div className="flex items-center gap-1.5 sm:gap-4 text-xs font-mono shrink-0">
+            <div className="flex items-center gap-1">
+              <span className="text-muted hidden xs:inline-flex items-center gap-1">
                 <IconTimer size={13} className="text-muted" />
                 {t.common.duration}:
               </span>
+              <span className="xs:hidden">⏱️</span>
               <span className="text-white font-bold">
                 {Math.floor(sessionElapsedSeconds / 60)}:
                 {String(sessionElapsedSeconds % 60).padStart(2, '0')}
               </span>
             </div>
-            <div className="hidden sm:flex items-center gap-1.5">
+            <div className="hidden md:flex items-center gap-1.5">
               <span className="text-muted flex items-center gap-1">
                 <IconFlame size={13} className="text-magenta" />
                 {t.common.calories}:
@@ -602,7 +604,7 @@ function WorkoutRunner() {
             <LanguageSwitcher compact />
             <button
               onClick={() => setIsPaused(!isPaused)}
-              className={`clip-corner px-3 py-1 text-xs font-mono transition-all flex items-center gap-1.5 ${
+              className={`clip-corner px-2.5 sm:px-3 py-1 text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
                 isPaused
                   ? 'bg-yellow-400 text-void font-bold shadow-[0_0_10px_rgba(255,214,0,0.5)]'
                   : 'border border-white/20 bg-white/5 text-white hover:border-cyan'
@@ -611,12 +613,12 @@ function WorkoutRunner() {
               {isPaused ? (
                 <>
                   <IconPlay size={11} className="fill-current" />
-                  <span>{t.common.resume}</span>
+                  <span className="hidden xs:inline">{t.common.resume}</span>
                 </>
               ) : (
                 <>
                   <IconPause size={11} className="fill-current" />
-                  <span>{t.common.pause}</span>
+                  <span className="hidden xs:inline">{t.common.pause}</span>
                 </>
               )}
             </button>

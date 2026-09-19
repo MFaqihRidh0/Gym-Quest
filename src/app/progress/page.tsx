@@ -7,6 +7,7 @@ import type { UserProfile, WorkoutSessionLog } from '@/modules/program-engine/ty
 import { UserNavButton } from '@/components/UserNavButton';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { GymQuestLogo } from '@/components/GymQuestLogo';
+import { AppNavbar } from '@/components/AppNavbar';
 import { useLanguage } from '@/modules/i18n';
 
 export default function ProgressPage() {
@@ -26,85 +27,63 @@ export default function ProgressPage() {
 
   const stats = calculateSummaryStats(history);
 
-  // Kumpulan tanggal latihan (Set of YYYY-MM-DD)
-  const workoutDates = new Set(
-    history.map((h) => {
-      const d = new Date(h.timestamp);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }),
-  );
-
-  // Buat grid hari kalender bulan ini
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0 = Minggu
+  // Helper kalender
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-  const monthNames = [
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-  ];
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0 = Minggu
 
   const prevMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
-      setCurrentYear((y) => y - 1);
+      setCurrentYear(currentYear - 1);
     } else {
-      setCurrentMonth((m) => m - 1);
+      setCurrentMonth(currentMonth - 1);
     }
   };
 
   const nextMonth = () => {
     if (currentMonth === 11) {
       setCurrentMonth(0);
-      setCurrentYear((y) => y + 1);
+      setCurrentYear(currentYear + 1);
     } else {
-      setCurrentMonth((m) => m + 1);
+      setCurrentMonth(currentMonth + 1);
     }
   };
 
-  // Filter riwayat jika ada tanggal kalender yang diklik
+  const monthNames = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+  ];
+
+  // Set tanggal yang ada riwayat latihan (format YYYY-MM-DD)
+  const workoutDates = new Set(
+    history.map((log) => {
+      const d = new Date(log.timestamp);
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${d.getFullYear()}-${m}-${day}`;
+    })
+  );
+
   const filteredHistory = selectedDateFilter
-    ? history.filter((h) => {
-        const d = new Date(h.timestamp);
-        const y = d.getFullYear();
+    ? history.filter((log) => {
+        const d = new Date(log.timestamp);
         const m = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}` === selectedDateFilter;
+        return `${d.getFullYear()}-${m}-${day}` === selectedDateFilter;
       })
     : history;
 
   return (
-    <main className="min-h-screen flex flex-col bg-transparent text-primary pb-16">
+    <main className="min-h-screen flex flex-col bg-transparent text-primary pb-16 overflow-x-hidden">
       {/* HEADER */}
-      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2 group">
-            <GymQuestLogo size="xs" variant="emblem" />
-            <span className="font-display font-bold text-sm tracking-wide text-white group-hover:text-cyan transition-colors">
-              GYMQUEST
-            </span>
-            <span className="text-muted text-xs font-mono">· {t.nav.progress}</span>
-          </Link>
-        </div>
-        <nav className="flex items-center gap-4 text-sm font-body">
-          <Link href="/programs" className="text-muted hover:text-cyan transition-colors">
-            {t.nav.programs}
-          </Link>
-          <Link href="/leaderboard" className="text-yellow-400 hover:text-yellow-300 transition-colors font-medium">
-            {t.nav.leaderboard} 🏆
-          </Link>
-          <Link href="/arena" className="text-muted hover:text-magenta transition-colors hidden sm:inline">
-            {t.nav.arena}
-          </Link>
-          <LanguageSwitcher compact />
-          <UserNavButton />
-        </nav>
-      </header>
+      <AppNavbar
+        activePage="progress"
+        subtitle={`· ${t.nav.progress}`}
+        streakDays={profile.streakDays}
+      />
 
-      <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:py-12 space-y-8">
-        {/* TOMBOL KEMBALI KE BERANDA (DI BODY DENGAN TATA LETAK PAS) */}
+      <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
+        {/* TOMBOL KEMBALI KE BERANDA */}
         <div>
           <Link
             href="/"
@@ -119,7 +98,7 @@ export default function ProgressPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
           <div>
             <p className="font-mono text-xs tracking-widest text-cyan uppercase">Analytics & History</p>
-            <h1 className="mt-1 font-display text-3xl sm:text-4xl font-bold text-white">
+            <h1 className="mt-1 font-display text-2xl sm:text-4xl font-bold text-white">
               {t.progress.pageTitle}
             </h1>
             <p className="mt-1 text-sm text-muted">
@@ -127,30 +106,30 @@ export default function ProgressPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <Link
               href="/leaderboard"
-              className="flex items-center gap-3 bg-gradient-to-r from-cyan/20 to-magenta/20 border border-cyan/40 rounded-xl p-4 shrink-0 hover:border-cyan transition-colors"
+              className="flex items-center gap-3 bg-gradient-to-r from-cyan/20 to-magenta/20 border border-cyan/40 rounded-xl p-3.5 sm:p-4 shrink-0 hover:border-cyan transition-colors"
             >
-              <span className="text-3xl">🏆</span>
+              <span className="text-2xl sm:text-3xl">🏆</span>
               <div>
-                <div className="text-[11px] font-mono uppercase text-cyan font-bold tracking-wider">
+                <div className="text-[10px] sm:text-[11px] font-mono uppercase text-cyan font-bold tracking-wider">
                   {t.home.modeLeaderboardTitle}
                 </div>
-                <div className="font-display text-sm font-bold text-white flex items-center gap-1">
+                <div className="font-display text-xs sm:text-sm font-bold text-white flex items-center gap-1">
                   {t.nav.leaderboard} ▸
                 </div>
               </div>
             </Link>
 
-            <div className="flex items-center gap-3 bg-gradient-to-r from-yellow-500/20 to-magenta/20 border border-yellow-500/40 rounded-xl p-4 shrink-0 shadow-[0_0_20px_rgba(255,214,0,0.1)]">
-              <span className="text-3xl">🔥</span>
+            <div className="flex items-center gap-3 bg-gradient-to-r from-yellow-500/20 to-magenta/20 border border-yellow-500/40 rounded-xl p-3.5 sm:p-4 shrink-0 shadow-[0_0_20px_rgba(255,214,0,0.1)]">
+              <span className="text-2xl sm:text-3xl">🔥</span>
               <div>
-                <div className="text-[11px] font-mono uppercase text-yellow-400 font-bold tracking-wider">
+                <div className="text-[10px] sm:text-[11px] font-mono uppercase text-yellow-400 font-bold tracking-wider">
                   {t.progress.streakTitle}
                 </div>
-                <div className="font-display text-2xl font-bold text-white">
-                  {profile.streakDays} <span className="text-sm font-normal text-muted">{t.progress.streakDays}</span>
+                <div className="font-display text-xl sm:text-2xl font-bold text-white">
+                  {profile.streakDays} <span className="text-xs sm:text-sm font-normal text-muted">{t.progress.streakDays}</span>
                 </div>
               </div>
             </div>

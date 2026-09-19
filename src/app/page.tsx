@@ -11,6 +11,7 @@ import { getActiveUser } from '@/modules/auth/syncManager';
 import { soundEngine } from '@/modules/game-engine/audio';
 import { useLanguage } from '@/modules/i18n';
 import { GymQuestLogo } from '@/components/GymQuestLogo';
+import { AppNavbar } from '@/components/AppNavbar';
 import type { User } from '@supabase/supabase-js';
 import {
   IconBolt,
@@ -107,60 +108,16 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-transparent text-primary selection:bg-cyan selection:text-void">
-      {/* 1. PROMINENT MODERN HEADER */}
-      <header className="glass-panel sticky top-3 z-30 mx-3 rounded-2xl flex items-center justify-between px-6 py-3.5 backdrop-blur-md shadow-[0_8px_40px_rgba(0,0,0,0.6)]">
-        {/* LOGO & BRAND */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <GymQuestLogo size="md" showTagline={true} />
-        </Link>
-
-        {/* NAVIGATION LINKS */}
-        <nav className="flex items-center gap-2 sm:gap-6 font-body text-sm">
-          <Link
-            href="/programs"
-            className="text-white hover:text-cyan transition-colors font-medium flex items-center gap-1.5 px-2 py-1"
-          >
-            <IconDumbbell size={16} className="text-cyan" />
-            <span className="hidden md:inline">{t.nav.programs}</span>
-          </Link>
-
-          <Link
-            href="/leaderboard"
-            className="text-white hover:text-yellow-400 transition-colors font-medium flex items-center gap-1.5 px-2 py-1"
-          >
-            <IconTrophy size={16} className="text-yellow-400" />
-            <span className="hidden md:inline">{t.nav.leaderboard}</span>
-          </Link>
-
-          <Link
-            href="/progress"
-            className="text-muted hover:text-cyan transition-colors font-medium flex items-center gap-1.5 px-2 py-1"
-          >
-            <IconChart size={16} className="text-cyan" />
-            <span className="hidden md:inline">{t.nav.progress}</span>
-          </Link>
-
-          {/* ARENA LINK (INTERCEPTED WITH LOGIN CHECK) */}
-          <button
-            onClick={handleArenaClick}
-            className="text-magenta hover:text-white font-medium flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-magenta/40 hover:bg-magenta/20 transition-all shadow-[0_0_12px_rgba(255,0,122,0.2)]"
-          >
-            <IconCombat size={16} className="text-magenta" glow />
-            <span>{t.nav.arena}</span>
-            <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-magenta animate-ping" />
-          </button>
-
-          <LanguageSwitcher compact />
-
-          <div className="pl-2 border-l border-white/10">
-            <UserNavButton />
-          </div>
-        </nav>
-      </header>
+    <main className="min-h-screen flex flex-col bg-transparent text-primary selection:bg-cyan selection:text-void overflow-x-hidden">
+      {/* 1. PROMINENT MODERN RESPONSIVE HEADER */}
+      <AppNavbar
+        activePage="home"
+        showTagline={true}
+        onArenaClick={handleArenaClick}
+      />
 
       {/* 2. HERO SECTION */}
-      <section className="relative overflow-hidden px-5 py-14 sm:py-20 flex-1 flex flex-col justify-center">
+      <section className="relative overflow-hidden px-4 sm:px-6 py-10 sm:py-16 lg:py-20 flex-1 flex flex-col justify-center">
         {/* BACKGROUND GLOW ACCENTS */}
         <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-cyan/15 blur-[120px] rounded-full" />
         <div className="pointer-events-none absolute top-1/3 right-10 w-[500px] h-[300px] bg-magenta/15 blur-[140px] rounded-full" />
@@ -175,7 +132,7 @@ export default function Home() {
           </div>
 
           {/* MAIN HEADLINE */}
-          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.18] text-balance max-w-4xl text-white animate-hero-sway-delayed">
+          <h1 className="font-display text-3xl sm:text-5xl lg:text-7xl font-extrabold leading-[1.18] text-balance max-w-4xl text-white animate-hero-sway-delayed">
             <InteractiveText text={t.home.heroTitleLine1} />{' '}
             <span className="inline-block relative underline decoration-cyan/40 decoration-wavy">
               <InteractiveText

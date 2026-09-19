@@ -8,8 +8,8 @@ import type { FitnessLevel, ProgramCategory, UserProfile, WorkoutProgram } from 
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { CustomWorkoutModal } from '@/components/CustomWorkoutModal';
 import { UserNavButton } from '@/components/UserNavButton';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { GymQuestLogo } from '@/components/GymQuestLogo';
+import { AppNavbar } from '@/components/AppNavbar';
 import { useLanguage, getLocalizedPrograms, getLocalizedLevel } from '@/modules/i18n';
 import {
   IconBolt,
@@ -205,37 +205,15 @@ export default function ProgramsPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-transparent text-primary">
+    <main className="min-h-screen flex flex-col bg-transparent text-primary overflow-x-hidden">
       {/* HEADER */}
-      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2 group">
-            <GymQuestLogo size="xs" variant="emblem" />
-            <span className="font-display font-bold text-sm tracking-wide text-white group-hover:text-cyan transition-colors">
-              GYMQUEST
-            </span>
-            <span className="text-muted text-xs font-mono">· {t.nav.programs}</span>
-          </Link>
-        </div>
-        <nav className="flex items-center gap-4 text-sm font-body">
-          <Link href="/leaderboard" className="text-yellow-400 hover:text-yellow-300 transition-colors font-medium flex items-center gap-1.5">
-            <span>{t.nav.leaderboard}</span>
-            <IconTrophy size={14} className="text-amber-400" />
-          </Link>
-          <Link href="/progress" className="text-muted hover:text-cyan transition-colors flex items-center gap-1.5">
-            <IconFlame size={14} className="text-amber-400 inline" />
-            <span className="text-xs">{t.progress.streakTitle}:</span>
-            <span className="text-cyan font-mono font-bold text-xs">{profile.streakDays} {t.progress.streakDays}</span>
-          </Link>
-          <Link href="/arena" className="text-muted hover:text-magenta transition-colors hidden sm:inline">
-            {t.nav.arena}
-          </Link>
-          <LanguageSwitcher compact />
-          <UserNavButton />
-        </nav>
-      </header>
+      <AppNavbar
+        activePage="programs"
+        subtitle={`· ${t.nav.programs}`}
+        streakDays={profile.streakDays}
+      />
 
-      <div className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:py-12 space-y-8">
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
         {/* TOMBOL KEMBALI KE BERANDA */}
         <div>
           <Link

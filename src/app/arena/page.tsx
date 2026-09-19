@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { UserNavButton } from '@/components/UserNavButton';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { GymQuestLogo } from '@/components/GymQuestLogo';
+import { AppNavbar } from '@/components/AppNavbar';
 import { useLanguage } from '@/modules/i18n';
 import { soundEngine } from '@/modules/game-engine/audio';
 import { formatCountdown, useCountdown } from '@/lib/useCountdown';
@@ -246,8 +246,8 @@ function PipCamera({
 
 function ScoreHud({ children }: { children: React.ReactNode }) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-5 flex justify-center gap-3">
-      <div className="glass-panel clip-corner flex items-center gap-4 px-5 py-2.5 font-mono text-sm">
+    <div className="pointer-events-none absolute inset-x-0 top-3 sm:top-5 flex justify-center px-2 z-10">
+      <div className="glass-panel clip-corner flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-3 sm:px-5 py-1.5 sm:py-2.5 font-mono text-xs sm:text-sm">
         {children}
       </div>
     </div>
@@ -355,20 +355,11 @@ export default function ArenaPage() {
 
   if (!started) {
     return (
-      <main className="flex h-dvh flex-col bg-transparent">
-        <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-          <Link href="/" className="flex items-center gap-2 group">
-            <GymQuestLogo size="xs" variant="emblem" />
-            <span className="font-display font-bold text-sm tracking-wide text-white group-hover:text-cyan transition-colors">
-              GYMQUEST
-            </span>
-            <span className="text-muted text-xs font-mono">· {t.nav.arena}</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <LanguageSwitcher compact />
-            <UserNavButton />
-          </div>
-        </header>
+      <main className="min-h-screen flex flex-col bg-transparent overflow-x-hidden">
+        <AppNavbar
+          activePage="arena"
+          subtitle={`· ${t.nav.arena}`}
+        />
         <SelectScreen
           game={game}
           onSelectGame={setGame}
@@ -385,26 +376,26 @@ export default function ArenaPage() {
       : t.arena.kangarooLabel;
 
   return (
-    <main className="flex h-dvh flex-col bg-transparent">
-      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-        <Link href="/" className="flex items-center gap-2 group">
+    <main className="flex h-dvh flex-col bg-transparent overflow-x-hidden">
+      <header className="glass-panel sticky top-2 sm:top-3 z-20 mx-2 sm:mx-3 rounded-2xl flex items-center justify-between px-3 sm:px-5 py-2.5 sm:py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
+        <Link href="/" className="flex items-center gap-2 group min-w-0">
           <GymQuestLogo size="xs" variant="emblem" />
-          <span className="font-display font-bold text-sm tracking-wide text-white group-hover:text-cyan transition-colors">
+          <span className="font-display font-bold text-sm tracking-wide text-white group-hover:text-cyan transition-colors truncate">
             GYMQUEST
           </span>
-          <span className="text-muted text-xs font-mono">· {t.nav.arena} — {gameLabel}</span>
+          <span className="text-muted text-xs font-mono truncate hidden sm:inline">· {t.nav.arena} — {gameLabel}</span>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={toggleSound}
-            className="clip-corner border border-muted/50 px-2.5 py-1 font-mono text-xs text-muted hover:border-magenta hover:text-magenta transition-colors"
+            className="clip-corner border border-muted/50 px-2 sm:px-2.5 py-1 font-mono text-xs text-muted hover:border-magenta hover:text-magenta transition-colors"
             aria-label={isMuted ? 'Nyalakan audio' : 'Matikan audio'}
           >
-            {isMuted ? '🔇 Audio Off' : '🔊 Audio On'}
+            {isMuted ? '🔇' : '🔊'}
           </button>
           <button
             onClick={handleBackToMenu}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide"
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/5 border border-white/15 hover:bg-cyan/10 hover:border-cyan/40 hover:text-cyan text-muted transition-all duration-200 text-xs font-mono tracking-wide"
           >
             {t.arena.switchGame}
           </button>

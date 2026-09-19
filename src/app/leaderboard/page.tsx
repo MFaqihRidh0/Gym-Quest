@@ -21,9 +21,8 @@ import type {
   WeeklySeasonState,
 } from '@/modules/gamification/types';
 import { soundEngine } from '@/modules/game-engine/audio';
-import { UserNavButton } from '@/components/UserNavButton';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { GymQuestLogo } from '@/components/GymQuestLogo';
+import { AppNavbar } from '@/components/AppNavbar';
 import { useLanguage, getLocalizedLeague } from '@/modules/i18n';
 import {
   IconLeagueBadge,
@@ -139,35 +138,12 @@ export default function LeaderboardPage() {
   const rank8Exp = seasonState.competitors[7]?.weeklyExp || 0;
 
   return (
-    <main className="min-h-screen flex flex-col bg-transparent text-primary pb-20">
+    <main className="min-h-screen flex flex-col bg-transparent text-primary pb-20 overflow-x-hidden">
       {/* HEADER NAV */}
-      <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="flex items-center gap-2 group"
-          >
-            <GymQuestLogo size="xs" variant="emblem" />
-            <span className="font-display font-bold text-sm tracking-wide text-white group-hover:text-cyan transition-colors">
-              GYMQUEST
-            </span>
-            <span className="text-muted text-xs font-mono">· {t.nav.leaderboard}</span>
-          </Link>
-        </div>
-        <nav className="flex items-center gap-4 text-sm font-body">
-          <Link href="/programs" className="text-muted hover:text-cyan transition-colors">
-            {t.nav.programs}
-          </Link>
-          <Link href="/progress" className="text-muted hover:text-cyan transition-colors">
-            {t.nav.progress}
-          </Link>
-          <Link href="/arena" className="text-muted hover:text-magenta transition-colors hidden sm:inline">
-            {t.nav.arena}
-          </Link>
-          <LanguageSwitcher compact />
-          <UserNavButton />
-        </nav>
-      </header>
+      <AppNavbar
+        activePage="leaderboard"
+        subtitle={`· ${t.nav.leaderboard}`}
+      />
 
       {/* TOAST NOTIFIKASI EXP */}
       {toastMessage && (
@@ -176,7 +152,7 @@ export default function LeaderboardPage() {
         </div>
       )}
 
-      <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:py-10 space-y-8">
+      <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
         {/* TOMBOL KEMBALI KE BERANDA (DI BODY DENGAN TATA LETAK PAS) */}
         <div>
           <Link
@@ -189,7 +165,7 @@ export default function LeaderboardPage() {
         </div>
 
         {/* HERO TITLE & SEASON COUNTDOWN BANNER */}
-        <div className="relative overflow-hidden glass-panel clip-corner border-white/15 p-6 sm:p-8 bg-gradient-to-br from-[#0c1433] via-[#070c1e] to-[#0f172a]">
+        <div className="relative overflow-hidden glass-panel clip-corner border-white/15 p-5 sm:p-8 bg-gradient-to-br from-[#0c1433] via-[#070c1e] to-[#0f172a]">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             <div className="space-y-2 max-w-xl">
               <div className="flex items-center gap-2">
@@ -198,7 +174,7 @@ export default function LeaderboardPage() {
                 </span>
                 <span className="text-xs text-muted font-mono">7 {t.leaderboard.days}</span>
               </div>
-              <h1 className="font-display text-3xl sm:text-4xl font-bold text-white tracking-tight">
+              <h1 className="font-display text-2xl sm:text-4xl font-bold text-white tracking-tight">
                 {t.leaderboard.pageTitle} · {currentLeagueConfig.name} {currentLeagueConfig.badgeIcon}
               </h1>
               <p className="text-sm text-muted">
@@ -207,7 +183,7 @@ export default function LeaderboardPage() {
             </div>
 
             {/* COUNTDOWN COCKPIT */}
-            <div className="bg-void/80 border border-cyan/40 rounded-xl p-4 sm:p-5 shrink-0 shadow-[0_0_30px_rgba(0,229,255,0.15)] space-y-3 min-w-[280px]">
+            <div className="bg-void/80 border border-cyan/40 rounded-xl p-4 sm:p-5 shrink-0 shadow-[0_0_30px_rgba(0,229,255,0.15)] space-y-3 w-full lg:w-auto min-w-0">
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-cyan font-bold tracking-wider flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-cyan animate-ping" />
@@ -273,7 +249,7 @@ export default function LeaderboardPage() {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
+          <div className="flex sm:grid sm:grid-cols-5 gap-2 sm:gap-3 overflow-x-auto touch-scroll pb-1">
             {LEAGUE_TIERS_ORDER.map((tierId) => {
               const tier = getLocalizedLeague(tierId, language);
               const isCurrent = seasonState.leagueId === tierId;

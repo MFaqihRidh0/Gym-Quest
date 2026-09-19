@@ -160,15 +160,16 @@ export function usePoseDetection(): PoseDetectionResult {
 
     streamRef.current = stream;
     const video = videoRef.current;
-    if (!video) return;
-    video.srcObject = stream;
-    video.muted = true;
-    video.setAttribute('playsinline', 'true');
+    if (video) {
+      video.srcObject = stream;
+      video.muted = true;
+      video.setAttribute('playsinline', 'true');
 
-    try {
-      await video.play();
-    } catch (playError) {
-      console.warn('Video play was delayed or blocked, waiting for metadata:', playError);
+      try {
+        await video.play();
+      } catch (playError) {
+        console.warn('Video play was delayed or blocked, waiting for metadata:', playError);
+      }
     }
 
     if (isCancelledRef.current) {
