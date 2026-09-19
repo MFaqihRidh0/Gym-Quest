@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { signInUser, signUpUser, getActiveUser } from '@/modules/auth/syncManager';
 import { soundEngine } from '@/modules/game-engine/audio';
+import { GymQuestLogo } from '@/components/GymQuestLogo';
 import {
   IconBolt,
   IconShield,
@@ -155,20 +156,8 @@ function AuthContent() {
           <div className="pointer-events-none absolute -bottom-12 -right-12 w-48 h-48 bg-magenta/20 blur-3xl rounded-full" />
 
           <div className="space-y-4 relative z-10">
-            <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan via-blue-600 to-magenta p-0.5 shadow-[0_0_20px_rgba(0,229,255,0.4)] group-hover:scale-105 transition-transform">
-                <div className="w-full h-full bg-void rounded-[10px] flex items-center justify-center">
-                  <IconBarbell size={24} className="text-cyan" glow />
-                </div>
-              </div>
-              <div>
-                <div className="font-display font-black text-2xl tracking-wider bg-gradient-to-r from-white via-cyan to-magenta bg-clip-text text-transparent">
-                  GYMQUEST
-                </div>
-                <div className="font-mono text-[9px] tracking-widest text-muted uppercase">
-                  CYBER-FITNESS RPG
-                </div>
-              </div>
+            <Link href="/" className="inline-block group">
+              <GymQuestLogo size="lg" showTagline={true} />
             </Link>
 
             <div className="space-y-1.5 pt-2">

@@ -23,6 +23,15 @@ export const metadata: Metadata = {
   title: 'GymQuest — Personal trainer digital berbasis computer vision',
   description:
     'Ubah olahraga di rumah jadi pengalaman bermain game. Deteksi pose lewat webcam, koreksi form real-time, program latihan berbasis riset. Gratis dan berjalan langsung di browser.',
+  icons: {
+    icon: [
+      { url: '/icon.png', sizes: '64x64', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { UserNavButton } from '@/components/UserNavButton';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { GymQuestLogo } from '@/components/GymQuestLogo';
 import { useLanguage } from '@/modules/i18n';
 import { soundEngine } from '@/modules/game-engine/audio';
 import { formatCountdown, useCountdown } from '@/lib/useCountdown';
@@ -356,8 +357,12 @@ export default function ArenaPage() {
     return (
       <main className="flex h-dvh flex-col bg-transparent">
         <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-          <Link href="/" className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors">
-            GYMQUEST <span className="text-muted">· {t.nav.arena}</span>
+          <Link href="/" className="flex items-center gap-2 group">
+            <GymQuestLogo size="xs" variant="emblem" />
+            <span className="font-display font-bold text-sm tracking-wide text-white group-hover:text-cyan transition-colors">
+              GYMQUEST
+            </span>
+            <span className="text-muted text-xs font-mono">· {t.nav.arena}</span>
           </Link>
           <div className="flex items-center gap-3">
             <LanguageSwitcher compact />
@@ -382,9 +387,13 @@ export default function ArenaPage() {
   return (
     <main className="flex h-dvh flex-col bg-transparent">
       <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-        <span className="font-display text-sm tracking-wide text-white">
-          GYMQUEST <span className="text-muted">· {t.nav.arena} — {gameLabel}</span>
-        </span>
+        <Link href="/" className="flex items-center gap-2 group">
+          <GymQuestLogo size="xs" variant="emblem" />
+          <span className="font-display font-bold text-sm tracking-wide text-white group-hover:text-cyan transition-colors">
+            GYMQUEST
+          </span>
+          <span className="text-muted text-xs font-mono">· {t.nav.arena} — {gameLabel}</span>
+        </Link>
         <div className="flex items-center gap-3">
           <button
             onClick={toggleSound}

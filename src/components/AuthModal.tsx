@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { signInUser, signUpUser } from '@/modules/auth/syncManager';
 import { soundEngine } from '@/modules/game-engine/audio';
+import { GymQuestLogo } from '@/components/GymQuestLogo';
 import type { User } from '@supabase/supabase-js';
 
 interface AuthModalProps {
@@ -94,8 +95,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       <div className="glass-panel clip-corner w-full max-w-md border-cyan/40 bg-[#070c1e]/95 p-6 sm:p-8 space-y-6 shadow-[0_0_50px_rgba(0,229,255,0.2)]">
         {/* HEADER */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">⚡</span>
+          <div className="flex items-center gap-3">
+            <GymQuestLogo size="xs" variant="emblem" />
             <div>
               <h2 className="font-display text-xl font-bold text-white tracking-wide">
                 Akun GymQuest

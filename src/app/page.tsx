@@ -10,6 +10,7 @@ import { InteractiveText } from '@/components/ui/InteractiveText';
 import { getActiveUser } from '@/modules/auth/syncManager';
 import { soundEngine } from '@/modules/game-engine/audio';
 import { useLanguage } from '@/modules/i18n';
+import { GymQuestLogo } from '@/components/GymQuestLogo';
 import type { User } from '@supabase/supabase-js';
 import {
   IconBolt,
@@ -108,19 +109,10 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col bg-transparent text-primary selection:bg-cyan selection:text-void">
       {/* 1. PROMINENT MODERN HEADER */}
-      <header className="glass-panel sticky top-3 z-30 mx-3 rounded-2xl flex items-center justify-between px-6 py-4 backdrop-blur-md shadow-[0_8px_40px_rgba(0,0,0,0.6)]">
+      <header className="glass-panel sticky top-3 z-30 mx-3 rounded-2xl flex items-center justify-between px-6 py-3.5 backdrop-blur-md shadow-[0_8px_40px_rgba(0,0,0,0.6)]">
         {/* LOGO & BRAND */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan via-blue-600 to-magenta p-0.5 shadow-[0_0_20px_rgba(0,229,255,0.4)] group-hover:scale-105 transition-transform">
-            <div className="w-full h-full bg-void rounded-[10px] flex items-center justify-center">
-              <IconBarbell size={22} className="text-cyan" glow />
-            </div>
-          </div>
-          <div>
-            <div className="font-display font-black text-xl tracking-wider bg-gradient-to-r from-white via-cyan to-magenta bg-clip-text text-transparent">
-              GYMQUEST
-            </div>
-          </div>
+          <GymQuestLogo size="md" showTagline={true} />
         </Link>
 
         {/* NAVIGATION LINKS */}
@@ -168,12 +160,20 @@ export default function Home() {
       </header>
 
       {/* 2. HERO SECTION */}
-      <section className="relative overflow-hidden px-5 py-16 sm:py-24 flex-1 flex flex-col justify-center">
+      <section className="relative overflow-hidden px-5 py-14 sm:py-20 flex-1 flex flex-col justify-center">
         {/* BACKGROUND GLOW ACCENTS */}
         <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-cyan/15 blur-[120px] rounded-full" />
         <div className="pointer-events-none absolute top-1/3 right-10 w-[500px] h-[300px] bg-magenta/15 blur-[140px] rounded-full" />
 
-        <div className="mx-auto w-full max-w-6xl relative z-10 space-y-8">
+        <div className="mx-auto w-full max-w-6xl relative z-10 space-y-6">
+          {/* OFFICIAL BRAND BADGE */}
+          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-cyan/30 bg-[#070c1e]/80 backdrop-blur-md shadow-[0_0_20px_rgba(0,229,255,0.2)]">
+            <GymQuestLogo size="xs" variant="emblem" />
+            <span className="text-[11px] font-mono font-bold tracking-widest text-cyan uppercase">
+              GymQuest · Your Fitness Adventure
+            </span>
+          </div>
+
           {/* MAIN HEADLINE */}
           <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.18] text-balance max-w-4xl text-white animate-hero-sway-delayed">
             <InteractiveText text={t.home.heroTitleLine1} />{' '}
@@ -322,14 +322,9 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* COLUMN 1: BRANDING & MISSION */}
             <div className="space-y-4 md:col-span-1">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan to-magenta p-0.5">
-                  <div className="w-full h-full bg-void rounded-[6px] flex items-center justify-center">
-                    <IconBarbell size={18} className="text-cyan" />
-                  </div>
-                </div>
-                <span className="font-display font-bold text-lg text-white">GYMQUEST</span>
-              </div>
+              <Link href="/" className="inline-block">
+                <GymQuestLogo size="md" showTagline={true} />
+              </Link>
               <p className="text-xs text-muted leading-relaxed font-body">
                 {t.home.footerAboutDesc}
               </p>

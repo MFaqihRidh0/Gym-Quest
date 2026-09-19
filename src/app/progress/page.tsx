@@ -6,6 +6,7 @@ import { calculateSummaryStats, getWorkoutHistory, getUserProfile, DEFAULT_USER_
 import type { UserProfile, WorkoutSessionLog } from '@/modules/program-engine/types';
 import { UserNavButton } from '@/components/UserNavButton';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { GymQuestLogo } from '@/components/GymQuestLogo';
 import { useLanguage } from '@/modules/i18n';
 
 export default function ProgressPage() {
@@ -79,8 +80,12 @@ export default function ProgressPage() {
       {/* HEADER */}
       <header className="glass-panel sticky top-3 z-20 mx-3 rounded-2xl flex items-center justify-between px-5 py-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
         <div className="flex items-center gap-3">
-          <Link href="/" className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors">
-            GYMQUEST <span className="text-muted">· {t.nav.progress}</span>
+          <Link href="/" className="flex items-center gap-2 group">
+            <GymQuestLogo size="xs" variant="emblem" />
+            <span className="font-display font-bold text-sm tracking-wide text-white group-hover:text-cyan transition-colors">
+              GYMQUEST
+            </span>
+            <span className="text-muted text-xs font-mono">· {t.nav.progress}</span>
           </Link>
         </div>
         <nav className="flex items-center gap-4 text-sm font-body">

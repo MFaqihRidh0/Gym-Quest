@@ -23,6 +23,7 @@ import type {
 import { soundEngine } from '@/modules/game-engine/audio';
 import { UserNavButton } from '@/components/UserNavButton';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { GymQuestLogo } from '@/components/GymQuestLogo';
 import { useLanguage, getLocalizedLeague } from '@/modules/i18n';
 import {
   IconLeagueBadge,
@@ -144,9 +145,13 @@ export default function LeaderboardPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="font-display text-sm tracking-wide text-white hover:text-cyan transition-colors"
+            className="flex items-center gap-2 group"
           >
-            GYMQUEST <span className="text-muted">· {t.nav.leaderboard}</span>
+            <GymQuestLogo size="xs" variant="emblem" />
+            <span className="font-display font-bold text-sm tracking-wide text-white group-hover:text-cyan transition-colors">
+              GYMQUEST
+            </span>
+            <span className="text-muted text-xs font-mono">· {t.nav.leaderboard}</span>
           </Link>
         </div>
         <nav className="flex items-center gap-4 text-sm font-body">

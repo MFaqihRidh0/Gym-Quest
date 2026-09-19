@@ -14,6 +14,7 @@ import { drawBioScan } from '@/modules/cv-engine/drawBioScan';
 import { ExerciseVisual } from '@/components/ExerciseVisual';
 import { ShareAchievementModal } from '@/components/ShareAchievementModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { GymQuestLogo } from '@/components/GymQuestLogo';
 import { useLanguage, getLocalizedExercise, getLocalizedProgram } from '@/modules/i18n';
 import {
   IconBolt,
@@ -569,9 +570,12 @@ function WorkoutRunner() {
               {t.common.close}
             </Link>
             <span className="text-xs text-white/20">|</span>
-            <span className="font-display text-sm font-bold text-white truncate max-w-[180px] sm:max-w-none">
-              {currentProgram?.title || program.title}
-            </span>
+            <div className="flex items-center gap-2">
+              <GymQuestLogo size="xs" variant="emblem" />
+              <span className="font-display text-sm font-bold text-white truncate max-w-[180px] sm:max-w-none">
+                {currentProgram?.title || program.title}
+              </span>
+            </div>
             <span className="hidden sm:inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cyan/15 text-cyan border border-cyan/30">
               {currentProgram?.badge || program.badge}
             </span>
