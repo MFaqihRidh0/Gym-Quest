@@ -2,7 +2,7 @@
   <img src="public/logo-full.png" alt="GymQuest Logo" width="380" />
 </p>
 
-<h1 align="center">🏋️ GymQuest — AI Computer Vision Personal Trainer & Gamified Fitness Platform</h1>
+<h1 align="center">🏋️ GymQuest — Real-Time Computer Vision Personal Trainer & 3D Gamified Fitness Platform</h1>
 
 <p align="center">
   <strong>Sustainable, Free & Privacy-First Digital Fitness</strong><br>
@@ -19,6 +19,7 @@
   <a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-3D%20Biomechanics-000000?style=flat&logo=three.js" alt="Three.js" /></a>
   <a href="https://sdgs.un.org/goals"><img src="https://img.shields.io/badge/SDGs-3%20%26%2010%20Aligned-4c8c2b?style=flat" alt="SDGs" /></a>
   <img src="https://img.shields.io/badge/Privacy-100%25%20Client--Side%20WASM-success?style=flat" alt="Privacy" />
+  <img src="https://img.shields.io/badge/Language-English%20%26%20Indonesian-blue?style=flat" alt="Language" />
 </p>
 
 ---
@@ -36,387 +37,341 @@ Karya orisinal dikembangkan untuk kompetisi **GAYATAMA 5 Web Technology Competit
 
 ## 📑 Daftar Isi
 
-1. [Profil Tim Pengembang](#-profil-tim-pengembang)
-2. [Latar Belakang & Identifikasi Masalah](#-latar-belakang--identifikasi-masalah)
-3. [Prinsip Inti & Keunggulan](#-prinsip-inti--keunggulan)
-4. [Fitur Utama](#-fitur-utama)
-   - [Quest Mode (Cockpit Latihan Sains & Biomekanika 3D)](#1-quest-mode--home-workout-engine-programs--workout)
-   - [3D Interactive Biomechanics Viewer (Three.js)](#2-3d-interactive-biomechanics-viewer-threejs)
-   - [Arena Mode (Gamified Calisthenics & Dragon Ball Push-Up Battle)](#3-arena-mode--gamified-calisthenics-arena)
-   - [Computer Vision Engine 100% Client-Side](#4-computer-vision-engine-client-side-kalibrasi--exercise)
-   - [Sistem 5 Kasta Liga & Gamifikasi](#5-sistem-5-kasta-liga-mingguan--gamifikasi-leaderboard--progress)
-   - [Autentikasi & Keamanan Data Pengguna (Supabase Cloud Sync)](#6-autentikasi--keamanan-data-pengguna-auth)
-   - [Procedural Web Audio Engine](#7-procedural-web-audio-engine-audiots)
-5. [Deployment ke Vercel & Konfigurasi Cloud](#-deployment-ke-vercel--konfigurasi-cloud)
-6. [Menjalankan Proyek Secara Lokal (Instalasi)](#-menjalankan-proyek-secara-lokal)
-7. [Struktur Direktori Proyek](#-struktur-direktori-proyek)
-8. [Logika Inti & Arsitektur Teknis (Deep-Dive)](#-logika-inti--arsitektur-teknis)
-9. [Keselarasan Sustainable Development Goals (SDGs)](#-keselarasan-sustainable-development-goals-sdgs)
-10. [Status Pengembangan](#-status-pengembangan)
-11. [Tech Stack & Pustaka](#-tech-stack--pustaka)
+1. [🚀 Installation Guide (Panduan Instalasi & Menjalankan Proyek)](#-1-installation-guide-panduan-instalasi)
+2. [💻 Technology Information (Informasi Teknologi & Tech Stack)](#-2-technology-information-informasi-teknologi)
+3. [📖 Technical Documentation (Dokumentasi Teknis & Arsitektur Sistem)](#-3-technical-documentation-dokumentasi-teknis)
+4. [🎯 Latar Belakang & Identifikasi Masalah](#-4-latar-belakang--identifikasi-masalah)
+5. [🛡️ Prinsip Inti & Keunggulan](#-5-prinsip-inti--keunggulan)
+6. [🎮 Fitur Utama Platform](#-6-fitur-utama-platform)
+7. [🌍 Keselarasan Sustainable Development Goals (SDGs)](#-7-keselarasan-sustainable-development-goals-sdgs)
+8. [📊 Status Pengembangan Proyek](#-8-status-pengembangan-proyek)
+9. [📄 Lisensi & Hak Cipta](#-9-lisensi--hak-cipta)
 
 ---
 
-## 🎯 Latar Belakang & Identifikasi Masalah
+## 🚀 1. Installation Guide (Panduan Instalasi)
 
-Kebugaran jasmani adalah pilar kesehatan universal. Namun, masyarakat modern menghadapi dua hambatan kritis dalam membangun kebiasaan berolahraga:
+Bagian ini memandu Anda mulai dari persiapan lingkungan (*prerequisites*), instalasi dependensi, konfigurasi basis data Supabase, hingga menjalankan GymQuest secara lokal maupun *production build*.
 
-1. **Hambatan Biaya & Aksesibilitas (Financial & Geographic Inequality):** Biaya sewa Personal Trainer (PT) profesional bersertifikat berkisar antara Rp 500.000 – Rp 2.500.000+ per bulan di luar biaya keanggotaan gym. Hal ini menjadikan bimbingan kebugaran yang aman dan terarah sebagai privilese eksklusif bagi kalangan tertentu.
-2. **Tingginya Risiko Cedera & Drop-out saat Olahraga Rumahan:** Sebagian besar masyarakat yang mencoba berolahraga mandiri di rumah mengandalkan video YouTube atau tutorial statis tanpa umpan balik (_no real-time feedback_). Studi kedokteran olahraga menunjukkan bahwa **30–40% pegiat olahraga rumahan mengalami cedera muskuloskeletal** akibat kesalahan form/postur gerak (misalnya lutut kolaps pada squat, punggung melengkung saat push-up). Selain itu, ketiadaan sistem reward interaktif menyebabkan angka _drop-out_ mencapai lebih dari 60% dalam bulan pertama.
+### A. Persyaratan Sistem (*Prerequisites*)
 
-### Solusi GymQuest
+Pastikan perangkat Anda telah terpasang:
+- **Node.js**: Versi `18.18.0` atau yang lebih baru (disarankan Node.js LTS v20.x atau v22.x).
+- **Package Manager**: `npm` (bawaan Node.js), `pnpm`, atau `yarn`.
+- **Peramban Web Modern**: Google Chrome, Microsoft Edge, Mozilla Firefox, atau Safari versi terbaru yang mendukung WebRTC, WebAssembly (WASM), dan WebGL.
+- **Kamera Webcam**: Kamera internal laptop atau webcam USB eksternal yang berfungsi baik.
 
-**GymQuest** hadir sebagai **Personal Trainer AI & Platform Kebugaran Tergamifikasi** yang dapat diakses secara cuma-cuma melalui browser web standar. Cukup dengan webcam laptop atau smartphone, GymQuest mendeteksi titik sendi tubuh secara real-time, mengoreksi sudut biomekanik, menghitung repetisi valid, memvisualisasikan anatomi otot dalam 3D, dan membungkus seluruh latihan ke dalam sistem kompetisi 5 Kasta Liga Mingguan yang adiktif.
+### B. Langkah Instalasi Langkah demi Langkah (*Step-by-Step*)
 
-> 📖 **Pelajari Konsep Lengkap:** Untuk pemaparan mendalam mengenai visi, analisis masalah, psikologi gamifikasi, dan arsitektur produk, silakan baca dokumentasi terpisah kami di [**TENTANG_GYMQUEST.md**](./TENTANG_GYMQUEST.md).
-
----
-
-## 🛡️ Prinsip Inti & Keunggulan
-
-- 🔒 **100% Privacy-by-Design (Client-Side WASM):** Seluruh inferensi AI MediaPipe berjalan lokal di browser via WebAssembly dan WebGL. **Video kamera tidak pernah dikirim ke server cloud ataupun disimpan**, menjaga privasi pengguna seutuhnya di ruang privat rumah.
-- ⚡ **Zero-Latency & Ultra-Responsive:** Tanpa latency round-trip jaringan, koreksi postur dan respon game berlangsung dalam rentang <16ms (target 60 FPS).
-- 💰 **Zero Server GPU Cost:** Beban komputasi didistribusikan ke perangkat pengguna (_edge computing_), memungkinkan platform beroperasi secara berkelanjutan dengan biaya hosting server mendekati nol.
-- 🎵 **Zero Asset Audio Footprint:** Seluruh efek suara dan musik latar (BGM) disintesis secara prosedural via Web Audio API tanpa perlu mengunduh file MP3/WAV eksternal.
-
----
-
-## 🚀 Fitur Utama
-
-### 1. Quest Mode / Home Workout Engine (`/programs` & `/workout`)
-
-Cockpit latihan terstruktur yang memadukan kurikulum sains olahraga berbasis kerangka **ACSM (American College of Sports Medicine)**:
-
-- **Smart Onboarding Assessment:** Evaluasi mandiri tingkat kebugaran (_Pemula_, _Menengah_, _Mahir_) dan target spesifik (_Bina Otot_, _Penurunan Lemak_, _Stamina & Mobilitas_).
-- **5 Pre-built Scientific Programs:**
-  1. _Full Body Ignition:_ Aktivasi kelompok otot utama tubuh tanpa alat untuk fondasi postur.
-  2. _High-Burn Cardio Shred:_ Protokol HIIT pembakar kalori tinggi dan peningkat VO2 max.
-  3. _Iron Core & Abs Defense:_ Penguatan dinding perut, pinggul, dan stabilitas lumbal.
-  4. _Daily Recovery & Mobility:_ Peregangan lembut untuk pemulihan sendi dan anti-kaku.
-  5. _Spartan Full Body Mastery:_ Latihan kekuatan dan daya tahan tingkat lanjut.
-- **Custom Workout Builder:** Modal interaktif untuk meracik latihan personal dari katalog gerakan dengan target set, repetisi, atau durasi yang fleksibel.
-- **Dual-Mode Workout Runner:**
-  - **Mode AI Kamera:** AI Computer Vision mendeteksi gerakan, menghitung repetisi, dan memvalidasi batas ekstensi/fleksi sendi secara otomatis.
-  - **Mode Manual / Audio Timer:** Panduan suara dan countdown timer adaptif bagi pengguna di ruangan dengan pencahayaan minim atau tanpa akses kamera.
-
-### 2. 3D Interactive Biomechanics Viewer (Three.js)
-
-Komponen visualisasi biomekanika interaktif yang tertanam langsung di cockpit latihan (`ExerciseVisual3D`):
-
-- **Model Anatomi 3D Dinamis:** Menggambarkan postur tubuh manusia dengan sendi pivot aktif (_shoulder, elbow, hip, knee_).
-- **Agonist & Antagonist Muscle Highlighting:** Warna neon tematik menyorot kelompok otot target utama (agonis) dan otot pendukung (sinergis/core) yang aktif saat latihan berlangsung.
-- **Real-time Injury Prevention Cues:** Menampilkan peringatan bahaya cedera spesifik gerakan (misalnya indikator bahaya hiperektensi punggung, batas aman sudut lutut terhadap jari kaki).
-- **Free-Orbit 3D Controls:** Pengguna dapat memutar, memperbesar (_zoom_), dan menginspeksi sudut gerakan dari sudut pandang 360 derajat.
-
-### 3. Arena Mode / Gamified Calisthenics (`/arena` & `/arena/battle`)
-
-Mengubah repetisi kalistenik membosankan menjadi kontrol permainan interaktif dan pertarungan kompetitif:
-
-- 💥 **Dragon Ball Kamehameha Push-Up Battle (`/arena/battle`):**
-  - _Pengendali:_ Gerakan push-up real-time via kamera webcam.
-  - _Mekanisme Sensor Kedalaman AI:_ HUD sensor visual melacak persentase kedalaman gerak (0%–100%). Saat tubuh turun mendekat ke lantai (>60%), sistem masuk ke status `⚡ CHARGING KI`. Saat tubuh didorong naik kembali, repetisi push-up dihitung (+1 REP) dan melepaskan tembakan balok energi dahsyat **KAMEHAMEHA!**
-  - _Sistem Bot Leveling & Target K.O:_
-    - 🟢 **Level Easy:** Target **10 Push-Up** (kecepatan bot: 1 rep / 6 detik, damage 10 HP/rep).
-    - 🟡 **Level Medium:** Target **15 Push-Up** (kecepatan bot: 1 rep / 4 detik, damage 7 HP/rep).
-    - 🔴 **Level Hard:** Target **20 Push-Up** (kecepatan bot: 1 rep / 3 detik, damage 5 HP/rep).
-  - _Kartu Kemenangan & K.O:_ Menampilkan status duel, akurasi repetisi, dan tombol bagikan kemenangan.
-- 🦄 **Kuda Poni Terbang (`/arena`):**
-  - _Pengendali:_ Gerakan push-up (posisi wajah) atau bicep curl / angkat barbel (ketinggian tangan).
-  - _Mekanisme:_ Kontrol ketinggian terbang **kontinu** dengan algoritma _Adaptive Range_ auto-kalibrasi dinamis.
-  - _Tantangan:_ Melewati celah vertikal ala Flappy Bird dengan 3 nyawa dan perlindungan sesaat (_invulnerability frame_).
-- 🦘 **Kangguru Lari (`/arena`):**
-  - _Pengendali:_ Gerakan squat tubuh.
-  - _Mekanisme:_ Kontrol **diskrit** berkecepatan meningkat (fase jongkok = menunduk menghindari orb melayang; repetisi naik/lompat = memicu lompatan kinematika melewati kristal runcing di darat).
-  - _Tantangan:_ Endless runner berkecepatan dinamis dengan satu nyawa (_classic arcade challenge_).
-- 🎯 **Rep-to-Score Integration:** Setiap repetisi valid yang terdeteksi AI rep-counter otomatis memberikan bonus skor tambahan di dalam game.
-
-### 4. Computer Vision Engine Client-Side (`/kalibrasi` & `/exercise`)
-
-- **MediaPipe Pose Landmarker (33 titik landmark 3D):** Berjalan lokal via runtime WebAssembly `vision_wasm_internal`.
-- **One Euro Filter Smoothing:** Menstabilkan koordinat landmark dari jitter noise kamera webcam tanpa menimbulkan latensi saat gerakan cepat.
-- **Aspect-Ratio Crop Correction:** Algoritma koreksi matematis yang memastikan titik skeleton Bio-Scan HUD tepat menempel di tubuh meskipun video menggunakan CSS `object-cover`.
-- **Adaptive Calibration:** Memandu pengguna memosisikan tubuh di frame kamera dengan deteksi 5 area anatomi (kepala, bahu, lengan, pinggul, kaki).
-
-### 5. Sistem 5 Kasta Liga Mingguan & Gamifikasi (`/leaderboard` & `/progress`)
-
-Sistem kompetisi sosial asinkron yang memotivasi konsistensi jangka panjang:
-
-- 🏆 **5 Kasta Liga RPG Tematik:**
-  - 🛡️ **Iron Initiate** (Liga Besi Pemula)
-  - 🥉 **Bronze Brawler** (Liga Perunggu Petarung)
-  - 🥈 **Silver Striker** (Liga Perak Penyerang)
-  - 🥇 **Gold Gladiator** (Liga Emas Jawara)
-  - 👑 **Titan Colossus** (Liga Titan Puncak)
-- ⏳ **Siklus Musim 7 Hari (168 Jam):** Penghitung waktu mundur real-time menuju reset musim dengan evaluasi otomatis.
-- ⚔️ **Bracket 11 Kontestan Kompetitif:** Setiap kasta diisi 11 atlet dengan sistem promosi dan degradasi:
-  - 🟢 **Zona Promosi (Peringkat 1–3):** Naik ke kasta liga berikutnya di akhir musim.
-  - 🟡 **Zona Aman (Peringkat 4–8):** Bertahan di kasta liga saat ini.
-  - 🔴 **Zona Degradasi (Peringkat 9–11):** Turun ke kasta liga sebelumnya (kecuali kasta Iron).
-- ⚡ **Dynamic EXP Formula:** Perolehan EXP dihitung berdasarkan durasi latihan, total repetisi valid, serta bonus pengganda (_multiplier_) dari streak harian.
-- 📊 **Dashboard Progres & Kalender:** Pelacak _Daily Streak_, total waktu olahraga, total repetisi, dan riwayat sesi latihan persisten di browser.
-
-### 6. Autentikasi & Keamanan Data Pengguna (`/auth`)
-
-Sistem akun modern dengan perpaduan **Supabase PostgreSQL Cloud Sync** dan **Offline-First Storage**:
-
-- 🚪 **Halaman Autentikasi Mandiri (`/auth`):**
-  - Dilengkapi tombol navigasi **`← Kembali ke Beranda`**, indikator konektivitas cloud (`Supabase Cloud Online`), dan tab transisi halus antara *Masuk (Login)* dan *Daftar Akun Baru*.
-- 🔐 **Standar Validasi Kata Sandi Ketat:**
-  - **Minimal 8 Karakter** (`length >= 8`)
-  - **Minimal 1 Huruf Besar** (`A-Z`)
-  - **Minimal 1 Karakter Simbol Khusus** (`!@#$%^&*()_+-=[]{};':"|,.<>/?`~)
-  - **Interactive Strength Meter:** Visualizer kekuatan kata sandi real-time (*Lemah*, *Sedang*, *Kuat & Aman ✓*).
-  - **Live Requirement Checklist:** Tanda centang hijau otomatis saat pengguna mengetik.
-  - **Deteksi Kecocokan Sandi:** Indikator instan `✓ Cocok` / `✕ Tidak Cocok` pada kolom konfirmasi sandi.
-- 🛡️ **Arsitektur Keamanan & Privasi Tingkat Lanjut:**
-  - **Row Level Security (RLS):** Seluruh tabel (`profiles`, `workout_logs`, `custom_programs`) dilindungi kebijakan RLS ketat. Hanya pemilik akun (`auth.uid() = id`) yang dapat mengakses data latihan pribadinya.
-  - **Enkripsi Sandi Bcrypt:** Kredensial pengguna diamankan dengan hash satu arah ber-salt otomatis, tanpa pernah disimpan dalam teks polos.
-  - **Privasi Kamera 100% Lokal:** Pemrosesan pose AI MediaPipe berlangsung seutuhnya di memori lokal peramban (WebAssembly/WebGL). Tidak ada satu pun frame video kamera yang dikirim ke server.
-
-### 7. Procedural Web Audio Engine (`audio.ts`)
-
-- 🎵 **Algorithmic Cyberpunk BGM:** Generator bassline 8-step berbasis tangga nada minor dengan distorsi filter lembut untuk membangun atmosfer futuristik.
-- 🔔 **Interactive SFX:** Suara lonceng repetisi valid, peringatan visual/audio saat form salah, suara tick countdown, dan fanfare perayaan level-up kasta liga.
-- 🔇 **Zero-Network Footprint:** Seluruh audio disintesis real-time menggunakan osilator bawaan browser tanpa unduhan berkas audio tambahan.
-
----
-
-## 🚀 Deployment ke Vercel & Konfigurasi Cloud
-
-Aplikasi GymQuest telah dioptimasi penuh dan siap dideploy langsung ke **[Vercel](https://vercel.com)**:
-
-### 1. File Konfigurasi Vercel (`vercel.json`)
-Konfigurasi [vercel.json](./vercel.json) telah dilengkapi dengan:
-- **Framework Preset:** `nextjs`
-- **Build Hook Otomatis:** Menjalankan `node scripts/setup-mediapipe.mjs && next build` sehingga model AI MediaPipe Pose Landmarker otomatis disiapkan di server build Vercel.
-- **Header Caching Global CDN:**
-  ```json
-  "source": "/mediapipe/(.*)",
-  "headers": [
-    { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-    { "key": "Access-Control-Allow-Origin", "value": "*" }
-  ]
-  ```
-  Menjamin biner WebAssembly (`.wasm`) dan model AI (`.task`) disimpan pada Vercel Global Edge CDN, mempercepat waktu buka kamera secara instan di peramban pengguna.
-- **Kebijakan Keamanan Web:** Mengaktifkan `Permissions-Policy: camera=(self)` agar browser mengizinkan kamera webcam secara aman melalui HTTPS.
-
-### 2. Variabel Lingkungan (Environment Variables)
-Saat melakukan import repository di Vercel Dashboard (*Project Settings ➔ Environment Variables*), masukkan variabel berikut:
-
-| Nama Variabel (Key) | Nilai (Value) | Keterangan |
-| :--- | :--- | :--- |
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://jwqadqblbqxzrmcwhprc.supabase.co` | URL proyek Supabase cloud |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_oRf5oPfjMC0fuVxoQV-zcw_Gyl_-rVL` | Kunci publik akses database terproteksi RLS |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_oRf5oPfjMC0fuVxoQV-zcw_Gyl_-rVL` | Kunci cadangan format publishable resmi Supabase |
-
----
-
-## 💻 Menjalankan Proyek Secara Lokal
-
-### Prasyarat Sistem
-
-- [Node.js](https://nodejs.org/) v18.18.0 atau versi yang lebih baru
-- Browser modern yang mendukung WebAssembly & WebGL (Chrome, Edge, Firefox, Safari)
-- Webcam aktif (minimal resolusi 720p untuk akurasi optimal)
-
-### Langkah Instalasi Lokal
-
-1. **Clone repository:**
-
-   ```bash
-   git clone https://github.com/MFaqihRidh0/Gym-Quest.git
-   cd Gym-Quest
-   ```
-
-2. **Siapkan berkas `.env.local`:**
-   Salin dari template `.env.example`:
-   ```bash
-   cp .env.example .env.local
-   ```
-
-3. **Pasang dependensi:**
-
-   ```bash
-   npm install
-   ```
-
-   > ℹ️ **Catatan:** Skrip `postinstall` (`scripts/setup-mediapipe.mjs`) akan secara otomatis mengunduh model AI MediaPipe Pose (`pose_landmarker_lite.task`) dan biner WebAssembly ke folder `public/mediapipe/`.
-
-4. **Jalankan server pengembangan:**
-
-   ```bash
-   npm run dev
-   ```
-
-5. **Buka di browser:**
-   Akses [http://localhost:3000](http://localhost:3000). Berikan izin akses kamera webcam saat diminta di halaman `/kalibrasi`, `/workout`, `/exercise`, `/arena`, atau `/arena/battle`.
-
-### Perintah Penting Lainnya
+#### 1. Clone Repositori
+Unduh kode sumber GymQuest dari GitHub ke komputer lokal Anda:
 
 ```bash
-npm run build            # Membuat build produksi Next.js (menguji bundle & aset MediaPipe)
-npm run start            # Menjalankan server hasil build produksi
-npm run lint             # Menjalankan pemeriksaan kualitas kode ESLint
-npm run format           # Memformat kode secara otomatis menggunakan Prettier
-npm run setup:mediapipe  # Mengunduh ulang aset biner MediaPipe jika diperlukan
+git clone https://github.com/MFaqihRidh0/Gym-Quest.git
+cd Gym-Quest
 ```
+
+#### 2. Konfigurasi Variabel Lingkungan (*Environment Variables*)
+Salin berkas template lingkungan `.env.example` menjadi `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+Buka berkas `.env.local` dan lengkapi konfigurasi Supabase (opsional untuk sinkronisasi cloud, aplikasi tetap dapat berjalan 100% offline-first):
+
+```env
+# GymQuest Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-key
+```
+
+#### 3. Pasang Dependensi Proyek
+Jalankan instalasi pustaka dependensi via npm:
+
+```bash
+npm install
+```
+
+> 💡 **Unduhan Model AI Otomatis:**  
+> Pada saat `npm install` dijalankan, skrip siklus hidup `postinstall` (`scripts/setup-mediapipe.mjs`) akan secara otomatis mengunduh biner model AI resmi Google MediaPipe (`pose_landmarker_lite.task`) dan pustaka WebAssembly ke dalam direktori `public/mediapipe/`. Anda tidak perlu mengunduh file model secara manual.
+
+#### 4. Setup Basis Data Supabase (Opsional tapi Direkomendasikan)
+Jika Anda ingin mengaktifkan sinkronisasi profil multi-perangkat dan papan peringkat cloud:
+1. Buat proyek baru di [Supabase Dashboard](https://supabase.com/).
+2. Buka menu **SQL Editor** pada dasbor Supabase Anda.
+3. Buka berkas [`supabase_schema.sql`](./supabase_schema.sql) di repositori ini, salin seluruh isinya, tempelkan ke SQL Editor Supabase, lalu jalankan (**Run**).
+4. Skrip ini akan membuat tabel `profiles`, `workout_logs`, `custom_programs`, mengaktifkan *Row Level Security* (RLS), dan membuat relasi trigger otomatis saat pengguna mendaftar.
+
+#### 5. Menjalankan Server Pengembangan (*Development Mode*)
+Nyalakan server lokal Next.js dengan compiler Turbopack:
+
+```bash
+npm run dev
+```
+
+Buka peramban Anda dan akses:
+👉 **[http://localhost:3000](http://localhost:3000)**
+
+*Izinkan akses kamera webcam saat peramban meminta izin (*browser camera permission prompt*) agar modul pendeteksi pose dapat bekerja.*
 
 ---
 
-## 📁 Struktur Direktori Proyek
+### C. Panduan Perintah CLI (*CLI Command Reference*)
+
+| Perintah | Deskripsi & Kegunaan |
+|---|---|
+| `npm run dev` | Menjalankan server Next.js lokal pada port 3000 dengan Hot-Reloading cepat. |
+| `npm run build` | Melakukan kompilasi produksi Next.js, pemeriksaan tipe TypeScript, dan verifikasi aset MediaPipe. |
+| `npm run start` | Menjalankan server hasil kompilasi produksi (*production runtime*). |
+| `npm run lint` | Menjalankan analisis statis kode menggunakan ESLint untuk menjaga kualitas kode. |
+| `npm run format` | Memformat gaya penulisan kode sumber di seluruh proyek menggunakan Prettier. |
+| `npm run setup:mediapipe` | Mengunduh ulang berkas model biner MediaPipe Pose ke folder `public/mediapipe/`. |
+
+---
+
+## 💻 2. Technology Information (Informasi Teknologi)
+
+GymQuest dibangun dengan tumpukan teknologi modern berstandar industri yang mengutamakan performa *real-time*, keamanan data pengguna, dan portabilitas lintas platform.
 
 ```
-gymquest/
++---------------------------------------------------------------------------------------+
+|                                    GYMQUEST CLIENT                                    |
+|  +---------------------+  +-------------------------+  +---------------------------+  |
+|  |   Next.js 16 (App)  |  |    React 19 Frontend    |  |    Tailwind CSS v4 (UI)   |  |
+|  +----------+----------+  +------------+------------+  +-------------+-------------+  |
+|             |                          |                             |                |
+|  +----------v--------------------------v-----------------------------v-------------+  |
+|  |                           CLIENT-SIDE EXECUTION ENGINE                          |  |
+|  |  +--------------------+  +----------------------+  +-------------------------+  |  |
+|  |  |  MediaPipe (WASM)  |  | Three.js (3D Biomech)|  | Web Audio API (Synth)   |  |  |
+|  |  |  33 Pose Landmarks |  | Muscle Highlight & 3D|  | 0 KB Audio Asset Engine|  |  |
+|  |  +--------------------+  +----------------------+  +-------------------------+  |  |
+|  |  +----------------------------------------------+  +-------------------------+  |  |
+|  |  | WebRTC P2P Duel (Camera & Rep Stream)        |  | One Euro Jitter Filter  |  |  |
+|  +--+----------------------------------------------+--+-------------------------+--+  |
++------------------------------------------+--------------------------------------------+
+                                           |
+                              HTTP / REST & WebSockets
+                                           |
++------------------------------------------v--------------------------------------------+
+|                              SUPABASE CLOUD INFRASTRUCTURE                            |
+|  +---------------------+  +------------------------+  +----------------------------+  |
+|  |  Supabase Auth      |  | PostgreSQL (JSONB Logs)|  | Realtime Presence/Broadcast|  |
+|  |  Bcrypt Password RLS|  | Cloud Profile & History|  | Room Duel Signaling Hub    |  |
+|  +---------------------+  +------------------------+  +----------------------------+  |
++---------------------------------------------------------------------------------------+
+```
+
+### Rincian Tumpukan Teknologi (*Tech Stack Matrix*)
+
+| Domain | Teknologi Terpilih | Versi | Peran Utama & Alasan Pemilihan |
+|---|---|---|---|
+| **Core Framework** | [Next.js](https://nextjs.org/) (App Router) | `16.3.1` | Mendukung perenderan hibrida (SSR & CSR), routing modern, dan optimasi bundling aset klien. |
+| **UI Library** | [React](https://react.dev/) | `19.2.0` | Menyediakan primitif reaktif dengan render performa tinggi tanpa lag visual. |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) | `5.9.3` | *Strict type-safety* untuk perhitungan vektor matematika, landmark 33 titik, dan status machine. |
+| **Styling & Theme** | [Tailwind CSS](https://tailwindcss.com/) | `4.1.18` | Desain responsif berbasis utilitas dengan tema kustom *Cyberpunk Dark Navy & Neon Glow*. |
+| **Computer Vision Engine** | [@mediapipe/tasks-vision](https://developers.google.com/mediapipe) | `0.10.22` | Inferensi deteksi 33 titik pose tubuh manusia berjalan **100% lokal** di browser via WebAssembly. |
+| **3D Biomechanics** | [Three.js](https://threejs.org/) | `0.183.2` | Engine visualisasi manekin anatomi 3D interaktif 360° dengan pencahayaan otot agonis/sinergis. |
+| **Database & Auth** | [Supabase](https://supabase.com/) | `2.100.1` | PostgreSQL database, otentikasi aman terenkripsi Bcrypt, serta Row Level Security (RLS). |
+| **Multiplayer / Networking**| WebRTC & Supabase Realtime | Native API | Duel kamera P2P latensi rendah (*transceiver video*) dengan signaling broadcast terdistribusi. |
+| **Procedural Audio** | Web Audio API | Native API | Sintesis suara interaktif (*countdown tick, level up, Kamehameha beam*) tanpa mengunduh file audio (0 KB). |
+| **Internationalization** | Custom Context Engine | Native React | Mendukung dwibahasa penuh (**Bahasa Inggris default** & Bahasa Indonesia) yang dapat dialihkan instan. |
+| **Deployment & Hosting** | [Vercel](https://vercel.com/) | Cloud CDN | Edge network deployment dengan aturan *cache-control* spesifik untuk file biner WASM (`vercel.json`). |
+
+---
+
+## 📖 3. Technical Documentation (Dokumentasi Teknis)
+
+Bagian ini memaparkan arsitektur logika dan algoritma di balik modul-modul utama GymQuest.
+
+### A. Dual-Pipeline Computer Vision Engine (`src/modules/cv-engine/`)
+
+Pengolahan video kamera berkecepatan 60 frame per detik (FPS) di dalam aplikasi web memiliki tantangan konsumsi thread yang besar. GymQuest mengimplementasikan **Dual-Pipeline Architecture**:
+
+```
+                       [ Webcam Feed 60 FPS ]
+                                 │
+                     MediaPipe Pose Landmarker
+                                 │
+                   (33 Landmarks x, y, z, vis)
+                                 │
+                   One Euro Filter (Smoothing)
+                                 │
+       ┌─────────────────────────┴─────────────────────────┐
+       ▼                                                   ▼
+[ High-Frequency Pipeline ]                       [ Low-Frequency Pipeline ]
+• Disimpan di liveLandmarksRef                    • Di-throttle ke 12 Hz (80ms)
+• Animasi Kanvas Overlay 60 FPS                   • Sinkronisasi React State
+• Validasi Sudut Sendi & Reps                     • Pembaruan Metrik UI & HUD
+• Zero-Lag & Tanpa Re-render React                • Mencegah CPU Bottleneck
+```
+
+1. **Peredam Getaran Adaptif (One Euro Filter - `smoothing.ts`):**  
+   Titik deteksi kamera rentan terhadap *jitter* akibat pencahayaan kamar. Algoritma One Euro Filter menggunakan frekuensi *cutoff* adaptif: saat tubuh diam, filter meningkatkan pemulusan (*heavy smoothing*); saat tubuh bergerak cepat, filter menurunkan jeda filter agar respons gerak seketika (<16ms).
+2. **Koreksi Aspek Rasio Kanvas (`drawBioScan.ts`):**  
+   Kamera laptop seringkali menghasilkan resolusi native 16:9 (misal 960×540 atau 1280×720), sementara antarmuka UI memotong kontainer video dengan properti CSS `object-cover`. GymQuest secara matematis menghitung faktor skala dan *offset horizontal/vertikal* sebelum menggambar garis neon skeleton di kanvas sehingga titik sendi tepat berada di atas tubuh pengguna.
+
+---
+
+### B. State Machine Penghitung Repetisi & Biomekanika (`src/modules/rep-counter/`)
+
+Perhitungan repetisi latihan fisik tidak menggunakan timer perkiraan, melainkan analisis trigonometri sudut sendi:
+
+1. **Perhitungan Sudut Sendi 2D (2D Vector Dot Product - `angles.ts`):**  
+   Sudut sendi dihitung dari 3 titik landmark (contoh siku: Bahu $\vec{A}$, Siku $\vec{B}$, Pergelangan $\vec{C}$):
+   $$\theta = \arccos\left(\frac{\vec{BA} \cdot \vec{BC}}{|\vec{BA}| \, |\vec{BC}|}\right) \times \frac{180}{\pi}$$
+   Koordinat sumbu $Z$ MediaPipe sengaja diabaikan karena webcam monokular 2D standar memiliki tingkat derau kedalaman yang tinggi. Sisi kiri dan kanan dihitung proporsional terhadap nilai `visibility`.
+2. **Finite State Machine (FSM) 3 Tahap (`repCounter.ts`):**  
+   Untuk mencegah penghitungan ganda (*double-counting*), repetisi dikontrol oleh FSM:
+   - **Tahap `up` (Posisi Awal):** Menunggu pengguna mulai menekuk sendi melintasi ambang batas turun.
+   - **Tahap `down` (Posisi Puncak Kontraksi):** Sendi harus mencapai kedalaman valid (misal siku $\le 90^\circ$ pada push-up atau lutut $\le 100^\circ$ pada squat). Form posture diverifikasi.
+   - **Tahap Ekstensi Kembali:** Ketika pengguna kembali mendorong tubuh ke atas hingga melintasi ambang batas atas ($\ge 160^\circ$), FSM menambah hitungan repetisi $+1$ dan membunyikan nada audio *ding*.
+
+---
+
+### C. Visualisasi 3D Biomekanika Anatomi (`src/components/ExerciseVisual3D.tsx`)
+
+Bukan sekadar video tutorial rekaman pasif, GymQuest menyediakan manekin 3D prosedural Three.js interaktif:
+- **Rotasi Penuh 360° & Orbit Controls:** Pengguna dapat memutar, memperbesar (*zoom*), dan mengganti sudut kamera pandang (*Front View*, *Side View*, *Isometric View*).
+- **Pewarnaan Otot Agonis & Penstabil (*Muscular Highlighter*):**
+  - Warna **Cyan Menyala**: Otot penggerak utama (*Agonist Muscle*, misal dada pada push-up atau paha pada squat).
+  - Warna **Magenta Neon**: Otot sekunder penstabil (*Synergist/Stabilizer*, misal otot perut/core pada plank).
+- **Panduan Sudut Ergonomis:** Dilengkapi kartu teks bimbingan posisi punggung, tumit, dan lutut untuk mencegah cedera sendi.
+
+---
+
+### D. Engine Duel Multiplayer WebRTC 1v1 P2P (`src/modules/multiplayer/`)
+
+Mode pertarungan Player vs Player (PvP) berjalan secara peer-to-peer terdesentralisasi:
+- **Upfront Video Transceiver:** Peer connection langsung mengonfigurasi `pc.addTransceiver('video', { direction: 'sendrecv' })` saat inisialisasi agar SDP selalu memiliki alokasi media video meskipun kamera lokal pengguna masih dalam proses memuat.
+- **Dynamic Track Replacement (`RTCRtpSender.replaceTrack`):** Kapan pun kamera webcam siap atau diperbarui, track video langsung disuntikkan ke dalam koneksi WebRTC yang sedang berjalan tanpa perlu renegosiasi SDP yang rentan membeku (*stuck/freeze*).
+- **Signaling Hub Terbuka:** Menggunakan Supabase Realtime Broadcast Channels untuk pertukaran sinyal ICE Candidate, Offer, dan Answer secara instan, dengan fallback otomatis ke *local browser BroadcastChannel* jika berjalan pada perangkat yang sama.
+
+---
+
+### E. Struktur Direktori Proyek
+
+```
+Gym-Quest/
 ├── public/
-│   ├── cursors/                 # Kursor barbel kustom (Cyberpunk HUD style)
-│   ├── mediapipe/               # Model AI & biner WebAssembly lokal (offline-capable)
-│   ├── logo-emblem.png          # Logo emblem GQ + Dumbbell kosmik (Glow 3x)
-│   ├── logo-full.png            # Full lockup logo GymQuest resmi
-│   └── icon-192.png / 512.png   # Ikon PWA & mobile app launcher
+│   ├── mediapipe/               # Model AI biner WebAssembly lokal (offline-ready)
+│   ├── logo-full.png            # Full lockup logo resmi GymQuest
+│   ├── logo-emblem.png          # Emblem logo kosmik GymQuest Glow 3x
+│   └── icon-192.png / 512.png   # Ikon PWA & launcher mobile
 ├── scripts/
-│   └── setup-mediapipe.mjs      # Skrip otomatis pengunduh model MediaPipe
+│   └── setup-mediapipe.mjs      # Skrip pengunduh otomatis model MediaPipe
 ├── src/
-│   ├── app/                     # Next.js 16 App Router
-│   │   ├── page.tsx             # Landing page modern cyberpunk & showcase fitur
-│   │   ├── auth/page.tsx        # Halaman mandiri Login & Registrasi dengan checklist validasi sandi
-│   │   ├── login/page.tsx       # Rute pengalihan ke /auth?tab=login
-│   │   ├── register/page.tsx    # Rute pengalihan ke /auth?tab=register
-│   │   ├── arena/page.tsx       # Hub Arena Mode (Kuda Poni, Kangguru, Kamehameha Battle)
-│   │   ├── arena/battle/page.tsx# Pertarungan Push-Up Kamehameha Dragon Ball 1v1 vs Bot
-│   │   ├── kalibrasi/page.tsx   # Kalibrasi kamera & Bio-Scan skeleton overlay
-│   │   ├── exercise/page.tsx    # Pelacak repetisi latihan satuan
-│   │   ├── programs/page.tsx    # Katalog program latihan sains & Custom Workout Builder
-│   │   ├── workout/page.tsx     # Cockpit latihan dual-mode (AI Camera / Audio Timer)
-│   │   ├── leaderboard/page.tsx # Sistem 5 Kasta Liga Mingguan & bracket 11 pemain
-│   │   ├── progress/page.tsx    # Dashboard progres latihan, streak, & riwayat
-│   │   ├── layout.tsx           # Layout dasar & styling global
-│   │   └── globals.css          # Desain sistem Tailwind v4 & tema dark cyberpunk
-│   ├── components/              # Komponen UI modular
-│   │   ├── GymQuestLogo.tsx     # Komponen sentral logo GymQuest (Glow 3x & responsive)
-│   │   ├── AuthModal.tsx        # Modal login/registrasi alternatif
-│   │   ├── CameraStage.tsx      # Kontainer video & kanvas Bio-Scan HUD
-│   │   ├── ConfidenceBar.tsx    # Visualizer confidence deteksi landmark
-│   │   ├── CustomWorkoutModal.tsx# Modal peracik menu latihan kustom
-│   │   ├── ExerciseDock.tsx     # Bar navigasi latihan
-│   │   ├── ExerciseVisual.tsx   # Wrapper visualisasi gerakan
+│   ├── app/                     # Next.js 16 App Router Pages
+│   │   ├── page.tsx             # Beranda utama cyberpunk & feature showcase
+│   │   ├── auth/page.tsx        # Halaman autentikasi mandiri (Login & Register)
+│   │   ├── programs/page.tsx    # Katalog program latihan sains & filter console
+│   │   ├── programs/[id]/page.tsx# Detail program, kurikulum latihan, & panduan
+│   │   ├── workout/page.tsx     # Cockpit latihan dual-mode (AI Camera / 3D Animation)
+│   │   ├── arena/page.tsx       # Hub game kalistenik Arena Mode
+│   │   ├── arena/battle/page.tsx# Dragon Ball Push-Up Battle 1v1 (Kamehameha vs Final Flash)
+│   │   ├── leaderboard/page.tsx # Sistem 5 Kasta Liga Mingguan & bracket pemain nyata
+│   │   ├── progress/page.tsx    # Dashboard metrik latihan, streak, & kalender riwayat
+│   │   ├── layout.tsx           # Layout akar HTML (Default lang="en") & font styling
+│   │   └── globals.css          # Desain sistem Tailwind CSS v4 & dark theme
+│   ├── components/              # Komponen antarmuka modular
+│   │   ├── AppNavbar.tsx        # Navbar adaptif desktop & drawer mobile Cyberpunk
 │   │   ├── ExerciseVisual3D.tsx # Engine anatomi & biomekanika 3D interaktif (Three.js)
-│   │   ├── OnboardingModal.tsx  # Assessment kebugaran awal pengguna (ACSM)
-│   │   ├── RepCounterDisplay.tsx# HUD pembacaan repetisi & sudut
-│   │   ├── StatusDot.tsx        # Indikator status kamera
-│   │   ├── UserNavButton.tsx    # Tombol navigasi profil pengguna & sinkronisasi cloud
-│   │   └── ui/CyberIcons.tsx    # Ikon vektor cyberpunk orisinal
-│   ├── config/
-│   │   └── exercise-levels.json # Ambang batas set/rep per tingkat kebugaran
+│   │   ├── CameraStage.tsx      # Komponen kanvas video kamera & overlay skeleton
+│   │   ├── CustomWorkoutModal.tsx# Modal peracik menu latihan kustom
+│   │   ├── OnboardingModal.tsx  # Modal assessment kebugaran awal (ACSM)
+│   │   ├── LanguageSwitcher.tsx # Pengalih dwibahasa instan (EN / ID)
+│   │   └── ui/CyberIcons.tsx    # Koleksi ikon SVG futuristik cyberpunk
 │   ├── lib/
-│   │   ├── supabase/client.ts   # Klien Supabase dengan fallback offline cerdas
-│   │   └── useCountdown.ts      # Hook timer sesi serbaguna
+│   │   └── supabase/client.ts   # Klien koneksi Supabase & pencegah error offline
 │   └── modules/
-│       ├── auth/syncManager.ts  # Manajemen autentikasi, validasi sandi, & sinkronisasi cloud
-│       ├── cv-engine/           # Inti computer vision (MediaPipe, One Euro Filter, draw HUD)
-│       ├── rep-counter/         # Perhitungan sudut sendi, state machine, aturan form
-│       ├── game-engine/         # Loop mini-game Arena, battle push-up, audio prosedural
-│       ├── program-engine/      # Katalog gerakan, program default, local persistence
-│       └── gamification/        # Konfigurasi liga RPG, perhitungan EXP, bracket generator
-├── .env.example                 # Template variabel lingkungan untuk Vercel/Lokal
-├── supabase_schema.sql          # Skema database PostgreSQL, RLS policies, & triggers
-├── vercel.json                  # Konfigurasi deployment & CDN edge caching Vercel
-├── package.json                 # Dependensi & skrip proyek
-├── TENTANG_GYMQUEST.md          # Dokumen konsep utuh, visi, & analisis produk
-├── GymQuest_AI_Coding_Briefing.md # Briefing teknis lengkap & arsitektur proyek
-└── GymQuest_UIUX_Briefing.md      # Panduan desain antarmuka Modern Cyberpunk
+│       ├── cv-engine/           # MediaPipe pose landmarker, One Euro Filter, BioScan
+│       ├── rep-counter/         # Perhitungan sudut sendi & finite state machine
+│       ├── game-engine/         # Logika game push-up battle & Web Audio API prosedural
+│       ├── program-engine/      # Data program latihan baku & penyimpanan riwayat
+│       ├── gamification/        # Perhitungan EXP, 5 Kasta Liga, & filter pemain nyata
+│       ├── i18n/                # Kamus terjemahan Bahasa Inggris & Bahasa Indonesia
+│       └── auth/syncManager.ts  # Sinkronisasi cloud dua arah (Local <-> Supabase)
+├── supabase_schema.sql          # Skrip skema database PostgreSQL, RLS policies, & triggers
+├── vercel.json                  # Konfigurasi caching CDN edge untuk file biner WASM
+└── package.json                 # Daftar dependensi & script runner proyek
 ```
 
 ---
 
-## 🔬 Logika Inti & Arsitektur Teknis
+## 🎯 4. Latar Belakang & Identifikasi Masalah
 
-Bagian ini merangkum pertimbangan teknis di balik arsitektur GymQuest:
+Kebugaran jasmani adalah hak universal. Namun, masyarakat modern menemui dua dinding penghalang utama:
+1. **Ketimpangan Akses & Biaya (Financial Inequality):** Biaya menyewa Personal Trainer (PT) bersertifikat berkisar antara Rp 500.000 hingga Rp 2.500.000+ per bulan. Hal ini menjadikan bimbingan kebugaran yang benar sebagai privilese yang sulit dijangkau banyak kalangan.
+2. **Tingginya Angka Cedera pada Olahraga Mandiri di Rumah:** Lebih dari **30–40% orang yang berolahraga di rumah mengalami cedera** (seperti lutut kolaps saat squat atau pinggang melengkung saat push-up) karena video tutorial YouTube bersifat satu arah tanpa ada yang mengoreksi postur gerak.
+3. **Tingginya Angka Drop-Out:** Monotonnya repetisi gerakan membuat lebih dari **60% pemula berhenti berolahraga dalam 30 hari pertama**.
 
-### 1. CV Engine (`src/modules/cv-engine/`)
-
-- **Dual-Pipeline Data Flow:** Koordinat mentah landmark disimpan di dalam `liveLandmarksRef` (diperbarui pada setiap frame render ~60 FPS tanpa melalui React state). Panel HUD React hanya menerima update status yang **di-throttle ke ~12 Hz** (`UI_SYNC_INTERVAL_MS = 80`). Pola ini mencegah re-render React yang tidak perlu dan membebaskan CPU/GPU untuk inferensi MediaPipe.
-- **One Euro Filter Smoothing (`smoothing.ts`):** Filter adaptif berbasis frekuensi cutoff dinamis meredam getaran halus (_jitter_) saat tubuh diam, namun secara instan merespon pergerakan cepat tanpa menimbulkan lag visual.
-- **Koreksi Crop `object-cover` (`drawBioScan.ts`):** MediaPipe mengembalikan landmark yang dinormalisasi ke dimensi asli kamera (misal 960×540). Saat video ditampilkan dengan gaya CSS `object-cover`, sisi video yang melebihi rasio kontainer akan terpotong. Skrip ini menghitung faktor skala dan offset potongan secara matematis sebelum merender titik skeleton ke kanvas agar overlay selalu presisi di atas tubuh.
-
-### 2. Rep-Counter & Validasi Form (`src/modules/rep-counter/`)
-
-- **2D Joint Vector Dot Product (`angles.ts`):** Sudut sendi dihitung menggunakan perkalian titik (_dot product_) di ruang 2D. Koordinat kedalaman Z MediaPipe sengaja diabaikan karena webcam 2D standar memiliki tingkat derau Z yang tinggi. Sudut sisi kiri dan kanan dirata-ratakan dengan bobot `visibility` landmark agar sisi tubuh yang tertutup tidak merusak kalkulasi.
-- **Finite State Machine 3 Tahap (`repCounter.ts`):** Menggunakan siklus status **Naik (`up`) → Turun (`down`) → Naik (`up`)**. Repetisi baru hanya dihitung saat sendi kembali melintasi ambang atas _setelah_ sebelumnya tuntas menyentuh ambang bawah. Hal ini mencegah _double-count_ akibat getaran di sekitar satu garis ambang batas.
-
-### 3. Game Engine Arena & Dragon Ball Battle (`src/modules/game-engine/`)
-
-- **Sensor Gerak Kedalaman AI (Adaptive Depth Sensing):** Mengukur penurunan tubuh atas relatif terhadap jarak kamera. Fase turun memicu penumpukan Ki (`CHARGING`), sedangkan dorongan naik memicu repetisi valid dan tembakan balok energi (`KAMEHAMEHA BLAST`).
-- **Kinematika Fisika Lompatan (`kangarooGame.ts`):** Menggunakan rumus fisika dasar $v = \sqrt{2 \cdot g \cdot h}$ untuk menghasilkan tinggi lompatan karakter yang konsisten pada tingkat frame rate perangkat apa pun.
-- **Pemisahan Game Loop dari React State:** Seluruh logika game dijalankan melalui objek kelas murni berbasis `requestAnimationFrame`, memastikan game berjalan konstan di 60 FPS tanpa terhambat oleh siklus render React.
-
-### 4. 3D Biomechanics Anatomy Viewer (`ExerciseVisual3D.tsx`)
-
-- **Procedural Three.js Geometries:** Seluruh model anatomi dibuat dari geometri primitif Three.js yang dioptimasi (_capsule, sphere, cylinder_) dengan material khusus bergaya neon futuristik.
-- **Agonist Highlighting:** Setiap jenis latihan menandai otot penggerak utama dengan warna cyan/magenta menyala, memberikan pemahaman visual intuitif tentang otot mana yang seharusnya berkontraksi.
-
-### 5. Gamifikasi 5 Liga Mingguan (`src/modules/gamification/`)
-
-- **Local-First Asynchronous Seasons:** Siklus kompetisi 168 jam dikelola secara deterministik. Sistem menghasilkan bracket kompetitor sintetis yang menantang berdasarkan profil EXP pengguna, memberikan sensasi kompetisi liga tanpa ketergantungan wajib pada koneksi server realtime.
-- **Anti-Burnout Pacing:** Rumus perolehan EXP memberikan insentif lebih tinggi pada keteraturan (_streak harian_) dibandingkan durasi berlebihan dalam satu hari, mendorong kebiasaan berolahraga yang sehat dan berkelanjutan.
+**GymQuest** menyelesaikan permasalahan tersebut dengan mendemokratisasi akses pelatihan kebugaran berkualitas tinggi: gratis, dapat diakses dari browser apa pun, menghitung dan memvalidasi gerakan via kamera secara aman (100% privasi terlindungi di perangkat pengguna), dan mengubah repetisi melelahkan menjadi pertarungan game yang seru.
 
 ---
 
-## 🌍 Keselarasan Sustainable Development Goals (SDGs)
+## 🛡️ 5. Prinsip Inti & Keunggulan
 
-GymQuest dirancang secara spesifik untuk mendukung agenda **Tujuan Pembangunan Berkelanjutan (SDGs)** Perserikatan Bangsa-Bangsa:
-
-| Logo | Target SDG                                                            | Implementasi Nyata di GymQuest                                                                                                                                                                                                                         |
-| ---- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 🟢   | **SDG 3: Good Health and Well-being** (Kehidupan Sehat dan Sejahtera) | Mengurangi prevalensi gaya hidup sedenter (_sedentary lifestyle_) dengan menghadirkan sarana olahraga mandiri yang aman, meminimalkan risiko cedera lewat koreksi form AI real-time, serta membangun kebiasaan fisik berkelanjutan melalui gamifikasi. |
-| 🔵   | **SDG 10: Reduced Inequalities** (Berkurangnya Kesenjangan)           | Menghilangkan hambatan finansial dan spasial terhadap bimbingan kebugaran berkualitas tinggi. Setiap individu dengan akses gawai ber-webcam dapat menikmati fasilitas personal training gratis tanpa biaya langganan gym mahal.                        |
+- 🔒 **100% Privasi Terjamin (Client-Side WASM):** Pemrosesan citra kamera berjalan sepenuhnya di memori peramban pengguna menggunakan WebAssembly dan WebGL. **Video tidak pernah dikirim ke server mana pun.**
+- ⚡ **Nol Latensi Jaringan (Instant Feedback):** Koreksi sudut postur dan validasi repetisi berlangsung dalam waktu <16 milidetik (60 FPS stabil).
+- 💰 **Nol Biaya Komputasi Server GPU:** Menggunakan komputasi terdistribusi pada perangkat klien (*edge computing*), menjaga biaya operasional platform tetap gratis dan berkelanjutan.
+- 🌐 **Dukungan Dwibahasa Internasional:** Mendukung Bahasa Inggris secara bawaan (*default*) dan Bahasa Indonesia dengan tombol pengalih instan di seluruh halaman.
 
 ---
 
-## 📊 Status Pengembangan
+## 🎮 6. Fitur Utama Platform
 
-Mengacu pada dokumen rencana kerja komprehensif [`GymQuest_AI_Coding_Briefing.md`](./GymQuest_AI_Coding_Briefing.md):
+### 1. Quest Mode — Katalog Program & Cockpit Latihan (`/programs` & `/workout`)
+- **Akses Langsung Tanpa Hambatan:** Pengguna dapat langsung menjelajah katalog program latihan tanpa dipaksa mengisi kuis penilaian di awal. Kuis kustom tersedia secara sukarela melalui tombol *"Fitness Quiz"*.
+- **Filter 3 Dimensi Interaktif:** Pengguna dapat menyaring latihan berdasarkan *Tingkat Kemampuan* (Pemula, Menengah, Mahir), *Target Tubuh* (Bangun Otot, Bakar Lemak, Core, Mobilitas), dan *Durasi* (≤12 menit, 15 menit, ≥20 menit).
+- **Dual Runner Mode:**
+  - *AI Camera Mode:* Kamera memindai tubuh, menghitung repetisi otomatis, dan memberikan instruksi audio saat form salah.
+  - *3D Animation Mode:* Panduan visual manekin 3D Three.js 360° yang memperagakan tempo gerakan dan menyorot kelompok otot aktif.
 
-| Fase | Deskripsi Modul | Status |
-| :--- | :--- | :--- |
-| **Fase 0** | Fondasi Proyek & Konfigurasi Next.js 16 (Turbopack) | ✅ Selesai & Terverifikasi |
-| **Fase 1** | Computer Vision Engine (MediaPipe WASM lokal, smoothing, Bio-Scan HUD) | ✅ Selesai & Terverifikasi |
-| **Fase 2** | Rep-Counting State Machine & Form Check Biomekanik | ✅ Selesai & Terverifikasi |
-| **Fase 3** | Arena Mode (Kuda Poni Terbang & Kangguru Lari) | ✅ Selesai & Terverifikasi |
-| **Fase 4** | Onboarding Assessment Kebugaran (Pedoman ACSM) & Kalibrasi AI | ✅ Selesai & Terverifikasi |
-| **Fase 5** | Quest Mode Cockpit Latihan & Visualisasi 3D Biomekanika Three.js | ✅ Selesai & Terverifikasi |
-| **Fase 6** | Gamifikasi: Streak Tracker, Dashboard Progres & 5 Kasta Liga Mingguan | ✅ Selesai & Terverifikasi |
-| **Fase 7** | Data Persistence & Cloud Sync Supabase (PostgreSQL, RLS Policies) | ✅ Selesai & Terverifikasi |
-| **Fase 8** | Dragon Ball Kamehameha Push-Up Battle 1v1 vs AI Bot Leveling | ✅ Selesai & Terverifikasi |
-| **Fase 9** | Halaman Autentikasi Mandiri (/auth), Validasi Sandi Kuat, & Privasi Data | ✅ Selesai & Terverifikasi |
-| **Fase 10**| Deployment Vercel Edge CDN, vercel.json, & GitHub Branch Protection | ✅ Selesai & Terverifikasi |
-| **Fase 11**| Branding Identitas Resmi: Logo GymQuest Glow 3x & Integrasi Favicon | ✅ Selesai & Terverifikasi |
+### 2. Arena Mode — Dragon Ball Push-Up Battle 1v1 (`/arena/battle`)
+- **Deteksi Gerakan Fisik Murni:** Tombol serang manual dan shortcut keyboard telah ditiadakan. Serangan murni hanya dapat dilepaskan melalui repetisi push-up fisik nyata di depan kamera:
+  - Posisi turun dada (< 40% sudut siku) otomatis mengisi energi **Ki Charge**.
+  - Dorongan naik sempurna (> 68%) otomatis melepaskan tembakan jurus dahsyat **Kamehameha / Final Flash** untuk mengurangi HP lawan.
+- **Dukungan Lawan:** Bermain melawan AI Bot adaptif (Novice, Knight, Master) atau melawan pemain lain secara daring (*Online 1v1 PvP* via WebRTC).
 
----
-
-## 🛠️ Tech Stack & Pustaka
-
-| Kategori | Teknologi | Peran / Alasan Pemilihan |
-| :--- | :--- | :--- |
-| **Framework** | [Next.js 16](https://nextjs.org/) (App Router & Turbopack) | Arsitektur modern, server-side rendering aman, dan optimasi bundling klien. |
-| **Bahasa** | [TypeScript 5](https://www.typescriptlang.org/) | Type safety tinggi untuk koordinat landmark matematika dan state machine. |
-| **Library UI** | [React 19](https://react.dev/) | React primitives terkini dengan render performa tinggi. |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Styling responsif utilitas dengan tema Cyberpunk Dark Navy custom. |
-| **Computer Vision** | [@mediapipe/tasks-vision](https://developers.google.com/mediapipe) | Deteksi 33 titik landmark tubuh 100% lokal berbasis WebAssembly. |
-| **Visualisasi 3D** | [Three.js](https://threejs.org/) | Rendering model anatomi dan biomekanika tubuh interaktif real-time. |
-| **Basis Data & Auth** | [Supabase](https://supabase.com/) (PostgreSQL) | Sinkronisasi cloud real-time, Row Level Security (RLS), dan Bcrypt password encryption. |
-| **Hosting & CDN** | [Vercel](https://vercel.com/) | Edge deployment cepat dengan optimasi caching aset WebAssembly MediaPipe. |
-| **Audio** | [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) | Sintesis audio prosedural tanpa aset file audio eksternal (0 KB overhead). |
-| **Penyimpanan Lokal** | LocalStorage API | Penyimpanan offline-first untuk profil, streak, EXP, dan riwayat latihan. |
+### 3. Papan Peringkat Bersih & Kompetisi 5 Kasta Liga (`/leaderboard`)
+- **100% Pemain Nyata:** Seluruh akun bot fiktif telah dibersihkan. Klasemen hanya menampilkan pengguna nyata yang terdaftar di basis data Supabase berdasarkan akumulasi latihan sungguhan.
+- **Sistem 5 Kasta Liga Mingguan:** Liga Iron ➔ Bronze ➔ Silver ➔ Gold ➔ Titan dengan promosi bagi 3 terbaik dan degradasi bagi posisi terbawah setiap 7 hari.
 
 ---
 
-## 📄 Lisensi & Hak Cipta
+## 🌍 7. Keselarasan Sustainable Development Goals (SDGs)
 
-Dibuat dengan dedikasi untuk kompetisi **GAYATAMA 5 International Web Technology Competition** oleh **Tim Semoga Kami Beruntung**:
+| Logo | Target SDG PBB | Implementasi Nyata di GymQuest |
+|---|---|---|
+| 🟢 | **SDG 3: Good Health and Well-being** | Menurunkan angka gaya hidup sedenter dengan menghadirkan platform kebugaran mandiri yang terbukti menurunkan risiko cedera lewat koreksi form sendi real-time. |
+| 🔵 | **SDG 10: Reduced Inequalities** | Menghapus kesenjangan finansial dan geografis terhadap akses pelatih kebugaran bersertifikat. Semua orang dengan kamera laptop/HP dapat menikmati bimbingan olahraga kelas dunia secara gratis. |
+
+---
+
+## 📊 8. Status Pengembangan Proyek
+
+| Modul / Fitur | Spesifikasi Teknis | Status |
+|---|---|---|
+| **Fondasi & Framework** | Next.js 16 App Router, React 19, Tailwind CSS v4, TypeScript 5 | ✅ Selesai |
+| **Computer Vision Engine** | MediaPipe Pose WASM lokal, One Euro Filter, BioScan HUD Canvas | ✅ Selesai |
+| **Rep Counter & Form Check** | Perhitungan sudut sendi 2D dot product, 3-Phase FSM | ✅ Selesai |
+| **3D Biomechanics Viewer** | Three.js WebGL manekin anatomi, agonis/sinergis muscle highlight | ✅ Selesai |
+| **Arena 1v1 Push-Up Battle** | Gerakan push-up fisik murni, WebRTC P2P camera feed | ✅ Selesai |
+| **Leaderboard Tanpa Bot** | Sinkronisasi Supabase `profiles` akun nyata, 5 Kasta Liga mingguan | ✅ Selesai |
+| **Mobile Responsiveness** | Layout adaptif smartphone (360px-430px), Cyberpunk drawer navbar | ✅ Selesai |
+| **Sistem Dwibahasa (i18n)** | Bahasa Inggris bawaan (*default*) & Bahasa Indonesia instan | ✅ Selesai |
+| **Cloud Sync & Autentikasi** | Supabase Auth, PostgreSQL RLS, offline-first local fallback | ✅ Selesai |
+
+---
+
+## 📄 9. Lisensi & Hak Cipta
+
+Dikembangkan dengan penuh dedikasi untuk kompetisi **GAYATAMA 5 Web Technology Competition** oleh **Tim Semoga Kami Beruntung**:
 - **M. Faqih Ridho** (Ketua)
 - **Ananda Fitri Wibowo**
 - **Muhammad Ardiansyah Tri Wibowo**
 - **Muhammad Ziddan Habibi**
 
-Seluruh aset visual game dan logika arsitektur dirancang secara orisinal untuk menghormati etika karya cipta. Modul pihak ketiga (MediaPipe, Three.js, Supabase) tunduk pada lisensi open-source masing-masing (Apache-2.0 / MIT).
-
+Seluruh aset antarmuka, komponen kode, dan logika game dirancang secara orisinal. Pustaka pihak ketiga (Google MediaPipe, Three.js, Supabase, Next.js) tunduk pada lisensi open-source masing-masing (Apache-2.0 / MIT).

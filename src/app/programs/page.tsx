@@ -45,11 +45,6 @@ export default function ProgramsPage() {
     const p = getUserProfile();
     setProfile(p);
     setCustomPrograms(getCustomPrograms());
-
-    // Munculkan onboarding otomatis jika belum pernah diisi
-    if (!p.hasCompletedOnboarding) {
-      setShowOnboarding(true);
-    }
   }, []);
 
   const localizedDefaults = useMemo(
@@ -237,10 +232,18 @@ export default function ProgramsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={() => setShowOnboarding(true)}
+              className="clip-corner bg-white/10 hover:bg-cyan/15 border border-white/20 hover:border-cyan/40 px-3.5 py-2.5 text-xs font-mono text-cyan hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
+              title={language === 'en' ? 'Take Fitness Quiz & Recommendations' : 'Kuis Kebugaran & Rekomendasi'}
+            >
+              <span>⚙️</span>
+              <span>{language === 'en' ? 'Fitness Quiz' : 'Kuis Kebugaran'}</span>
+            </button>
             <button
               onClick={() => setShowCustomModal(true)}
-              className="clip-corner bg-magenta px-4 py-2.5 text-xs font-bold text-void hover:shadow-[var(--glow-magenta)] transition-all flex items-center gap-1.5"
+              className="clip-corner bg-magenta px-4 py-2.5 text-xs font-bold text-void hover:shadow-[var(--glow-magenta)] transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <span>+</span>
               <span>{t.programs.createCustomButton}</span>

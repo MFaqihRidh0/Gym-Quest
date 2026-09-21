@@ -20,14 +20,14 @@ const dictionaries: Record<SupportedLanguage, TranslationDictionary> = {
 };
 
 const LanguageContext = createContext<LanguageContextType>({
-  language: 'id',
+  language: 'en',
   setLanguage: () => {},
   toggleLanguage: () => {},
-  t: idTranslations,
+  t: enTranslations,
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<SupportedLanguage>('id');
+  const [language, setLanguageState] = useState<SupportedLanguage>('en');
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -38,15 +38,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         setLanguageState(savedLang);
         document.documentElement.lang = savedLang;
       } else {
-        // Cek bahasa default browser
-        const browserLang = navigator.language?.toLowerCase();
-        if (browserLang.startsWith('en')) {
-          setLanguageState('en');
-          document.documentElement.lang = 'en';
-        } else {
-          setLanguageState('id');
-          document.documentElement.lang = 'id';
-        }
+        // Default ke bahasa Inggris
+        setLanguageState('en');
+        document.documentElement.lang = 'en';
       }
     } catch {
       // Fallback aman jika localStorage tidak tersedia

@@ -20,9 +20,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'GymQuest — Personal trainer digital berbasis computer vision',
+  title: 'GymQuest — Real-Time Computer Vision Personal Trainer & 3D Gamified Fitness',
   description:
-    'Ubah olahraga di rumah jadi pengalaman bermain game. Deteksi pose lewat webcam, koreksi form real-time, program latihan berbasis riset. Gratis dan berjalan langsung di browser.',
+    'Transform home workouts into an interactive gaming adventure. Real-time webcam pose estimation, 3D biomechanical guidance, research-backed training programs. Free, client-side, and runs directly in your browser.',
   icons: {
     icon: [
       { url: '/icon.png', sizes: '64x64', type: 'image/png' },
@@ -34,10 +34,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="id"
+      lang="en"
       className={`${spaceGrotesk.variable} ${plusJakarta.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
