@@ -44,8 +44,7 @@ Karya orisinal dikembangkan untuk kompetisi **GAYATAMA 5 Web Technology Competit
 5. [🛡️ Prinsip Inti & Keunggulan](#-5-prinsip-inti--keunggulan)
 6. [🎮 Fitur Utama Platform](#-6-fitur-utama-platform)
 7. [🌍 Keselarasan Sustainable Development Goals (SDGs)](#-7-keselarasan-sustainable-development-goals-sdgs)
-8. [📊 Status Pengembangan Proyek](#-8-status-pengembangan-proyek)
-9. [📄 Lisensi & Hak Cipta](#-9-lisensi--hak-cipta)
+8. [📄 Lisensi & Hak Cipta](#-8-lisensi--hak-cipta)
 
 ---
 
@@ -102,7 +101,7 @@ Jika Anda ingin mengaktifkan sinkronisasi profil multi-perangkat dan papan perin
 1. Buat proyek baru di [Supabase Dashboard](https://supabase.com/).
 2. Buka menu **SQL Editor** pada dasbor Supabase Anda.
 3. Buka berkas [`supabase_schema.sql`](./supabase_schema.sql) di repositori ini, salin seluruh isinya, tempelkan ke SQL Editor Supabase, lalu jalankan (**Run**).
-4. Skrip ini akan membuat tabel `profiles`, `workout_logs`, `custom_programs`, mengaktifkan *Row Level Security* (RLS), dan membuat relasi trigger otomatis saat pengguna mendaftar.
+4. Skrip ini akan membuat tabel `profiles`, `workout_logs`, `custom_programs`, tabel divisi liga `league_rooms` dan `league_room_members`, mengaktifkan *Row Level Security* (RLS), stored procedure matchmaking otomatis (`get_or_join_league_room`, `add_room_member_exp`), dan membuat relasi trigger otomatis saat pengguna mendaftar.
 
 #### 5. Menjalankan Server Pengembangan (*Development Mode*)
 Nyalakan server lokal Next.js dengan compiler Turbopack:
@@ -149,7 +148,7 @@ GymQuest dibangun dengan tumpukan teknologi modern berstandar industri yang meng
 |  |  |  33 Pose Landmarks |  | Muscle Highlight & 3D|  | 0 KB Audio Asset Engine|  |  |
 |  |  +--------------------+  +----------------------+  +-------------------------+  |  |
 |  |  +----------------------------------------------+  +-------------------------+  |  |
-|  |  | WebRTC P2P Duel (Camera & Rep Stream)        |  | One Euro Jitter Filter  |  |  |
+|  |  | WebRTC P2P Duel (Lightweight 450kbps Stream) |  | One Euro Jitter Filter  |  |  |
 |  +--+----------------------------------------------+--+-------------------------+--+  |
 +------------------------------------------+--------------------------------------------+
                                            |
@@ -158,8 +157,8 @@ GymQuest dibangun dengan tumpukan teknologi modern berstandar industri yang meng
 +------------------------------------------v--------------------------------------------+
 |                              SUPABASE CLOUD INFRASTRUCTURE                            |
 |  +---------------------+  +------------------------+  +----------------------------+  |
-|  |  Supabase Auth      |  | PostgreSQL (JSONB Logs)|  | Realtime Presence/Broadcast|  |
-|  |  Bcrypt Password RLS|  | Cloud Profile & History|  | Room Duel Signaling Hub    |  |
+|  |  Supabase Auth      |  | PostgreSQL (Rooms/Logs)|  | Realtime Presence/Broadcast|  |
+|  |  Bcrypt Password RLS|  | Cohort Bracket Matchmak|  | Room Duel Signaling Hub    |  |
 |  +---------------------+  +------------------------+  +----------------------------+  |
 +---------------------------------------------------------------------------------------+
 ```
@@ -174,8 +173,8 @@ GymQuest dibangun dengan tumpukan teknologi modern berstandar industri yang meng
 | **Styling & Theme** | [Tailwind CSS](https://tailwindcss.com/) | `4.1.18` | Desain responsif berbasis utilitas dengan tema kustom *Cyberpunk Dark Navy & Neon Glow*. |
 | **Computer Vision Engine** | [@mediapipe/tasks-vision](https://developers.google.com/mediapipe) | `0.10.22` | Inferensi deteksi 33 titik pose tubuh manusia berjalan **100% lokal** di browser via WebAssembly. |
 | **3D Biomechanics** | [Three.js](https://threejs.org/) | `0.183.2` | Engine visualisasi manekin anatomi 3D interaktif 360° dengan pencahayaan otot agonis/sinergis. |
-| **Database & Auth** | [Supabase](https://supabase.com/) | `2.100.1` | PostgreSQL database, otentikasi aman terenkripsi Bcrypt, serta Row Level Security (RLS). |
-| **Multiplayer / Networking**| WebRTC & Supabase Realtime | Native API | Duel kamera P2P latensi rendah (*transceiver video*) dengan signaling broadcast terdistribusi. |
+| **Database & Auth** | [Supabase](https://supabase.com/) | `2.100.1` | PostgreSQL, autentikasi Bcrypt, Row Level Security (RLS), & stored procedure dynamic cohort room. |
+| **Multiplayer / Networking**| WebRTC & Supabase Realtime | Native API | Duel kamera P2P lightweight (450kbps, 24fps) dengan handshaking `request_offer` & room reload. |
 | **Procedural Audio** | Web Audio API | Native API | Sintesis suara interaktif (*countdown tick, level up, Kamehameha beam*) tanpa mengunduh file audio (0 KB). |
 | **Internationalization** | Custom Context Engine | Native React | Mendukung dwibahasa penuh (**Bahasa Inggris default** & Bahasa Indonesia) yang dapat dialihkan instan. |
 | **Deployment & Hosting** | [Vercel](https://vercel.com/) | Cloud CDN | Edge network deployment dengan aturan *cache-control* spesifik untuk file biner WASM (`vercel.json`). |
@@ -244,14 +243,35 @@ Bukan sekadar video tutorial rekaman pasif, GymQuest menyediakan manekin 3D pros
 
 ### D. Engine Duel Multiplayer WebRTC 1v1 P2P (`src/modules/multiplayer/`)
 
-Mode pertarungan Player vs Player (PvP) berjalan secara peer-to-peer terdesentralisasi:
+Mode pertarungan Player vs Player (PvP) berjalan secara peer-to-peer terdesentralisasi dengan koneksi audio-visual berkecepatan tinggi:
 - **Upfront Video Transceiver:** Peer connection langsung mengonfigurasi `pc.addTransceiver('video', { direction: 'sendrecv' })` saat inisialisasi agar SDP selalu memiliki alokasi media video meskipun kamera lokal pengguna masih dalam proses memuat.
 - **Dynamic Track Replacement (`RTCRtpSender.replaceTrack`):** Kapan pun kamera webcam siap atau diperbarui, track video langsung disuntikkan ke dalam koneksi WebRTC yang sedang berjalan tanpa perlu renegosiasi SDP yang rentan membeku (*stuck/freeze*).
+- **Lightweight Stream & Bitrate Constraints:** Menjaga agar MediaPipe Computer Vision tetap berjalan 60 FPS tanpa membebani CPU/GPU dengan pembatasan parameter encoding video: `maxBitrate: 450 kbps`, `maxFramerate: 24 fps`, dan `scaleResolutionDownBy: 1.5`.
+- **Offer-Request Handshaking & Multi-Room Reactivity:** Host dan guest menggunakan sinyal `request_offer` untuk mencegah *race condition* penawaran WebRTC sebelum guest siap, serta pembersihan listener dan peer connection otomatis saat host membuat room baru atau mengganti kode room secara berulang.
 - **Signaling Hub Terbuka:** Menggunakan Supabase Realtime Broadcast Channels untuk pertukaran sinyal ICE Candidate, Offer, dan Answer secara instan, dengan fallback otomatis ke *local browser BroadcastChannel* jika berjalan pada perangkat yang sama.
 
 ---
 
-### E. Struktur Direktori Proyek
+### E. Sistem Dynamic Cohort & Room Leaderboard (`src/modules/gamification/`)
+
+Papan peringkat GymQuest dirancang untuk menjamin keadilan mutlak (*Absolute Fairness*) bagi seluruh peserta:
+1. **Solusi untuk *Mid-Week Onboarding Unfairness*:**
+   Pemain baru yang mendaftar di hari ke-4 tidak lagi dicampur ke dalam daftar pemain lama yang sudah mengumpulkan ribuan EXP. Sebagai gantinya, sistem menerapkan konsep **Dynamic Cohort (Room Matchmaking)**.
+2. **Kapasitas 11 Pemain per Divisi (Bracket Room):**
+   Setiap room liga (contoh: `IRON-ROOM-001`) menampung maksimal 11 orang dan berjalan selama 7 hari mandiri terhitung sejak room dibuka:
+   - **Peringkat 1 - 3:** 🟢 Zona Promosi (Naik ke kasta liga berikutnya).
+   - **Peringkat 4 - 8:** 🟡 Zona Aman (Bertahan di kasta liga saat ini).
+   - **Peringkat 9 - 11:** 🔴 Zona Degradasi (Turun ke kasta sebelumnya).
+3. **Otomatisasi Pembagian Room Baru:**
+   Ketika pendaftar ke-12 masuk, sistem Supabase via stored procedure `get_or_join_league_room` otomatis membuatkan room baru (`IRON-ROOM-002`) yang dimulai dari 0 EXP dengan timer 7 hari baru. Pendaftar ke-13, 14, dst. yang mendaftar pada rentang waktu yang sama akan otomatis mengisi room tersebut.
+4. **Visualisasi Slot Terbuka (Open Slots):**
+   Jika sebuah room baru berisi beberapa pemain (misal 2 dari 11 orang), antarmuka menampilkan kartu placeholder bergaya cyberpunk *"Menunggu Penantang Baru... (Slot 3/11)"*.
+5. **Real-Time EXP Sync:**
+   Saat pengguna menyelesaikan latihan di `/workout`, fungsi `add_room_member_exp` di latar belakang langsung menyinkronkan EXP mingguan khusus ke room liga pengguna di Supabase.
+
+---
+
+### F. Struktur Direktori Proyek
 
 ```
 Gym-Quest/
@@ -271,7 +291,7 @@ Gym-Quest/
 │   │   ├── workout/page.tsx     # Cockpit latihan dual-mode (AI Camera / 3D Animation)
 │   │   ├── arena/page.tsx       # Hub game kalistenik Arena Mode
 │   │   ├── arena/battle/page.tsx# Dragon Ball Push-Up Battle 1v1 (Kamehameha vs Final Flash)
-│   │   ├── leaderboard/page.tsx # Sistem 5 Kasta Liga Mingguan & bracket pemain nyata
+│   │   ├── leaderboard/page.tsx # Sistem 5 Kasta Liga, Dynamic Cohort Room (11 atlet), & bracket pemain nyata
 │   │   ├── progress/page.tsx    # Dashboard metrik latihan, streak, & kalender riwayat
 │   │   ├── layout.tsx           # Layout akar HTML (Default lang="en") & font styling
 │   │   └── globals.css          # Desain sistem Tailwind CSS v4 & dark theme
@@ -290,10 +310,10 @@ Gym-Quest/
 │       ├── rep-counter/         # Perhitungan sudut sendi & finite state machine
 │       ├── game-engine/         # Logika game push-up battle & Web Audio API prosedural
 │       ├── program-engine/      # Data program latihan baku & penyimpanan riwayat
-│       ├── gamification/        # Perhitungan EXP, 5 Kasta Liga, & filter pemain nyata
+│       ├── gamification/        # Perhitungan EXP, 5 Kasta Liga, Dynamic Cohort (11 pemain/room), & Supabase sync
 │       ├── i18n/                # Kamus terjemahan Bahasa Inggris & Bahasa Indonesia
 │       └── auth/syncManager.ts  # Sinkronisasi cloud dua arah (Local <-> Supabase)
-├── supabase_schema.sql          # Skrip skema database PostgreSQL, RLS policies, & triggers
+├── supabase_schema.sql          # Skrip skema database PostgreSQL, RLS policies, league_rooms, & stored procedures
 ├── vercel.json                  # Konfigurasi caching CDN edge untuk file biner WASM
 └── package.json                 # Daftar dependensi & script runner proyek
 ```
@@ -333,11 +353,14 @@ Kebugaran jasmani adalah hak universal. Namun, masyarakat modern menemui dua din
 - **Deteksi Gerakan Fisik Murni:** Tombol serang manual dan shortcut keyboard telah ditiadakan. Serangan murni hanya dapat dilepaskan melalui repetisi push-up fisik nyata di depan kamera:
   - Posisi turun dada (< 40% sudut siku) otomatis mengisi energi **Ki Charge**.
   - Dorongan naik sempurna (> 68%) otomatis melepaskan tembakan jurus dahsyat **Kamehameha / Final Flash** untuk mengurangi HP lawan.
-- **Dukungan Lawan:** Bermain melawan AI Bot adaptif (Novice, Knight, Master) atau melawan pemain lain secara daring (*Online 1v1 PvP* via WebRTC).
+- **Koneksi WebRTC Cepat & Ringan:** Transmisi video kamera peer-to-peer dibatasi secara efisien (450 kbps, 24 fps, downscale 1.5x) agar tidak membebani komputasi MediaPipe, dilengkapi handshaking `request_offer` untuk koneksi instan tanpa freeze dan tombol regenerasi kode room.
+- **Dukungan Lawan:** Bermain melawan AI Bot adaptif (Novice, Knight, Master) atau melawan pemain lain secara daring (*Online 1v1 PvP* via WebRTC) berhiaskan ikon cyberpunk SVG custom.
 
-### 3. Papan Peringkat Bersih & Kompetisi 5 Kasta Liga (`/leaderboard`)
+### 3. Papan Peringkat Bersih & Sistem Dynamic Cohort (`/leaderboard`)
 - **100% Pemain Nyata:** Seluruh akun bot fiktif telah dibersihkan. Klasemen hanya menampilkan pengguna nyata yang terdaftar di basis data Supabase berdasarkan akumulasi latihan sungguhan.
-- **Sistem 5 Kasta Liga Mingguan:** Liga Iron ➔ Bronze ➔ Silver ➔ Gold ➔ Titan dengan promosi bagi 3 terbaik dan degradasi bagi posisi terbawah setiap 7 hari.
+- **Sistem Dynamic Cohort (Maksimal 11 Atlet per Room):** Mengatasi ketidakadilan bergabung di tengah pekan (*Mid-week Onboarding Unfairness*). Setiap room menampung maksimal 11 orang dengan durasi 7 hari mandiri dari 0 EXP.
+- **Otomatisasi Divisi Baru:** Pendaftar ke-12 otomatis membuka room divisi baru (`IRON-ROOM-002`) sehingga tidak tertinggal skor dari pemain lama. Slot kosong yang belum terisi pemain ditampilkan sebagai kartu placeholder *"Menunggu Penantang Baru..."*.
+- **Sistem 5 Kasta Liga:** Liga Iron ➔ Bronze ➔ Silver ➔ Gold ➔ Titan dengan promosi bagi 3 terbaik dan degradasi bagi posisi terbawah setiap 7 hari.
 
 ---
 
@@ -350,23 +373,7 @@ Kebugaran jasmani adalah hak universal. Namun, masyarakat modern menemui dua din
 
 ---
 
-## 📊 8. Status Pengembangan Proyek
-
-| Modul / Fitur | Spesifikasi Teknis | Status |
-|---|---|---|
-| **Fondasi & Framework** | Next.js 16 App Router, React 19, Tailwind CSS v4, TypeScript 5 | ✅ Selesai |
-| **Computer Vision Engine** | MediaPipe Pose WASM lokal, One Euro Filter, BioScan HUD Canvas | ✅ Selesai |
-| **Rep Counter & Form Check** | Perhitungan sudut sendi 2D dot product, 3-Phase FSM | ✅ Selesai |
-| **3D Biomechanics Viewer** | Three.js WebGL manekin anatomi, agonis/sinergis muscle highlight | ✅ Selesai |
-| **Arena 1v1 Push-Up Battle** | Gerakan push-up fisik murni, WebRTC P2P camera feed | ✅ Selesai |
-| **Leaderboard Tanpa Bot** | Sinkronisasi Supabase `profiles` akun nyata, 5 Kasta Liga mingguan | ✅ Selesai |
-| **Mobile Responsiveness** | Layout adaptif smartphone (360px-430px), Cyberpunk drawer navbar | ✅ Selesai |
-| **Sistem Dwibahasa (i18n)** | Bahasa Inggris bawaan (*default*) & Bahasa Indonesia instan | ✅ Selesai |
-| **Cloud Sync & Autentikasi** | Supabase Auth, PostgreSQL RLS, offline-first local fallback | ✅ Selesai |
-
----
-
-## 📄 9. Lisensi & Hak Cipta
+## 📄 8. Lisensi & Hak Cipta
 
 Dikembangkan dengan penuh dedikasi untuk kompetisi **GAYATAMA 5 Web Technology Competition** oleh **Tim Semoga Kami Beruntung**:
 - **M. Faqih Ridho** (Ketua)
@@ -375,3 +382,4 @@ Dikembangkan dengan penuh dedikasi untuk kompetisi **GAYATAMA 5 Web Technology C
 - **Muhammad Ziddan Habibi**
 
 Seluruh aset antarmuka, komponen kode, dan logika game dirancang secara orisinal. Pustaka pihak ketiga (Google MediaPipe, Three.js, Supabase, Next.js) tunduk pada lisensi open-source masing-masing (Apache-2.0 / MIT).
+
