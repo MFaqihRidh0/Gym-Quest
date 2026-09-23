@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type { DuelRoomManager, WebRtcSignalData } from './roomManager';
+import type { DuelRoomManager, WebRtcSignalData, OpponentPoseData } from './roomManager';
 
 const RTC_CONFIG: RTCConfiguration = {
   iceServers: [
@@ -15,24 +15,64 @@ export function useWebRtcDuel(
   localStream: MediaStream | null,
   roomManagerRef: React.RefObject<DuelRoomManager | null>,
   isOpponentConnected: boolean,
-  role: 'host' | 'guest'
+  role: 'host' | 'guest',
+  onRemotePose?: (pose: OpponentPoseData) => void
 ) {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [rtcStatus, setRtcStatus] = useState<'idle' | 'connecting' | 'connected' | 'failed'>('idle');
   const pcRef = useRef<RTCPeerConnection | null>(null);
+  const dcRef = useRef<RTCDataChannel | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const localStreamRef = useRef<MediaStream | null>(localStream);
   localStreamRef.current = localStream;
 
+  const onRemotePoseRef = useRef(onRemotePose);
+  onRemotePoseRef.current = onRemotePose;
+
+  // Setup DataChannel listeners
+  const setupDataChannel = useCallback((dc: RTCDataChannel) => {
+    dcRef.current = dc;
+    dc.onopen = () => {
+      // Data channel siap
+    };
+    dc.onclose = () => {
+      if (dcRef.current === dc) dcRef.current = null;
+    };
+    dc.onerror = () => {
+      if (dcRef.current === dc) dcRef.current = null;
+    };
+    dc.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.type === 'pose_sync' && payload.pose) {
+          onRemotePoseRef.current?.(payload.pose);
+        }
+      } catch {
+        // silent parse error
+      }
+    };
+  }, []);
+
   // Bersihkan PeerConnection
   const cleanupPeerConnection = useCallback(() => {
+    if (dcRef.current) {
+      try {
+        dcRef.current.close();
+      } catch {}
+      dcRef.current = null;
+    }
     if (pcRef.current) {
       pcRef.current.onicecandidate = null;
       pcRef.current.ontrack = null;
+      pcRef.current.ondatachannel = null;
       pcRef.current.onconnectionstatechange = null;
-      pcRef.current.close();
+      try {
+        pcRef.current.close();
+      } catch {}
       pcRef.current = null;
     }
+    remoteStreamRef.current = null;
     setRemoteStream(null);
     setRtcStatus('idle');
     pendingCandidatesRef.current = [];
@@ -48,7 +88,24 @@ export function useWebRtcDuel(
       pcRef.current = pc;
       setRtcStatus('connecting');
 
-      // 1. Siapkan transceiver video agar SDP selalu memiliki section media video
+      // 1. Siapkan DataChannel untuk sinkronisasi pose ultra-cepat
+      if (role === 'host') {
+        try {
+          const dc = pc.createDataChannel('gymquest_pose_stream', {
+            ordered: false,
+            maxRetransmits: 0,
+          });
+          setupDataChannel(dc);
+        } catch (e) {
+          console.warn('Failed to create RTCDataChannel:', e);
+        }
+      } else {
+        pc.ondatachannel = (event) => {
+          setupDataChannel(event.channel);
+        };
+      }
+
+      // 2. Siapkan transceiver video agar SDP selalu memiliki section media video
       try {
         const transceivers = pc.getTransceivers();
         const hasVideo = transceivers.some((t) => t.receiver.track.kind === 'video');
@@ -59,7 +116,7 @@ export function useWebRtcDuel(
         console.warn('WebRTC transceiver init warning:', e);
       }
 
-      // 2. Tambahkan track kamera lokal jika sudah ada
+      // 3. Tambahkan track kamera lokal jika sudah ada
       const currentStream = localStreamRef.current;
       if (currentStream) {
         const videoTrack = currentStream.getVideoTracks()[0];
@@ -76,7 +133,7 @@ export function useWebRtcDuel(
         }
       }
 
-      // 3. Kirim ICE candidate ke lawan via roomManager
+      // 4. Kirim ICE candidate ke lawan via roomManager
       pc.onicecandidate = (event) => {
         if (event.candidate && roomManagerRef.current) {
           roomManagerRef.current.sendWebRtcSignal({
@@ -86,18 +143,30 @@ export function useWebRtcDuel(
         }
       };
 
-      // 4. Terima stream video lawan secara reaktif
+      // 5. Terima stream video lawan secara stabil tanpa mereset instance MediaStream
       pc.ontrack = (event) => {
-        const stream =
-          event.streams && event.streams[0]
-            ? event.streams[0]
-            : new MediaStream([event.track]);
+        let stream = event.streams && event.streams[0] ? event.streams[0] : null;
+
+        if (!stream) {
+          if (!remoteStreamRef.current) {
+            remoteStreamRef.current = new MediaStream();
+          }
+          if (!remoteStreamRef.current.getTracks().includes(event.track)) {
+            remoteStreamRef.current.addTrack(event.track);
+          }
+          stream = remoteStreamRef.current;
+        } else {
+          remoteStreamRef.current = stream;
+        }
+
         setRemoteStream(stream);
         setRtcStatus('connected');
 
-        // Jika track lawan sempat mute saat pertama negosiasi dan aktif kembali
+        // Pastikan saat unmute tidak merusak referensi stream aktif
         event.track.onunmute = () => {
-          setRemoteStream(new MediaStream([event.track]));
+          if (remoteStreamRef.current) {
+            setRemoteStream(remoteStreamRef.current);
+          }
           setRtcStatus('connected');
         };
       };
@@ -118,7 +187,7 @@ export function useWebRtcDuel(
       setRtcStatus('failed');
       return null;
     }
-  }, [roomManagerRef]);
+  }, [role, roomManagerRef, setupDataChannel]);
 
   // Pasang atau ganti track video lokal ketika localStream tersedia/berubah
   useEffect(() => {
@@ -271,6 +340,19 @@ export function useWebRtcDuel(
     }
   }, [isOpponentConnected, role, setupPeerConnection, cleanupPeerConnection, roomManagerRef]);
 
+  // Kirim data pose via DataChannel (fallback return false)
+  const sendPoseData = useCallback((pose: OpponentPoseData) => {
+    if (dcRef.current && dcRef.current.readyState === 'open') {
+      try {
+        dcRef.current.send(JSON.stringify({ type: 'pose_sync', pose }));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }, []);
+
   // Bersihkan saat unmount
   useEffect(() => {
     return () => {
@@ -281,6 +363,7 @@ export function useWebRtcDuel(
   return {
     remoteStream,
     rtcStatus,
+    sendPoseData,
     cleanupPeerConnection,
   };
 }

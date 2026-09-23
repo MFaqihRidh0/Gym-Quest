@@ -29,10 +29,19 @@ export interface WebRtcSignalData {
   candidate?: any;
 }
 
+export interface OpponentPoseData {
+  depthPercent: number;
+  currentPhase: 'up' | 'down';
+  formOk: boolean;
+  landmarks?: { x: number; y: number; z?: number; visibility?: number }[] | null;
+  timestamp: number;
+}
+
 export interface RoomStateListener {
   onOpponentJoined?: (opponent: RoomPlayer) => void;
   onOpponentLeft?: () => void;
   onRemoteAction?: (action: PlayerActionEvent) => void;
+  onOpponentPose?: (pose: OpponentPoseData) => void;
   onGameControl?: (ctrl: GameControlEvent) => void;
   onWebRtcSignal?: (signal: WebRtcSignalData) => void;
   onStatusChange?: (status: 'connecting' | 'connected' | 'error' | 'disconnected') => void;
@@ -243,6 +252,9 @@ export class DuelRoomManager {
     } else if (eventType === 'player_action') {
       const action = data as PlayerActionEvent;
       this.listeners.onRemoteAction?.(action);
+    } else if (eventType === 'pose_sync') {
+      const pose = data as OpponentPoseData;
+      this.listeners.onOpponentPose?.(pose);
     } else if (eventType === 'game_control') {
       const ctrl = data as GameControlEvent;
       this.listeners.onGameControl?.(ctrl);
@@ -293,6 +305,13 @@ export class DuelRoomManager {
       player,
       timestamp: Date.now(),
     });
+  }
+
+  /**
+   * Kirim sinkronisasi pose real-time (depth %, phase, form status, landmarks)
+   */
+  public sendPoseSync(pose: OpponentPoseData) {
+    this.broadcastMessage('pose_sync', pose);
   }
 
   /**

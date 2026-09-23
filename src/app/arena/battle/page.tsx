@@ -17,7 +17,9 @@ import {
   normalizeRoomCode,
   type PlayerRole,
   type RoomPlayer,
+  type OpponentPoseData,
 } from '@/modules/multiplayer/roomManager';
+import type { PoseLandmarks } from '@/modules/cv-engine/types';
 import { ShareAchievementModal } from '@/components/ShareAchievementModal';
 import { UserNavButton } from '@/components/UserNavButton';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -44,15 +46,45 @@ function RemoteVideoPlayer({
   stream,
   className,
   fallbackLabel = 'Menghubungkan video lawan...',
+  landmarks = null,
+  formOk = true,
+  themeColor = 'magenta',
+  mirrored = true,
 }: {
   stream: MediaStream | null;
   className?: string;
   fallbackLabel?: string;
+  landmarks?: PoseLandmarks | null;
+  formOk?: boolean;
+  themeColor?: 'cyan' | 'magenta';
+  mirrored?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const landmarksRef = useRef<PoseLandmarks | null>(landmarks);
+  landmarksRef.current = landmarks;
 
-  const attachAndPlay = useCallback(
+  const ensurePlaying = useCallback((video: HTMLVideoElement) => {
+    if (!video.srcObject) return;
+    if (video.paused) {
+      video.play().catch(() => {
+        setTimeout(() => {
+          if (video && video.srcObject && video.paused) {
+            video.play().catch(() => {});
+          }
+        }, 250);
+      });
+    }
+  }, []);
+
+  const attachVideo = useCallback(
     (el: HTMLVideoElement | null) => {
+      if (videoRef.current && videoRef.current !== el) {
+        try {
+          videoRef.current.pause();
+          videoRef.current.srcObject = null;
+        } catch {}
+      }
       videoRef.current = el;
       if (!el || !stream) return;
 
@@ -60,10 +92,11 @@ function RemoteVideoPlayer({
         el.srcObject = stream;
       }
       el.muted = true;
-      el.playsInline = true;
-      el.play().catch(() => {});
+      el.setAttribute('playsinline', 'true');
+      el.setAttribute('autoplay', 'true');
+      ensurePlaying(el);
     },
-    [stream]
+    [stream, ensurePlaying]
   );
 
   useEffect(() => {
@@ -74,31 +107,99 @@ function RemoteVideoPlayer({
       video.srcObject = stream;
     }
     video.muted = true;
-    video.playsInline = true;
+    video.setAttribute('playsinline', 'true');
+    video.setAttribute('autoplay', 'true');
+    ensurePlaying(video);
 
-    const playVideo = () => {
-      if (video.paused) {
-        video.play().catch(() => {});
-      }
-    };
-
-    video.addEventListener('loadedmetadata', playVideo);
-    video.addEventListener('canplay', playVideo);
-    playVideo();
+    const handlePlay = () => ensurePlaying(video);
+    video.addEventListener('loadedmetadata', handlePlay);
+    video.addEventListener('canplay', handlePlay);
+    video.addEventListener('loadeddata', handlePlay);
+    video.addEventListener('pause', handlePlay);
 
     const tracks = stream.getVideoTracks();
-    tracks.forEach((track) => {
-      track.addEventListener('unmute', playVideo);
+    const handleTrack = () => ensurePlaying(video);
+    tracks.forEach((t) => {
+      t.addEventListener('unmute', handleTrack);
+      t.addEventListener('ended', handleTrack);
     });
 
+    // Watchdog: pastikan video tetap berjalan (tidak freeze saat stage switch)
+    const interval = setInterval(() => {
+      if (video && stream && video.paused) {
+        ensurePlaying(video);
+      }
+    }, 400);
+
     return () => {
-      video.removeEventListener('loadedmetadata', playVideo);
-      video.removeEventListener('canplay', playVideo);
-      tracks.forEach((track) => {
-        track.removeEventListener('unmute', playVideo);
+      clearInterval(interval);
+      video.removeEventListener('loadedmetadata', handlePlay);
+      video.removeEventListener('canplay', handlePlay);
+      video.removeEventListener('loadeddata', handlePlay);
+      video.removeEventListener('pause', handlePlay);
+      tracks.forEach((t) => {
+        t.removeEventListener('unmute', handleTrack);
+        t.removeEventListener('ended', handleTrack);
       });
     };
-  }, [stream]);
+  }, [stream, ensurePlaying]);
+
+  // Clean up saat unmount agar sink video decoder terbebas
+  useEffect(() => {
+    return () => {
+      const video = videoRef.current;
+      if (video) {
+        try {
+          video.pause();
+          video.srcObject = null;
+        } catch {}
+      }
+    };
+  }, []);
+
+  // Loop gambar skeleton overlay lawan secara sinkron
+  useEffect(() => {
+    let animId: number;
+
+    const renderOverlay = () => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+
+      if (video && canvas && video.videoWidth > 0) {
+        const w = video.clientWidth;
+        const h = video.clientHeight;
+        const dpr = window.devicePixelRatio || 1;
+
+        if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+          canvas.width = w * dpr;
+          canvas.height = h * dpr;
+        }
+
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.clearRect(0, 0, w, h);
+          const currentLm = landmarksRef.current;
+          if (currentLm) {
+            drawBioScan(ctx, currentLm, {
+              width: w,
+              height: h,
+              sourceWidth: video.videoWidth,
+              sourceHeight: video.videoHeight,
+              mirrored,
+              formOk,
+              themeColor,
+            });
+          }
+        }
+      }
+
+      animId = requestAnimationFrame(renderOverlay);
+    };
+
+    animId = requestAnimationFrame(renderOverlay);
+    return () => cancelAnimationFrame(animId);
+  }, [mirrored, formOk, themeColor]);
 
   if (!stream) {
     return (
@@ -112,13 +213,19 @@ function RemoteVideoPlayer({
   }
 
   return (
-    <video
-      ref={attachAndPlay}
-      autoPlay
-      playsInline
-      muted
-      className={`object-cover ${className || ''}`}
-    />
+    <div className={`relative w-full h-full overflow-hidden ${className || ''}`}>
+      <video
+        ref={attachVideo}
+        autoPlay
+        playsInline
+        muted
+        className={`absolute inset-0 w-full h-full object-cover ${mirrored ? '-scale-x-100' : ''}`}
+      />
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full pointer-events-none"
+      />
+    </div>
   );
 }
 
@@ -215,12 +322,17 @@ function PushUpBattleContent() {
   const [duelCountdown, setDuelCountdown] = useState<number | null>(null);
   const [opponentLeftAlert, setOpponentLeftAlert] = useState(false);
 
-  // WebRTC P2P Video Connection for Live Opponent Camera
-  const { remoteStream, rtcStatus } = useWebRtcDuel(
+  const [remotePose, setRemotePose] = useState<OpponentPoseData | null>(null);
+
+  // WebRTC P2P Video Connection for Live Opponent Camera & DataChannel Pose Stream
+  const { remoteStream, rtcStatus, sendPoseData } = useWebRtcDuel(
     localStream,
     roomManagerRef,
     Boolean(roomOpponent),
-    roomRole
+    roomRole,
+    (pose) => {
+      setRemotePose(pose);
+    }
   );
 
   // Dynamic Bot Name based on difficulty
@@ -318,9 +430,13 @@ function PushUpBattleContent() {
       },
       onOpponentLeft: () => {
         setRoomOpponent(null);
+        setRemotePose(null);
         setRoomStatus('waiting');
         setOpponentLeftAlert(true);
         setIsDuelActive(false);
+      },
+      onOpponentPose: (pose) => {
+        setRemotePose(pose);
       },
       onRemoteAction: (act) => {
         receiveRemoteAction(act.type, act.player);
@@ -410,6 +526,7 @@ function PushUpBattleContent() {
     }
     setRoomCode('');
     setRoomOpponent(null);
+    setRemotePose(null);
     setRoomStatus('idle');
     setIsDuelActive(false);
     setDuelCountdown(null);
@@ -516,7 +633,47 @@ function PushUpBattleContent() {
     setBattleStage('selection');
   };
 
+  // Broadcast local player pose to opponent via WebRTC DataChannel & Supabase Broadcast
+  useEffect(() => {
+    if (opponentMode !== 'online_pvp') return;
 
+    let lastSent = 0;
+    let animId: number;
+
+    const streamPose = () => {
+      const now = performance.now();
+      // ~16 Hz (setiap 60ms) untuk sinkronisasi mulus dan hemat bandwidth
+      if (now - lastSent >= 60) {
+        lastSent = now;
+        const raw = liveLandmarksRef.current;
+        const compactLandmarks = raw
+          ? raw.map((lm) => ({
+              x: Math.round(lm.x * 1000) / 1000,
+              y: Math.round(lm.y * 1000) / 1000,
+              visibility: Math.round((lm.visibility ?? 1) * 100) / 100,
+            }))
+          : null;
+
+        const payload: OpponentPoseData = {
+          depthPercent,
+          currentPhase,
+          formOk: p1FormCorrect,
+          landmarks: compactLandmarks,
+          timestamp: Date.now(),
+        };
+
+        const sentP2p = sendPoseData(payload);
+        if (!sentP2p && roomManagerRef.current) {
+          roomManagerRef.current.sendPoseSync(payload);
+        }
+      }
+
+      animId = requestAnimationFrame(streamPose);
+    };
+
+    animId = requestAnimationFrame(streamPose);
+    return () => cancelAnimationFrame(animId);
+  }, [opponentMode, depthPercent, currentPhase, p1FormCorrect, sendPoseData]);
 
   // Draw Player Skeleton overlay
   useEffect(() => {
@@ -1089,6 +1246,10 @@ function PushUpBattleContent() {
                     stream={remoteStream}
                     className="w-full h-full"
                     fallbackLabel="Menghubungkan kamera Host..."
+                    landmarks={remotePose?.landmarks as PoseLandmarks | null}
+                    formOk={remotePose?.formOk ?? true}
+                    themeColor="cyan"
+                    mirrored
                   />
                 )}
               </div>
@@ -1201,6 +1362,10 @@ function PushUpBattleContent() {
                     stream={remoteStream}
                     className="w-full h-full"
                     fallbackLabel="Menghubungkan kamera Penantang..."
+                    landmarks={remotePose?.landmarks as PoseLandmarks | null}
+                    formOk={remotePose?.formOk ?? true}
+                    themeColor="magenta"
+                    mirrored
                   />
                 )}
               </div>
@@ -1492,14 +1657,27 @@ function PushUpBattleContent() {
                   stream={remoteStream}
                   className="w-full h-full"
                   fallbackLabel="Menghubungkan kamera Host (P1)..."
+                  landmarks={remotePose?.landmarks as PoseLandmarks | null}
+                  formOk={remotePose?.formOk ?? true}
+                  themeColor="cyan"
+                  mirrored
                 />
                 <div className="absolute top-2 left-2 px-2.5 py-1 rounded bg-black/75 border border-cyan/30 text-[10px] font-mono text-cyan flex items-center gap-1.5 z-10">
                   <span className={`w-2 h-2 rounded-full ${remoteStream ? 'bg-cyan animate-pulse' : 'bg-amber-400'}`} />
                   <span>LIVE FEED: {p1DisplayName}</span>
                 </div>
-                <div className="absolute bottom-2 inset-x-2 bg-void/80 border border-cyan/30 rounded px-2.5 py-1 flex items-center justify-between text-[11px] font-mono z-10">
-                  <span className="text-cyan font-bold">{p1DisplayName}</span>
-                  <span className="text-white font-bold">{p1Reps} Reps</span>
+                <div className="absolute top-2 right-2 px-2.5 py-1 rounded bg-black/75 border border-cyan/30 text-[11px] font-mono font-bold text-white z-10 shadow-md">
+                  {p1Reps} Reps
+                </div>
+
+                {/* Pelacak Gerakan Lawan (Motion Tracker) */}
+                <div className="absolute bottom-2 inset-x-2 flex items-center justify-between px-2.5 py-1 rounded bg-void/80 border border-cyan/40 text-[10px] font-mono z-10">
+                  <span className="text-cyan font-bold">{t.arena.battleMotionTracker}</span>
+                  <span className={remotePose?.currentPhase === 'down' ? 'text-cyan font-bold' : 'text-muted'}>
+                    {remotePose?.currentPhase === 'down'
+                      ? `⚡ ${t.arena.battleChargingKi} (${remotePose?.depthPercent ?? 0}%)`
+                      : `⬆ ${t.arena.battleTopPosition}`}
+                  </span>
                 </div>
               </div>
             ) : (
@@ -1613,14 +1791,27 @@ function PushUpBattleContent() {
                   stream={remoteStream}
                   className="w-full h-full"
                   fallbackLabel="Menghubungkan kamera Penantang (P2)..."
+                  landmarks={remotePose?.landmarks as PoseLandmarks | null}
+                  formOk={remotePose?.formOk ?? true}
+                  themeColor="magenta"
+                  mirrored
                 />
                 <div className="absolute top-2 left-2 px-2.5 py-1 rounded bg-black/75 border border-magenta/30 text-[10px] font-mono text-magenta flex items-center gap-1.5 z-10">
                   <span className={`w-2 h-2 rounded-full ${remoteStream ? 'bg-magenta animate-pulse' : 'bg-amber-400'}`} />
                   <span>LIVE FEED: {p2DisplayName}</span>
                 </div>
-                <div className="absolute bottom-2 inset-x-2 bg-void/80 border border-magenta/30 rounded px-2.5 py-1 flex items-center justify-between text-[11px] font-mono z-10">
-                  <span className="text-magenta font-bold">{p2DisplayName}</span>
-                  <span className="text-white font-bold">{p2Reps} Reps</span>
+                <div className="absolute top-2 right-2 px-2.5 py-1 rounded bg-black/75 border border-magenta/30 text-[11px] font-mono font-bold text-white z-10 shadow-md">
+                  {p2Reps} Reps
+                </div>
+
+                {/* Pelacak Gerakan Lawan (Motion Tracker) */}
+                <div className="absolute bottom-2 inset-x-2 flex items-center justify-between px-2.5 py-1 rounded bg-void/80 border border-magenta/40 text-[10px] font-mono z-10">
+                  <span className="text-magenta font-bold">{t.arena.battleMotionTracker}</span>
+                  <span className={remotePose?.currentPhase === 'down' ? 'text-magenta font-bold' : 'text-muted'}>
+                    {remotePose?.currentPhase === 'down'
+                      ? `🔥 ${t.arena.battleChargingKi} (${remotePose?.depthPercent ?? 0}%)`
+                      : `⬆ ${t.arena.battleTopPosition}`}
+                  </span>
                 </div>
               </div>
             ) : (

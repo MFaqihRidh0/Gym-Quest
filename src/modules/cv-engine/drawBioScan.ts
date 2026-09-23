@@ -2,6 +2,7 @@ import { KEY_JOINTS, POSE_CONNECTIONS, POSE_LANDMARK as L } from './landmarks';
 import type { PoseLandmarks } from './types';
 
 const CYAN = '0, 229, 255';
+const MAGENTA = '255, 0, 122';
 const AMBER = '255, 182, 39';
 const RED = '255, 61, 90';
 const VISIBILITY_THRESHOLD = 0.5;
@@ -19,9 +20,11 @@ export interface BioScanOptions {
   /**
    * Flag form exercise (bukan status kalibrasi). `false` mewarnai seluruh
    * skeleton merah sebagai indikator visual form salah; `true`/`undefined`
-   * memakai skema warna deteksi biasa (cyan/amber).
+   * memakai skema warna deteksi biasa (cyan/amber atau magenta).
    */
   formOk?: boolean;
+  /** Warna tema skeleton ('cyan' untuk P1 Kamehameha, 'magenta' untuk P2 Final Flash). */
+  themeColor?: 'cyan' | 'magenta';
 }
 
 export function drawBioScan(
@@ -37,8 +40,10 @@ export function drawBioScan(
     mirrored = true,
     pulsePhase = 0,
     formOk,
+    themeColor = 'cyan',
   } = options;
-  const skeletonColor = formOk === false ? RED : CYAN;
+  const baseColor = themeColor === 'magenta' ? MAGENTA : CYAN;
+  const skeletonColor = formOk === false ? RED : baseColor;
 
   ctx.clearRect(0, 0, width, height);
   if (!landmarks || sourceWidth <= 0 || sourceHeight <= 0) return;
