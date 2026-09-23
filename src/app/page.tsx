@@ -123,14 +123,6 @@ export default function Home() {
         <div className="pointer-events-none absolute top-1/3 right-10 w-[500px] h-[300px] bg-magenta/15 blur-[140px] rounded-full" />
 
         <div className="mx-auto w-full max-w-6xl relative z-10 space-y-6">
-          {/* OFFICIAL BRAND BADGE */}
-          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-cyan/30 bg-[#070c1e]/80 backdrop-blur-md shadow-[0_0_20px_rgba(0,229,255,0.2)]">
-            <GymQuestLogo size="xs" variant="emblem" />
-            <span className="text-[11px] font-mono font-bold tracking-widest text-cyan uppercase">
-              GymQuest · Your Fitness Adventure
-            </span>
-          </div>
-
           {/* MAIN HEADLINE */}
           <h1 className="font-display text-3xl sm:text-5xl lg:text-7xl font-extrabold leading-[1.18] text-balance max-w-4xl text-white animate-hero-sway-delayed">
             <InteractiveText text={t.home.heroTitleLine1} />{' '}
