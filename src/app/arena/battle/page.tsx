@@ -37,6 +37,16 @@ import {
   IconBurst,
   IconUsers,
   DifficultyBadge,
+  IconKey,
+  IconCopy,
+  IconLink,
+  IconEdit,
+  IconRadar,
+  IconVideoCamera,
+  IconCheckmark,
+  IconCamera,
+  IconGamepad,
+  IconWarning,
 } from '@/components/ui/CyberIcons';
 
 import { useWebRtcDuel } from '@/modules/multiplayer/useWebRtcDuel';
@@ -168,7 +178,7 @@ function RemoteVideoPlayer({
       if (video && canvas && video.videoWidth > 0) {
         const w = video.clientWidth;
         const h = video.clientHeight;
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
 
         if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
           canvas.width = w * dpr;
@@ -202,10 +212,13 @@ function RemoteVideoPlayer({
   }, [mirrored, formOk, themeColor]);
 
   if (!stream) {
+    const isCyan = themeColor === 'cyan';
     return (
       <div className={`flex flex-col items-center justify-center bg-black/80 border border-white/10 p-4 text-center ${className || ''}`}>
-        <div className="w-12 h-12 rounded-full bg-magenta/15 border border-magenta/40 flex items-center justify-center text-xl text-magenta animate-pulse mb-2 shadow-[0_0_15px_rgba(255,0,122,0.3)]">
-          📹
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(255,0,122,0.3)] ${
+          isCyan ? 'bg-cyan/15 border border-cyan/40 text-cyan' : 'bg-magenta/15 border border-magenta/40 text-magenta'
+        }`}>
+          <IconVideoCamera size={22} className={isCyan ? 'text-cyan animate-pulse' : 'text-magenta animate-pulse'} glow />
         </div>
         <p className="text-xs font-mono text-muted">{fallbackLabel}</p>
       </div>
@@ -254,6 +267,13 @@ function PushUpBattleContent() {
   const [lobbyInputCode, setLobbyInputCode] = useState(urlRoomCode ? normalizeRoomCode(urlRoomCode) : '');
   const [lobbyCopiedCode, setLobbyCopiedCode] = useState(false);
   const [lobbyCopiedLink, setLobbyCopiedLink] = useState(false);
+
+  const refreshGeneratedRoomCode = () => {
+    const newCode = generateRoomCode();
+    setLobbyGeneratedCode(newCode);
+    setLobbyCopiedCode(false);
+    setLobbyCopiedLink(false);
+  };
 
   // Battle Mode State
   const [opponentMode, setOpponentMode] = useState<OpponentMode>(
@@ -310,6 +330,7 @@ function PushUpBattleContent() {
 
   // Online Duel Room State
   const roomManagerRef = useRef<DuelRoomManager | null>(null);
+  const [roomManager, setRoomManager] = useState<DuelRoomManager | null>(null);
   const [roomCode, setRoomCode] = useState<string>(urlRoomCode ? normalizeRoomCode(urlRoomCode) : '');
   const [roomRole, setRoomRole] = useState<PlayerRole>(urlAction === 'create' ? 'host' : 'guest');
   const [roomStatus, setRoomStatus] = useState<'idle' | 'connecting' | 'waiting' | 'connected' | 'error'>('idle');
@@ -326,8 +347,9 @@ function PushUpBattleContent() {
 
   // WebRTC P2P Video Connection for Live Opponent Camera & DataChannel Pose Stream
   const { remoteStream, rtcStatus, sendPoseData } = useWebRtcDuel(
+    roomCode,
     localStream,
-    roomManagerRef,
+    roomManager,
     Boolean(roomOpponent),
     roomRole,
     (pose) => {
@@ -416,6 +438,7 @@ function PushUpBattleContent() {
         roomManagerRef.current.disconnect();
         roomManagerRef.current = null;
       }
+      setRoomManager(null);
     };
   }, []);
 
@@ -479,6 +502,7 @@ function PushUpBattleContent() {
     setupRoomListeners(manager);
     manager.connect();
     roomManagerRef.current = manager;
+    setRoomManager(manager);
   };
 
   const handleJoinRoom = (targetCode?: string) => {
@@ -504,6 +528,7 @@ function PushUpBattleContent() {
     setupRoomListeners(manager);
     manager.connect();
     roomManagerRef.current = manager;
+    setRoomManager(manager);
   };
 
   // Auto-connect room if URL parameter room is provided
@@ -524,6 +549,7 @@ function PushUpBattleContent() {
       roomManagerRef.current.disconnect();
       roomManagerRef.current = null;
     }
+    setRoomManager(null);
     setRoomCode('');
     setRoomOpponent(null);
     setRemotePose(null);
@@ -630,6 +656,9 @@ function PushUpBattleContent() {
   const returnToSelection = () => {
     handleLeaveRoom();
     stop();
+    setLobbyGeneratedCode(generateRoomCode());
+    setLobbyCopiedCode(false);
+    setLobbyCopiedLink(false);
     setBattleStage('selection');
   };
 
@@ -897,7 +926,7 @@ function PushUpBattleContent() {
                 onClick={launchBotBattleFromSelection}
                 className="w-full py-4 rounded-xl bg-cyan text-void font-bold text-sm font-display hover:bg-cyan/90 transition-all shadow-[var(--glow-cyan)] flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>⚡</span>
+                <IconBolt size={18} className="text-void" />
                 <span>{language === 'en' ? 'Start Battle vs Cyber Bot ▸' : 'Mulai Duel Lawan Robot ▸'}</span>
               </button>
             </div>
@@ -958,7 +987,7 @@ function PushUpBattleContent() {
                       : 'text-muted hover:text-white'
                   }`}
                 >
-                  <span>⚡</span>
+                  <IconBolt size={15} className="text-white" />
                   <span>{t.arena.createRoomTab}</span>
                 </button>
                 <button
@@ -970,7 +999,7 @@ function PushUpBattleContent() {
                       : 'text-muted hover:text-white'
                   }`}
                 >
-                  <span>🔑</span>
+                  <IconKey size={15} className="text-white" />
                   <span>{t.arena.joinRoomTab}</span>
                 </button>
               </div>
@@ -982,8 +1011,18 @@ function PushUpBattleContent() {
                     <span className="text-xs font-mono uppercase tracking-widest text-cyan font-bold">
                       {t.arena.roomCodeLabel}
                     </span>
-                    <div className="font-display text-4xl sm:text-5xl font-black tracking-widest text-white drop-shadow-[0_0_25px_rgba(255,0,122,0.7)]">
-                      {lobbyGeneratedCode}
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="font-display text-4xl sm:text-5xl font-black tracking-widest text-white drop-shadow-[0_0_25px_rgba(255,0,122,0.7)]">
+                        {lobbyGeneratedCode}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={refreshGeneratedRoomCode}
+                        className="p-2 sm:p-2.5 rounded-xl bg-white/5 border border-white/15 hover:border-cyan hover:bg-cyan/15 text-muted hover:text-cyan transition-all cursor-pointer shadow-[0_0_10px_rgba(0,229,255,0.1)] active:scale-95"
+                        title={language === 'en' ? 'Generate New Room Code' : 'Acak Kode Room Baru'}
+                      >
+                        <IconRadar size={18} className="hover:rotate-180 transition-transform duration-300 text-cyan" glow />
+                      </button>
                     </div>
                     <p className="text-xs font-mono text-muted">
                       {language === 'en'
@@ -995,17 +1034,17 @@ function PushUpBattleContent() {
                       <button
                         type="button"
                         onClick={() => copyLobbyText(lobbyGeneratedCode, 'code')}
-                        className="px-3.5 py-1.5 rounded-lg bg-magenta/15 border border-magenta/40 text-magenta text-xs font-mono font-bold hover:bg-magenta/25 transition-all flex items-center gap-1 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-lg bg-magenta/15 border border-magenta/40 text-magenta text-xs font-mono font-bold hover:bg-magenta/25 transition-all flex items-center gap-1.5 cursor-pointer"
                       >
-                        <span>📋</span>
+                        {lobbyCopiedCode ? <IconCheckmark size={14} className="text-magenta" glow /> : <IconCopy size={14} className="text-magenta" />}
                         <span>{lobbyCopiedCode ? t.arena.codeCopied : t.arena.copyRoomCode}</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => copyLobbyText(lobbyShareLink, 'link')}
-                        className="px-3.5 py-1.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan text-xs font-mono font-bold hover:bg-cyan/25 transition-all flex items-center gap-1 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan text-xs font-mono font-bold hover:bg-cyan/25 transition-all flex items-center gap-1.5 cursor-pointer"
                       >
-                        <span>🔗</span>
+                        {lobbyCopiedLink ? <IconCheckmark size={14} className="text-cyan" glow /> : <IconLink size={14} className="text-cyan" />}
                         <span>{lobbyCopiedLink ? t.arena.linkCopied : t.arena.copyRoomLink}</span>
                       </button>
                     </div>
@@ -1016,7 +1055,7 @@ function PushUpBattleContent() {
                     onClick={launchCreateRoomFromSelection}
                     className="w-full py-4 rounded-xl bg-gradient-to-r from-cyan to-magenta text-void font-bold text-sm font-display hover:shadow-[var(--glow-cyan)] transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>🚀</span>
+                    <IconBolt size={18} className="text-void" />
                     <span>{language === 'en' ? 'Create Room & Enter Arena ▸' : 'Buat Room & Masuk Arena ▸'}</span>
                   </button>
                 </div>
@@ -1045,7 +1084,7 @@ function PushUpBattleContent() {
                     disabled={!lobbyInputCode.trim()}
                     className="w-full py-4 rounded-xl bg-magenta text-white font-bold text-sm font-display hover:bg-magenta/80 transition-all shadow-[var(--glow-magenta)] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    <span>⚔️</span>
+                    <IconCombat size={16} className="text-white" />
                     <span>{t.arena.joinRoomBtn} ▸</span>
                   </button>
                 </div>
@@ -1058,11 +1097,14 @@ function PushUpBattleContent() {
             <button
               type="button"
               onClick={launchLocalPvPFromSelection}
-              className="text-xs font-mono text-muted hover:text-white underline transition-colors cursor-pointer"
+              className="text-xs font-mono text-muted hover:text-white underline transition-colors cursor-pointer inline-flex items-center gap-1.5"
             >
-              {language === 'en'
-                ? '🎮 Or play 2-Player on 1 Screen (Local PVP with keyboard)'
-                : '🎮 Atau main 2 Pemain dalam 1 Layar (PVP Lokal menggunakan keyboard)'}
+              <IconGamepad size={14} className="text-cyan" />
+              <span>
+                {language === 'en'
+                  ? 'Or play 2-Player on 1 Screen (Local PVP with keyboard)'
+                  : 'Atau main 2 Pemain dalam 1 Layar (PVP Lokal menggunakan keyboard)'}
+              </span>
             </button>
           </div>
         </div>
@@ -1109,7 +1151,7 @@ function PushUpBattleContent() {
           {/* Judul & Status Lobby */}
           <div className="text-center space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-magenta/15 border border-magenta/40 text-magenta text-xs font-mono font-bold tracking-widest uppercase mb-1">
-              <span>⚔️</span>
+              <IconCombat size={16} className="text-magenta" glow />
               <span>{t.arena.waitingRoomTitle}</span>
             </div>
             <h1 className="font-display text-2xl sm:text-4xl font-black text-white tracking-wide">
@@ -1125,8 +1167,8 @@ function PushUpBattleContent() {
           {/* Quick Share Code & Link Banner */}
           <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-white/10 bg-black/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_0_30px_rgba(0,0,0,0.4)]">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-xl bg-cyan/15 border border-cyan/40 flex items-center justify-center text-cyan text-2xl shadow-[0_0_15px_rgba(0,229,255,0.2)]">
-                🔑
+              <div className="w-12 h-12 rounded-xl bg-cyan/15 border border-cyan/40 flex items-center justify-center text-cyan shadow-[0_0_15px_rgba(0,229,255,0.2)]">
+                <IconKey size={26} className="text-cyan" glow />
               </div>
               <div>
                 <span className="text-[10px] font-mono text-cyan uppercase tracking-widest font-bold">
@@ -1147,7 +1189,7 @@ function PushUpBattleContent() {
                 onClick={() => copyToClipboard(roomCode, 'code')}
                 className="px-4 py-2 rounded-xl bg-cyan/15 border border-cyan/40 hover:bg-cyan/25 text-cyan text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(0,229,255,0.15)]"
               >
-                <span>📋</span>
+                {copiedCode ? <IconCheckmark size={14} className="text-cyan" glow /> : <IconCopy size={14} className="text-cyan" />}
                 <span>{copiedCode ? t.arena.codeCopied : t.arena.copyRoomCode}</span>
               </button>
               <button
@@ -1155,7 +1197,7 @@ function PushUpBattleContent() {
                 onClick={() => copyToClipboard(duelShareLink, 'link')}
                 className="px-4 py-2 rounded-xl bg-magenta/15 border border-magenta/40 hover:bg-magenta/25 text-magenta text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(255,0,122,0.15)]"
               >
-                <span>🔗</span>
+                {copiedLink ? <IconCheckmark size={14} className="text-magenta" glow /> : <IconLink size={14} className="text-magenta" />}
                 <span>{copiedLink ? t.arena.linkCopied : t.arena.copyRoomLink}</span>
               </button>
             </div>
@@ -1167,7 +1209,7 @@ function PushUpBattleContent() {
             <div className="glass-panel clip-corner border-2 border-cyan/50 p-4 bg-cyan/5 space-y-3 rounded-2xl relative overflow-hidden shadow-[0_0_30px_rgba(0,229,255,0.15)]">
               <div className="flex items-center justify-between border-b border-cyan/20 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">⚡</span>
+                  <IconBolt size={20} className="text-cyan" glow />
                   {roomRole === 'host' ? (
                     isEditingName ? (
                       <div className="flex items-center gap-1.5">
@@ -1199,10 +1241,10 @@ function PushUpBattleContent() {
                             setTempNameInput(localPlayerName);
                             setIsEditingName(true);
                           }}
-                          className="text-white/50 hover:text-cyan text-xs cursor-pointer px-1 py-0.5 rounded hover:bg-cyan/10 transition-all"
+                          className="text-white/50 hover:text-cyan text-xs cursor-pointer px-1 py-0.5 rounded hover:bg-cyan/10 transition-all flex items-center"
                           title="Ganti Nama"
                         >
-                          ✏️
+                          <IconEdit size={13} className="text-cyan" />
                         </button>
                       </div>
                     )
@@ -1230,7 +1272,7 @@ function PushUpBattleContent() {
                     />
                     {status === 'loading' && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-void/90 p-4 text-center space-y-2 z-20">
-                        <span className="text-2xl animate-spin">🌀</span>
+                        <IconRadar size={28} className="text-cyan animate-spin" glow />
                         <p className="font-mono text-xs text-cyan font-bold">{t.arena.battleCameraSensorConnecting}</p>
                       </div>
                     )}
@@ -1266,7 +1308,7 @@ function PushUpBattleContent() {
             <div className="glass-panel clip-corner border-2 border-magenta/50 p-4 bg-magenta/5 space-y-3 rounded-2xl relative overflow-hidden shadow-[0_0_30px_rgba(255,0,122,0.15)]">
               <div className="flex items-center justify-between border-b border-magenta/20 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">⚔️</span>
+                  <IconCombat size={20} className="text-magenta" glow />
                   {roomRole === 'guest' ? (
                     isEditingName ? (
                       <div className="flex items-center gap-1.5">
@@ -1298,10 +1340,10 @@ function PushUpBattleContent() {
                             setTempNameInput(localPlayerName);
                             setIsEditingName(true);
                           }}
-                          className="text-white/50 hover:text-magenta text-xs cursor-pointer px-1 py-0.5 rounded hover:bg-magenta/10 transition-all"
+                          className="text-white/50 hover:text-magenta text-xs cursor-pointer px-1 py-0.5 rounded hover:bg-magenta/10 transition-all flex items-center"
                           title="Ganti Nama"
                         >
-                          ✏️
+                          <IconEdit size={13} className="text-magenta" />
                         </button>
                       </div>
                     )
@@ -1326,8 +1368,8 @@ function PushUpBattleContent() {
                     <div className="absolute w-32 h-32 rounded-full border border-magenta/30" />
                     <div className="absolute w-20 h-20 rounded-full border border-magenta/40" />
                     <div className="relative z-10 flex flex-col items-center text-center p-4">
-                      <div className="w-12 h-12 rounded-full bg-magenta/20 border border-magenta/50 flex items-center justify-center text-2xl animate-pulse mb-2 shadow-[0_0_20px_rgba(255,0,122,0.4)]">
-                        📡
+                      <div className="w-12 h-12 rounded-full bg-magenta/20 border border-magenta/50 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(255,0,122,0.4)]">
+                        <IconRadar size={28} className="text-magenta animate-pulse" glow />
                       </div>
                       <p className="font-display font-bold text-sm text-white">{t.arena.waitingOpponent}</p>
                       <p className="text-[11px] font-mono text-muted mt-1 max-w-xs">
@@ -1346,7 +1388,7 @@ function PushUpBattleContent() {
                     />
                     {status === 'loading' && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-void/90 p-4 text-center space-y-2 z-20">
-                        <span className="text-2xl animate-spin">🌀</span>
+                        <IconRadar size={28} className="text-magenta animate-spin" glow />
                         <p className="font-mono text-xs text-magenta font-bold">{t.arena.battleCameraSensorConnecting}</p>
                       </div>
                     )}
@@ -1395,9 +1437,9 @@ function PushUpBattleContent() {
                     onClick={handleStartDuelAsHost}
                     className="w-full py-4 sm:py-5 rounded-2xl bg-gradient-to-r from-cyan via-emerald-400 to-magenta text-void font-display font-black text-lg sm:text-xl tracking-wider hover:opacity-95 transition-all shadow-[0_0_35px_rgba(0,229,255,0.4)] animate-pulse flex items-center justify-center gap-3 cursor-pointer"
                   >
-                    <span>⚡</span>
+                    <IconBolt size={22} className="text-void" />
                     <span>{language === 'en' ? 'START BATTLE (3-2-1 COUNTDOWN)' : 'MULAI PERTANDINGAN (HITUNG MUNDUR 3-2-1)'}</span>
-                    <span>⚔️</span>
+                    <IconCombat size={22} className="text-void" />
                   </button>
                   <p className="text-center text-xs font-mono text-muted">
                     {language === 'en'
@@ -1413,7 +1455,7 @@ function PushUpBattleContent() {
               )
             ) : (
               <div className="w-full p-4 sm:p-5 rounded-2xl bg-magenta/10 border border-magenta/40 text-center font-display text-sm sm:text-base font-bold text-white flex flex-col sm:flex-row items-center justify-center gap-3 shadow-[0_0_20px_rgba(255,0,122,0.15)]">
-                <span className="text-2xl animate-spin">🌀</span>
+                <IconRadar size={22} className="text-magenta animate-spin" glow />
                 <span>
                   {roomOpponent
                     ? t.arena.waitingForHost
@@ -1464,7 +1506,7 @@ function PushUpBattleContent() {
         {/* NOTIFIKASI LAWAN TERPUTUS */}
         {opponentLeftAlert && (
           <div className="rounded-xl border border-red-500/50 bg-red-500/15 p-4 text-center space-y-2 animate-fade-in">
-            <span className="text-2xl">⚠️</span>
+            <IconWarning size={28} className="text-red-400 mx-auto" glow />
             <div className="font-display text-sm font-bold text-red-400">
               {t.arena.opponentLeftNotice}
             </div>
@@ -1569,7 +1611,7 @@ function PushUpBattleContent() {
           <div className="glass-panel clip-corner border-2 border-cyan/50 p-4 bg-cyan/5 space-y-3 relative overflow-hidden shadow-[0_0_20px_rgba(0,229,255,0.15)]">
             <div className="flex items-center justify-between border-b border-cyan/20 pb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xl">⚡</span>
+                <IconBolt size={20} className="text-cyan" glow />
                 <span className="font-display font-bold text-base text-cyan">
                   {p1DisplayName}
                 </span>
@@ -1613,7 +1655,7 @@ function PushUpBattleContent() {
 
                 {status === 'loading' && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-void/90 p-4 text-center space-y-2 z-20">
-                    <span className="text-3xl animate-spin">🌀</span>
+                    <IconRadar size={32} className="text-cyan animate-spin" glow />
                     <p className="font-mono text-xs text-cyan font-bold">{t.arena.battleCameraSensorConnecting}</p>
                     <p className="text-[10px] text-muted max-w-xs">
                       {t.arena.battleCameraSensorDesc}
@@ -1624,7 +1666,7 @@ function PushUpBattleContent() {
                 {(status === 'error' || status === 'idle') && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-void/95 p-4 text-center space-y-2.5 z-20">
                     <div className="w-11 h-11 rounded-full bg-cyan/15 border border-cyan/40 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,229,255,0.25)]">
-                      📷
+                      <IconCamera size={24} className="text-cyan" glow />
                     </div>
                     <p className="font-display text-sm font-bold text-white">
                       {status === 'error' ? t.arena.battleCameraNotActive : t.arena.battleCameraActivate}
@@ -1645,8 +1687,15 @@ function PushUpBattleContent() {
                 {status === 'running' && (
                   <div className="absolute bottom-2 inset-x-2 flex items-center justify-between px-2.5 py-1 rounded bg-void/80 border border-cyan/40 text-[10px] font-mono z-10">
                     <span className="text-cyan font-bold">{t.arena.battleMotionTracker}</span>
-                    <span className={currentPhase === 'down' ? 'text-cyan font-bold' : 'text-muted'}>
-                      {currentPhase === 'down' ? `⚡ ${t.arena.battleChargingKi} (${depthPercent}%)` : `⬆ ${t.arena.battleTopPosition}`}
+                    <span className={currentPhase === 'down' ? 'text-cyan font-bold flex items-center gap-1' : 'text-muted'}>
+                      {currentPhase === 'down' ? (
+                        <>
+                          <IconBolt size={12} className="text-cyan" glow />
+                          <span>{t.arena.battleChargingKi} ({depthPercent}%)</span>
+                        </>
+                      ) : (
+                        `⬆ ${t.arena.battleTopPosition}`
+                      )}
                     </span>
                   </div>
                 )}
@@ -1673,16 +1722,21 @@ function PushUpBattleContent() {
                 {/* Pelacak Gerakan Lawan (Motion Tracker) */}
                 <div className="absolute bottom-2 inset-x-2 flex items-center justify-between px-2.5 py-1 rounded bg-void/80 border border-cyan/40 text-[10px] font-mono z-10">
                   <span className="text-cyan font-bold">{t.arena.battleMotionTracker}</span>
-                  <span className={remotePose?.currentPhase === 'down' ? 'text-cyan font-bold' : 'text-muted'}>
-                    {remotePose?.currentPhase === 'down'
-                      ? `⚡ ${t.arena.battleChargingKi} (${remotePose?.depthPercent ?? 0}%)`
-                      : `⬆ ${t.arena.battleTopPosition}`}
+                  <span className={remotePose?.currentPhase === 'down' ? 'text-cyan font-bold flex items-center gap-1' : 'text-muted'}>
+                    {remotePose?.currentPhase === 'down' ? (
+                      <>
+                        <IconBolt size={12} className="text-cyan" glow />
+                        <span>{t.arena.battleChargingKi} ({remotePose?.depthPercent ?? 0}%)</span>
+                      </>
+                    ) : (
+                      `⬆ ${t.arena.battleTopPosition}`
+                    )}
                   </span>
                 </div>
               </div>
             ) : (
               <div className="aspect-video w-full rounded-xl bg-black/60 border border-cyan/30 flex flex-col items-center justify-center p-4 text-center space-y-2">
-                <span className="text-4xl">⚡</span>
+                <IconBolt size={36} className="text-cyan" glow />
                 <p className="font-display text-sm font-bold text-white">{p1DisplayName}</p>
                 <p className="text-xs font-mono text-cyan">Player 1 (P1)</p>
                 <div className="w-full max-w-xs bg-white/10 h-2 rounded-full overflow-hidden mt-2">
@@ -1694,24 +1748,13 @@ function PushUpBattleContent() {
                 <span className="text-[11px] font-mono text-cyan font-bold">{p1Reps} Reps</span>
               </div>
             )}
-
-            {/* Indikator Serangan Push-Up Otomatis (Tanpa Tombol Manual) */}
-            <div className="px-3 py-2 rounded-lg bg-cyan/5 border border-cyan/20 flex items-center justify-between text-[11px] font-mono">
-              <span className="text-cyan flex items-center gap-1.5 font-bold">
-                <span className="w-2 h-2 rounded-full bg-cyan animate-pulse" />
-                <span>{t.arena.battleKamehameha}</span>
-              </span>
-              <span className="text-muted text-[10px]">
-                {language === 'en' ? 'Triggers via physical Push-Up' : 'Otomatis dari repetisi Push-Up'}
-              </span>
-            </div>
           </div>
 
           {/* SISI KANAN: PLAYER 2 (MAGENTA WARRIOR) */}
           <div className="glass-panel clip-corner border-2 border-magenta/50 p-4 bg-magenta/5 space-y-3 relative overflow-hidden shadow-[0_0_20px_rgba(255,0,122,0.15)]">
             <div className="flex items-center justify-between border-b border-magenta/20 pb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xl">🔥</span>
+                <IconFlame size={20} className="text-magenta" glow />
                 <span className="font-display font-bold text-base text-magenta">
                   {p2DisplayName}
                 </span>
@@ -1756,8 +1799,15 @@ function PushUpBattleContent() {
                 {status === 'running' && (
                   <div className="absolute bottom-2 inset-x-2 flex items-center justify-between px-2.5 py-1 rounded bg-void/80 border border-magenta/40 text-[10px] font-mono z-10">
                     <span className="text-magenta font-bold">{t.arena.battleMotionTracker}</span>
-                    <span className={currentPhase === 'down' ? 'text-magenta font-bold' : 'text-muted'}>
-                      {currentPhase === 'down' ? `🔥 ${t.arena.battleChargingKi} (${depthPercent}%)` : `⬆ ${t.arena.battleTopPosition}`}
+                    <span className={currentPhase === 'down' ? 'text-magenta font-bold flex items-center gap-1' : 'text-muted'}>
+                      {currentPhase === 'down' ? (
+                        <>
+                          <IconFlame size={12} className="text-magenta" glow />
+                          <span>{t.arena.battleChargingKi} ({depthPercent}%)</span>
+                        </>
+                      ) : (
+                        `⬆ ${t.arena.battleTopPosition}`
+                      )}
                     </span>
                   </div>
                 )}
@@ -1807,16 +1857,21 @@ function PushUpBattleContent() {
                 {/* Pelacak Gerakan Lawan (Motion Tracker) */}
                 <div className="absolute bottom-2 inset-x-2 flex items-center justify-between px-2.5 py-1 rounded bg-void/80 border border-magenta/40 text-[10px] font-mono z-10">
                   <span className="text-magenta font-bold">{t.arena.battleMotionTracker}</span>
-                  <span className={remotePose?.currentPhase === 'down' ? 'text-magenta font-bold' : 'text-muted'}>
-                    {remotePose?.currentPhase === 'down'
-                      ? `🔥 ${t.arena.battleChargingKi} (${remotePose?.depthPercent ?? 0}%)`
-                      : `⬆ ${t.arena.battleTopPosition}`}
+                  <span className={remotePose?.currentPhase === 'down' ? 'text-magenta font-bold flex items-center gap-1' : 'text-muted'}>
+                    {remotePose?.currentPhase === 'down' ? (
+                      <>
+                        <IconFlame size={12} className="text-magenta" glow />
+                        <span>{t.arena.battleChargingKi} ({remotePose?.depthPercent ?? 0}%)</span>
+                      </>
+                    ) : (
+                      `⬆ ${t.arena.battleTopPosition}`
+                    )}
                   </span>
                 </div>
               </div>
             ) : (
               <div className="aspect-video w-full rounded-xl bg-black/60 border border-magenta/30 flex flex-col items-center justify-center p-4 text-center space-y-2">
-                <span className="text-4xl">⚔️</span>
+                <IconCombat size={36} className="text-magenta" glow />
                 <p className="font-display text-sm font-bold text-white">{p2DisplayName}</p>
                 <p className="text-xs font-mono text-magenta">{t.arena.battleLocalChallenger}</p>
                 <div className="w-full max-w-xs bg-white/10 h-2 rounded-full overflow-hidden mt-2">
@@ -1828,19 +1883,6 @@ function PushUpBattleContent() {
                 <span className="text-[11px] font-mono text-magenta font-bold">{p2Reps} Reps</span>
               </div>
             )}
-
-            {/* Indikator Serangan Push-Up Otomatis (Tanpa Tombol Manual) */}
-            <div className="px-3 py-2 rounded-lg bg-magenta/5 border border-magenta/20 flex items-center justify-between text-[11px] font-mono">
-              <span className="text-magenta flex items-center gap-1.5 font-bold">
-                <span className="w-2 h-2 rounded-full bg-magenta animate-pulse" />
-                <span>{t.arena.battleFinalFlash}</span>
-              </span>
-              <span className="text-muted text-[10px]">
-                {opponentMode === 'ai_bot'
-                  ? (language === 'en' ? 'AI Bot Workout Rhythm' : 'Ritme Push-Up AI Bot')
-                  : (language === 'en' ? 'Triggers via physical Push-Up' : 'Otomatis dari repetisi Push-Up')}
-              </span>
-            </div>
           </div>
         </div>
       </div>

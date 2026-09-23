@@ -550,3 +550,138 @@ export const IconCheckmark: React.FC<IconProps> = ({ size = 16, className = 'tex
     <polyline points="20 6 9 17 4 12" />
   </svg>
 );
+
+// 27. KUNCI CYBER AKSI / ROOM PASSKEY (Menggantikan 🔑)
+export const IconKey: React.FC<IconProps> = ({ size = 20, className = 'text-cyan', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block transition-transform duration-200 ${glow ? 'drop-shadow-[0_0_8px_currentColor]' : ''} ${className}`}
+  >
+    <circle cx="7.5" cy="15.5" r="4.5" />
+    <path d="M21 2L10.7 12.3" />
+    <path d="M15.5 7.5L19 11" />
+    <path d="M18 5L20 7" />
+  </svg>
+);
+
+// 28. SALIN DOKUMEN CYBER (Menggantikan 📋)
+export const IconCopy: React.FC<IconProps> = ({ size = 16, className = 'text-current', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block ${glow ? 'drop-shadow-[0_0_6px_currentColor]' : ''} ${className}`}
+  >
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
+
+// 29. TAUTAN HIPERLINK CYBER (Menggantikan 🔗)
+export const IconLink: React.FC<IconProps> = ({ size = 16, className = 'text-current', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block ${glow ? 'drop-shadow-[0_0_6px_currentColor]' : ''} ${className}`}
+  >
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  </svg>
+);
+
+// 30. STYLUS / EDIT NAMA CYBER (Menggantikan ✏️)
+export const IconEdit: React.FC<IconProps> = ({ size = 16, className = 'text-current', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block ${glow ? 'drop-shadow-[0_0_6px_currentColor]' : ''} ${className}`}
+  >
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+);
+
+// 31. RADAR SCANNER & HOLOGRAPHIC LOADER (Menggantikan 🌀 dan 📡)
+export const IconRadar: React.FC<IconProps> = ({ size = 20, className = 'text-cyan', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block transition-transform duration-200 ${glow ? 'drop-shadow-[0_0_8px_currentColor]' : ''} ${className}`}
+  >
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 2a10 10 0 0 1 10 10" strokeWidth="2.5" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" fill="currentColor" />
+    <line x1="12" y1="12" x2="19" y2="5" strokeWidth="2" />
+  </svg>
+);
+
+// 32. KAMERA VIDEO BROADCAST (Menggantikan 📹)
+export const IconVideoCamera: React.FC<IconProps> = ({ size = 20, className = 'text-magenta', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block transition-transform duration-200 ${glow ? 'drop-shadow-[0_0_8px_currentColor]' : ''} ${className}`}
+  >
+    <rect x="2" y="6" width="13" height="12" rx="2" fill="currentColor" fillOpacity="0.15" />
+    <polygon points="22 7 15 12 22 17 22 7" fill="currentColor" />
+    <circle cx="8" cy="12" r="2.5" fill="currentColor" />
+  </svg>
+);
+
+// 33. CONTROLLER GAMEPAD CYBER (Menggantikan 🎮)
+export const IconGamepad: React.FC<IconProps> = ({ size = 18, className = 'text-current', glow = false }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`inline-block ${glow ? 'drop-shadow-[0_0_8px_currentColor]' : ''} ${className}`}
+  >
+    <path d="M6 12h4m-2-2v4" />
+    <circle cx="15.5" cy="10.5" r="1" fill="currentColor" />
+    <circle cx="18.5" cy="13.5" r="1" fill="currentColor" />
+    <rect x="2" y="6" width="20" height="12" rx="6" />
+  </svg>
+);
+

@@ -24,7 +24,7 @@ export interface GameControlEvent {
 }
 
 export interface WebRtcSignalData {
-  type: 'offer' | 'answer' | 'ice-candidate';
+  type: 'offer' | 'answer' | 'ice-candidate' | 'request_offer';
   sdp?: any;
   candidate?: any;
 }
