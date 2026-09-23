@@ -6,6 +6,7 @@ import {
   dismissEvaluationResult,
   getWeeklySeasonState,
   fetchRealLeaderboardCompetitors,
+  fetchRoomLeaderboardCompetitors,
   saveSeasonState,
 } from '@/modules/gamification/leaderboardStorage';
 import {
@@ -49,7 +50,7 @@ export default function LeaderboardPage() {
   const [activeEvaluation, setActiveEvaluation] = useState<SeasonEvaluationResult | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Load state on mount and sync real competitors from Supabase
+  // Load state on mount and sync room competitors from Supabase
   useEffect(() => {
     const state = getWeeklySeasonState();
     // Filter bot / fake competitors
@@ -60,14 +61,17 @@ export default function LeaderboardPage() {
       setActiveEvaluation(state.lastEvaluation);
     }
 
-    // Ambil pemain nyata dari Supabase profiles
-    fetchRealLeaderboardCompetitors(state.leagueId).then((realPlayers) => {
-      if (realPlayers && realPlayers.length > 0) {
+    // Ambil pemain dari room/cohort liga (maksimal 11 orang per room)
+    fetchRoomLeaderboardCompetitors(state.leagueId).then(({ competitors, roomData }) => {
+      if (competitors && competitors.length > 0) {
         setSeasonState((prev) => {
           if (!prev) return prev;
           const updated: WeeklySeasonState = {
             ...prev,
-            competitors: realPlayers,
+            competitors,
+            roomData: roomData || prev.roomData,
+            seasonStartDate: roomData?.seasonStartAt ? new Date(roomData.seasonStartAt).getTime() : prev.seasonStartDate,
+            seasonEndDate: roomData?.seasonEndAt ? new Date(roomData.seasonEndAt).getTime() : prev.seasonEndDate,
           };
           saveSeasonState(updated);
           return updated;
@@ -453,18 +457,32 @@ export default function LeaderboardPage() {
 
         {/* TABEL BRACKET 11 KONTESTAN */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h2 className="font-display text-xl font-bold text-white">
-                {t.leaderboard.weeklyBracketTitle}
-              </h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="font-display text-xl font-bold text-white">
+                  {t.leaderboard.weeklyBracketTitle}
+                </h2>
+                {seasonState.roomData?.roomCode && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border border-cyan/40 bg-cyan/10 text-cyan tracking-wider">
+                    {seasonState.roomData.roomCode}
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-muted">
                 {t.leaderboard.weeklyBracketDesc.replace('{league}', currentLeagueConfig.name)}
               </p>
             </div>
-            <span className="text-xs font-mono text-cyan">
-              {seasonState.competitors.length} {language === 'en' ? 'Players' : 'Pemain Nyata'}
-            </span>
+            <div className="text-left sm:text-right shrink-0">
+              <span className="text-xs font-mono text-cyan">
+                {seasonState.competitors.length} / 11 {language === 'en' ? 'Athletes' : 'Atlet'}
+              </span>
+              {seasonState.roomData?.roomCode && (
+                <div className="text-[10px] font-mono text-muted">
+                  {t.leaderboard.divisionLabel}: <span className="text-cyan font-bold">{seasonState.roomData.roomCode}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -627,6 +645,79 @@ export default function LeaderboardPage() {
                 </React.Fragment>
               );
             })}
+
+            {/* OPEN SLOTS (JIKA ANGGOTA ROOM MASIH KURANG DARI 11 ORANG) */}
+            {seasonState.competitors.length > 0 && seasonState.competitors.length < 11 && (
+              Array.from({ length: 11 - seasonState.competitors.length }).map((_, i) => {
+                const slotRank = seasonState.competitors.length + i + 1;
+                const slotZone = getRankZone(slotRank);
+                const isFirstOfZone =
+                  (slotRank === 4 && seasonState.competitors.length < 4) ||
+                  (slotRank === 9 && seasonState.competitors.length < 9);
+
+                return (
+                  <React.Fragment key={`open-slot-${slotRank}`}>
+                    {isFirstOfZone && (
+                      <div
+                        className={`pt-3 pb-1 flex items-center gap-2 font-mono text-xs uppercase font-bold tracking-wider ${
+                          slotZone === 'promotion'
+                            ? 'text-emerald-400'
+                            : slotZone === 'safe'
+                              ? 'text-cyan-400'
+                              : 'text-rose-400'
+                        }`}
+                      >
+                        <span>
+                          {slotZone === 'promotion' &&
+                            t.leaderboard.zonePromoHeader.replace(
+                              '{league}',
+                              getLocalizedLeague(nextTier, language).name
+                            )}
+                          {slotZone === 'safe' &&
+                            t.leaderboard.zoneSafeHeader.replace('{league}', currentLeagueConfig.name)}
+                          {slotZone === 'demotion' &&
+                            t.leaderboard.zoneDemoHeader.replace(
+                              '{league}',
+                              getLocalizedLeague(prevTier, language).name
+                            )}
+                        </span>
+                        <div
+                          className={`flex-1 h-px ${
+                            slotZone === 'promotion'
+                              ? 'bg-emerald-500/30'
+                              : slotZone === 'safe'
+                                ? 'bg-cyan-500/30'
+                                : 'bg-rose-500/30'
+                          }`}
+                        />
+                      </div>
+                    )}
+
+                    <div className="border border-dashed border-white/10 rounded-xl p-3 sm:p-3.5 flex items-center justify-between gap-3 bg-white/[0.01] hover:border-white/20 transition-colors opacity-60">
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="w-8 text-center font-mono font-bold text-xs sm:text-sm text-muted">
+                          #{slotRank}
+                        </div>
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg border border-dashed border-white/20 flex items-center justify-center text-muted/60 text-sm font-mono">
+                          +
+                        </div>
+                        <div>
+                          <div className="font-display font-medium text-xs sm:text-sm text-muted/80">
+                            {t.leaderboard.waitingChallenger}
+                          </div>
+                          <div className="text-[10px] font-mono text-muted/60">
+                            {t.leaderboard.slotOpen} · Slot {slotRank}/11
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right font-mono text-xs text-muted/40">
+                        0 EXP
+                      </div>
+                    </div>
+                  </React.Fragment>
+                );
+              })
+            )}
           </div>
         </div>
 

@@ -305,6 +305,10 @@ export const enTranslations: TranslationDictionary = {
     evalRetainedDesc: 'You finished the season at rank #{rank}, securing your position in {league}.',
     evalRelegatedDesc: 'You finished at rank #{rank}. Gear up in the new season to reclaim your promotion ticket!',
     startNextSeason: 'Start Season #{season} Now ▸',
+    divisionLabel: 'Division / Room',
+    waitingChallenger: 'Waiting for Challenger...',
+    slotOpen: 'Open Slot',
+    membersCount: '{current} / {max} Athletes',
   },
 
   arena: {

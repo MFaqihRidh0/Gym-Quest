@@ -297,6 +297,10 @@ export interface TranslationDictionary {
     evalRetainedDesc: string;
     evalRelegatedDesc: string;
     startNextSeason: string;
+    divisionLabel: string;
+    waitingChallenger: string;
+    slotOpen: string;
+    membersCount: string;
   };
 
   // Arena Mode

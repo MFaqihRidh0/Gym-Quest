@@ -9,6 +9,7 @@ import type {
   LeagueTier,
   SeasonEvaluationResult,
   WeeklySeasonState,
+  LeagueRoomData,
 } from './types';
 import { getUserProfile } from '../program-engine/storage';
 import { getSupabaseClient } from '@/lib/supabase/client';
@@ -213,6 +214,42 @@ export function addUserExp(
 
   const newRank = state.competitors.findIndex((c) => c.isUser) + 1;
 
+  // Kirim pembaruan EXP mingguan ke room liga di Supabase jika sedang login
+  try {
+    const client = getSupabaseClient();
+    if (client) {
+      (async () => {
+        try {
+          const { error } = await client.rpc('add_room_member_exp', { p_exp: expAmount });
+          if (error) {
+            // Fallback manual update jika RPC belum dibuat di Supabase
+            const { data } = await client.auth.getUser();
+            if (data?.user?.id) {
+              const { data: member } = await client
+                .from('league_room_members')
+                .select('id, weekly_exp')
+                .eq('user_id', data.user.id)
+                .order('joined_at', { ascending: false })
+                .limit(1)
+                .single();
+
+              if (member) {
+                await client
+                  .from('league_room_members')
+                  .update({ weekly_exp: (member.weekly_exp || 0) + expAmount })
+                  .eq('id', member.id);
+              }
+            }
+          }
+        } catch {
+          // Non-blocking
+        }
+      })();
+    }
+  } catch {
+    // Non-blocking
+  }
+
   return {
     newWeeklyExp: user.weeklyExp,
     newTotalExp: updatedTotal,
@@ -340,3 +377,138 @@ export async function fetchRealLeaderboardCompetitors(
     return [fallbackUser];
   }
 }
+
+export interface FetchRoomResult {
+  competitors: LeaderboardCompetitor[];
+  roomData: LeagueRoomData | null;
+}
+
+/**
+ * Mengambil daftar kompetitor khusus di dalam Room / Cohort (maksimal 11 orang).
+ * Jika user belum punya room aktif, RPC get_or_join_league_room akan memasangkan user ke room terbuka (<11 orang)
+ * atau membuat room baru jika room sebelumnya sudah penuh / lewat 24 jam.
+ */
+export async function fetchRoomLeaderboardCompetitors(
+  currentLeague: LeagueTier = 'iron',
+): Promise<FetchRoomResult> {
+  const client = getSupabaseClient();
+  const localProfile = getUserProfile();
+  const localTotalExp = getUserTotalExp();
+
+  const fallbackUser: LeaderboardCompetitor = {
+    id: 'user-current',
+    username: `${localProfile.username || 'Kamu'} (Kamu)`,
+    title: localProfile.goal ? `Target: ${localProfile.goal}` : LEAGUES_CONFIG[currentLeague]?.title || 'Gladiator',
+    avatar: localProfile.avatar || '⚔️',
+    level: Math.max(1, Math.floor(localTotalExp / 300) + 1),
+    weeklyExp: localTotalExp,
+    totalExp: localTotalExp,
+    isUser: true,
+    streakDays: localProfile.streakDays || 1,
+  };
+
+  if (!client) {
+    return { competitors: [fallbackUser], roomData: null };
+  }
+
+  try {
+    const { data: authData } = await client.auth.getUser();
+    const activeUserId = authData?.user?.id || null;
+
+    if (!activeUserId) {
+      const globalReal = await fetchRealLeaderboardCompetitors(currentLeague);
+      return { competitors: globalReal, roomData: null };
+    }
+
+    // 1. Panggil RPC get_or_join_league_room
+    const { data: rpcRes, error: rpcErr } = await client.rpc('get_or_join_league_room', {
+      p_league_tier: currentLeague,
+    });
+
+    if (rpcErr || !rpcRes || rpcRes.error) {
+      console.warn('RPC get_or_join_league_room not ready or error, fallback to profiles:', rpcErr || rpcRes?.error);
+      const globalReal = await fetchRealLeaderboardCompetitors(currentLeague);
+      return { competitors: globalReal, roomData: null };
+    }
+
+    const roomData: LeagueRoomData = {
+      roomId: rpcRes.room_id,
+      roomCode: rpcRes.room_code,
+      leagueTier: (rpcRes.league_tier as LeagueTier) || currentLeague,
+      seasonStartAt: rpcRes.season_start_at,
+      seasonEndAt: rpcRes.season_end_at,
+      memberCount: rpcRes.member_count || 1,
+      maxMembers: 11,
+      weeklyExp: rpcRes.weekly_exp || 0,
+    };
+
+    // 2. Ambil seluruh anggota room ini beserta profil mereka (maksimal 11 orang)
+    const { data: members, error: membersErr } = await client
+      .from('league_room_members')
+      .select(`
+        id,
+        user_id,
+        weekly_exp,
+        joined_at,
+        profiles (
+          id,
+          username,
+          avatar,
+          fitness_level,
+          streak_days,
+          total_exp
+        )
+      `)
+      .eq('room_id', roomData.roomId)
+      .order('weekly_exp', { ascending: false });
+
+    if (membersErr || !members || members.length === 0) {
+      return { competitors: [fallbackUser], roomData };
+    }
+
+    // Ubah format ke LeaderboardCompetitor
+    const competitors: LeaderboardCompetitor[] = members.map((m: any) => {
+      const prof = (Array.isArray(m.profiles) ? m.profiles[0] : m.profiles) || {};
+      const isThisUser = m.user_id === activeUserId;
+      const weeklyExp = Number(m.weekly_exp) || 0;
+      const totalExp = prof.total_exp ? Number(prof.total_exp) : weeklyExp;
+      const level = Math.max(1, Math.floor(totalExp / 300) + 1);
+      const title = prof.fitness_level
+        ? prof.fitness_level.charAt(0).toUpperCase() + prof.fitness_level.slice(1)
+        : 'Gladiator';
+
+      return {
+        id: m.user_id,
+        username: isThisUser
+          ? `${prof.username || localProfile.username || 'Kamu'} (Kamu)`
+          : (prof.username || 'Gladiator'),
+        title,
+        avatar: prof.avatar || '⚔️',
+        level,
+        weeklyExp,
+        totalExp,
+        isUser: isThisUser,
+        streakDays: prof.streak_days || 0,
+      };
+    });
+
+    // Pastikan user sendiri ada dalam list
+    const hasUser = competitors.some((c) => c.isUser);
+    if (!hasUser) {
+      competitors.push({
+        ...fallbackUser,
+        weeklyExp: roomData.weeklyExp || 0,
+      });
+    }
+
+    // Urutkan kembali berdasarkan weeklyExp terbesar
+    competitors.sort((a, b) => b.weeklyExp - a.weeklyExp);
+
+    return { competitors, roomData };
+  } catch (err) {
+    console.error('Failed to fetch room leaderboard competitors:', err);
+    const globalReal = await fetchRealLeaderboardCompetitors(currentLeague);
+    return { competitors: globalReal, roomData: null };
+  }
+}
+

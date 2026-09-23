@@ -305,6 +305,10 @@ export const idTranslations: TranslationDictionary = {
     evalRetainedDesc: 'Kamu mengakhiri musim di peringkat #{rank} dan mempertahankan posisimu di {league}.',
     evalRelegatedDesc: 'Kamu finis di peringkat #{rank}. Saatnya bangkit kembali di musim baru untuk merebut tiket promosi!',
     startNextSeason: 'Mulai Musim #{season} Sekarang ▸',
+    divisionLabel: 'Divisi / Room',
+    waitingChallenger: 'Menunggu Penantang Baru...',
+    slotOpen: 'Slot Terbuka',
+    membersCount: '{current} / {max} Atlet',
   },
 
   arena: {

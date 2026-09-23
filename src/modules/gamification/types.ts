@@ -38,6 +38,17 @@ export interface SeasonEvaluationResult {
   evaluatedAt: number;
 }
 
+export interface LeagueRoomData {
+  roomId: string;
+  roomCode: string;
+  leagueTier: LeagueTier;
+  seasonStartAt: string;
+  seasonEndAt: string;
+  memberCount: number;
+  maxMembers: number;
+  weeklyExp?: number;
+}
+
 export interface WeeklySeasonState {
   seasonNumber: number;
   leagueId: LeagueTier;
@@ -45,4 +56,6 @@ export interface WeeklySeasonState {
   seasonEndDate: number; // timestamp (startDate + 7 * 24 * 60 * 60 * 1000)
   competitors: LeaderboardCompetitor[];
   lastEvaluation?: SeasonEvaluationResult | null;
+  roomData?: LeagueRoomData | null;
 }
+
